@@ -1,0 +1,135 @@
+
+
+import React from 'react';
+import { Template, User } from '../../types';
+import FileInput from '../FileInput';
+import GenerationOutput from '../GenerationOutput';
+import SparklesIcon from '../icons/SparklesIcon';
+import ProFeatureBadge from '../ProFeatureBadge';
+import ChevronDownIcon from '../icons/ChevronDownIcon';
+
+type UploadedFile = { data: string; mimeType: string; name: string; dataUrl: string };
+
+interface VideoGeneratorLayoutProps {
+    selectedTemplate: Template;
+    user: User;
+    topic: string;
+    setTopic: (value: string) => void;
+    extraFields: { [key: string]: string };
+    handleFieldChange: (name: string, value: string) => void;
+    isLoading: boolean;
+    handleGenerate: () => void;
+    videoStatus: string;
+    videoUrl: string | null;
+    handleCopy: (content: string, templateName: string) => void;
+    uploadedImage: UploadedFile | null;
+    handleFileSelect: (file: UploadedFile | null) => void;
+    isVeoKeySelected: boolean;
+    handleSelectVeoKey: () => void;
+    veoKeyCheckError: string;
+}
+
+const LoadingSpinner: React.FC = () => (
+  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+);
+
+const VideoGeneratorLayout: React.FC<VideoGeneratorLayoutProps> = (props) => {
+    const {
+        selectedTemplate, user, topic, setTopic, extraFields, handleFieldChange,
+        isLoading, handleGenerate, videoStatus, videoUrl,
+        handleCopy, uploadedImage, handleFileSelect, isVeoKeySelected, handleSelectVeoKey, veoKeyCheckError
+    } = props;
+
+    return (
+        <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-8 lg:h-full">
+            {/* Input Column */}
+            <div className="lg:col-span-1 bg-slate-900 rounded-xl border border-slate-800/80 shadow-2xl shadow-black/30 flex flex-col p-6">
+                <div className="mb-6">
+                    <div className="flex items-center gap-3">
+                       <h1 className="text-2xl font-bold text-white">{selectedTemplate.name}</h1>
+                       <ProFeatureBadge />
+                    </div>
+                    <p className="text-slate-400 mt-1">{selectedTemplate.description}</p>
+                </div>
+                <div className="flex-1 flex flex-col gap-6 overflow-y-auto pr-2 -mr-2">
+                    <div className="space-y-2">
+                        <h3 className="text-sm font-semibold text-slate-300">1. Prompt</h3>
+                        <textarea
+                            id="topic"
+                            rows={5}
+                            value={topic}
+                            onChange={(e) => setTopic(e.target.value)}
+                            placeholder={selectedTemplate.placeholder}
+                            className="w-full bg-slate-800/50 border border-slate-700 rounded-lg p-3 text-white placeholder-slate-500 focus:ring-2 focus:ring-[var(--gradient-end)] focus:border-[var(--gradient-end)] transition"
+                        />
+                    </div>
+                     <div className="space-y-2">
+                        <h3 className="text-sm font-semibold text-slate-300">2. Starting Image (Optional)</h3>
+                        <FileInput 
+                            onFileSelect={handleFileSelect}
+                            acceptedTypes="image/png, image/jpeg, image/webp"
+                            label="Upload a starting image"
+                            value={uploadedImage}
+                        />
+                    </div>
+                    <div className="space-y-4">
+                         <h3 className="text-sm font-semibold text-slate-300">3. Settings</h3>
+                        {selectedTemplate.fields?.map(field => (
+                            <div key={field.name}>
+                                <label htmlFor={field.name} className="block text-sm font-medium text-slate-400 mb-1">{field.label}</label>
+                                <div className="relative">
+                                    <select 
+                                        id={field.name} 
+                                        value={extraFields[field.name] || ''} 
+                                        onChange={(e) => handleFieldChange(field.name, e.target.value)} 
+                                        className="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white focus:ring-2 focus:ring-[var(--gradient-end)] transition appearance-none"
+                                    >
+                                        {field.options?.map(option => <option key={option} value={option}>{option}</option>)}
+                                    </select>
+                                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-400">
+                                        <ChevronDownIcon className="w-5 h-5" />
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+                <div className="mt-auto pt-6 border-t border-slate-800">
+                    {isVeoKeySelected ? (
+                        <div className="text-xs text-center text-green-400 bg-green-900/30 p-2 rounded-md">API Key selected and ready.</div>
+                    ) : (
+                        <div className="p-3 bg-yellow-900/30 border border-yellow-700 text-yellow-300 text-sm rounded-lg text-center">
+                            <p className="font-semibold">Action Required</p>
+                            <p className="text-xs mb-2">Video generation requires selecting an API key. <a href="https://ai.google.dev/gemini-api/docs/billing" target="_blank" rel="noopener noreferrer" className="underline">Billing charges may apply.</a></p>
+                            <button onClick={handleSelectVeoKey} className="text-white bg-yellow-600/50 hover:bg-yellow-600/80 font-bold py-2 px-4 rounded-md text-sm">Select API Key</button>
+                            {veoKeyCheckError && <p className="text-red-400 text-xs mt-2">{veoKeyCheckError}</p>}
+                        </div>
+                    )}
+                    <button onClick={handleGenerate} disabled={isLoading} className="w-full mt-4 flex items-center justify-center bg-gradient-to-r from-[var(--gradient-start)] to-[var(--gradient-end)] hover:opacity-90 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-fuchsia-500/20">
+                        {isLoading ? <LoadingSpinner/> : <span className="flex items-center"><SparklesIcon className="w-5 h-5 mr-2" /> {user.plan === 'freemium' ? 'Upgrade to Generate Video' : 'Generate'}</span>}
+                    </button>
+                </div>
+            </div>
+
+            {/* Output Column */}
+             <div className="lg:col-span-2">
+                <GenerationOutput
+                    isLoading={isLoading}
+                    generatedContent={""} // Not used for video, url is used instead
+                    generatedContents={[]}
+                    activeVariation={0}
+                    setActiveVariation={() => {}}
+                    contentStats={{ words: 0, chars: 0 }}
+                    handleCopy={handleCopy}
+                    selectedTemplate={selectedTemplate}
+                    topic={topic}
+                    originalImageUrl={null}
+                    videoStatus={videoStatus}
+                    videoUrl={videoUrl}
+                />
+            </div>
+        </div>
+    );
+};
+
+export default VideoGeneratorLayout;
