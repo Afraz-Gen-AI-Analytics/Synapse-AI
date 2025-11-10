@@ -1,0 +1,222 @@
+import type React from 'react';
+
+export interface User {
+  uid: string; // Changed from id: number to uid: string
+  email: string;
+  displayName: string;
+  plan: 'freemium' | 'pro';
+  generationsUsed: number;
+  theme?: string; // e.g., 'Twilight', 'Sunrise'
+}
+
+export enum ContentType {
+  SocialMediaPost,
+  BlogIdea,
+  EmailCopy,
+  AdCopy,
+  VideoScriptHook,
+  Campaign,
+  AIImage,
+  AIImageEditor,
+  AIVideoGenerator,
+}
+
+export interface Template {
+  id: ContentType;
+  name: string;
+  description: string;
+  icon: React.FC<{ className?: string }>;
+  prompt?: (topic: string, tone: string, platform?: string, numOutputs?: number) => string;
+  placeholder?: string;
+  fields?: {
+    name: string;
+    label: string;
+    options?: string[];
+    defaultValue?: string;
+  }[];
+  isPro?: boolean;
+  supportsVariations?: boolean;
+}
+
+export interface HistoryItem {
+  id: string; // Changed from number
+  userId: string; // Changed from number
+  templateName: string;
+  content: string;
+  timestamp: string;
+  topic: string;
+}
+
+// --- Structured Content Types for Agents ---
+export type GeneratedContentType = 'social' | 'email' | 'ad' | 'blog' | 'unknown';
+
+export interface SocialPostContent {
+    type: 'social';
+    platform: 'Twitter' | 'LinkedIn' | 'Facebook';
+    copy: string;
+    hashtags: string;
+    imagePrompt: string;
+}
+
+export interface EmailContent {
+    type: 'email';
+    subject: string;
+    body: string;
+    cta: string;
+}
+
+export interface AdContent {
+    type: 'ad';
+    headline: string;
+    body: string;
+}
+
+export interface BlogContent {
+    type: 'blog';
+    ideas: {
+        title: string;
+        description: string;
+    }[];
+}
+
+
+// Add other content types as needed...
+export type GeneratedContent = SocialPostContent | EmailContent | AdContent | BlogContent;
+
+// --- Campaign Types ---
+
+export interface CampaignAsset {
+    id: string;
+    contentType: 'Social Media Post' | 'Marketing Email' | 'Ad Copy' | 'Blog Post Ideas';
+    description: string;
+    status: 'pending' | 'generating' | 'generated' | 'error';
+    content?: GeneratedContent;
+    error?: string;
+}
+
+export interface CampaignPhase {
+    name: string;
+    description: string;
+    assets: CampaignAsset[];
+}
+
+export interface Strategy {
+    campaignTitle: string;
+    phases: CampaignPhase[];
+}
+
+export interface CampaignHistoryItem {
+  id: string;
+  userId: string;
+  goal: string;
+  campaignTitle: string;
+  strategy: Strategy; // Using the exported Strategy type
+  timestamp: string;
+}
+
+
+// --- Agent Feature Types ---
+
+export enum AgentPersona {
+    SocialMediaManager = "Social Media Manager",
+    ContentStrategist = "Content Strategist",
+    EmailMarketer = "Email Marketer",
+    GrowthHacker = "Growth Hacker",
+}
+
+export interface Agent {
+    id: string; // Changed from number
+    userId: string; // Changed from number
+    name: string;
+    persona: AgentPersona;
+    goal: string;
+    status: 'planning' | 'active' | 'completed';
+    createdAt: string;
+    taskStats?: {
+        completed: number;
+        total: number;
+        needsReview: number;
+    };
+}
+
+
+
+
+export interface AgentTask {
+    id: string; // Changed from number
+    agentId: string; // Changed from number
+    userId: string;
+    description: string;
+    status: 'pending' | 'executing' | 'needs_review' | 'completed' | 'scheduled';
+    generatedContent?: string; // Can be simple markdown or stringified JSON of GeneratedContent
+    contentType?: 'Social Media Post' | 'Marketing Email' | 'Ad Copy' | 'Blog Post Ideas' | 'Unknown';
+    scheduledAt?: string;
+    postedUrl?: string;
+}
+
+export interface AgentLog {
+    id: string; // Changed from number
+    agentId: string; // Changed from number
+    userId:string;
+    message: string;
+    timestamp: string;
+}
+
+// --- Brand & Analytics ---
+
+export interface BrandProfile {
+    id: string; // Changed from number
+    userId: string; // Changed from number
+    brandName: string;
+    targetAudience: string;
+    messagingPillars: string;
+    toneOfVoice: string;
+    productDescription: string;
+    keywords: string;
+    socialMediaHandles: {
+        twitter: string;
+        linkedin: string;
+        facebook: string;
+    };
+    socialConnections?: {
+        twitter: boolean;
+        linkedin: boolean;
+        facebook: boolean;
+        email: boolean;
+    };
+}
+
+export interface Kpi {
+    label: string;
+    value: string;
+    change: string;
+    changeType: 'increase' | 'decrease';
+}
+
+export interface ChartData {
+    labels: string[];
+    values: number[];
+}
+
+export interface AgentStats {
+    active: number;
+    needsReview: number;
+    completed: number;
+    total: number;
+}
+
+export interface AnalyticsData {
+    kpis: Kpi[];
+    performanceByType: ChartData;
+    engagementOverTime: ChartData;
+    agentStats: AgentStats;
+}
+
+// --- Command Bar Types ---
+export interface ToolRoute {
+    toolId: string;
+    prefill: {
+        topic: string;
+        platform?: string;
+    };
+}
