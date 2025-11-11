@@ -1,5 +1,9 @@
 
 
+
+
+
+
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { ContentType, Template, HistoryItem, User, ToolRoute } from '../types';
 import { 
@@ -161,14 +165,14 @@ const templates: Template[] = [
   {
     id: ContentType.Campaign,
     name: "Campaign Builder",
-    description: "Generate a full marketing campaign from one brief.",
+    description: "Deploy a complete, multi-channel marketing strategy from a single goal.",
     icon: CampaignIcon,
     isPro: true,
   },
   {
     id: ContentType.AIImage,
     name: "AI Ad Creative",
-    description: "Generate stunning, high-conversion ad creatives and social media visuals in seconds. Describe your vision and let AI design professional images ready for your campaign.",
+    description: "Generate high-impact ad creatives and marketing visuals in seconds.",
     icon: ImageIcon,
     placeholder: "e.g., A vibrant banner ad for a summer sale on sunglasses, 16:9 aspect ratio",
     fields: [
@@ -179,14 +183,14 @@ const templates: Template[] = [
    {
     id: ContentType.AIImageEditor,
     name: "AI Image Editor",
-    description: "Instantly retouch, modify, or add elements to your existing images with simple text commands. Perfect for quick ad variations and social media updates.",
+    description: "Edit and transform your images with simple text commands.",
     icon: EditImageIcon,
     placeholder: "e.g., Add the text '50% OFF' in a bold, modern font to the top left corner",
   },
   {
     id: ContentType.AIVideoGenerator,
     name: "Marketing Video Ad",
-    description: "Produce short video ads, product showcases, and social media stories.",
+    description: "Create compelling video ads that capture attention and drive results.",
     icon: FilmIcon,
     placeholder: "e.g., A 5-second video ad showing a new perfume bottle with sparkles and light flares",
     fields: [
@@ -198,56 +202,130 @@ const templates: Template[] = [
   {
     id: ContentType.SocialMediaPost,
     name: "Social Media Post",
-    description: "Create posts for Twitter, LinkedIn, etc.",
+    description: "Craft engaging social media posts that build your audience.",
     icon: SocialIcon,
     placeholder: "e.g., Announcing a new AI-powered productivity app called 'Momentum'",
     fields: [
       { name: "platform", label: "Platform", options: ["Twitter", "LinkedIn", "Facebook"], defaultValue: "Twitter" }
     ],
     supportsVariations: true,
-    prompt: (topic, tone, platform = "Twitter", numOutputs = 1) => `Generate ${numOutputs} compelling and ${tone} social media post${numOutputs > 1 ? 's' : ''} for ${platform} about the following topic. Each post should be concise, professional, and include relevant hashtags.\n\n${numOutputs > 1 ? 'IMPORTANT: Use "[---VARIATION_SEPARATOR---]" on a new line with nothing else on it to separate each distinct post variation.' : ''}\n\nTopic: "${topic}"\n\nFormat each post using Markdown. Use **bold text** for emphasis.`
+    prompt: (topic, tone, platform = "Twitter", numOutputs = 1) => {
+        let platformInstruction = '';
+        switch (platform) {
+            case 'LinkedIn':
+                platformInstruction = `Generate a professional, insightful, and ${tone} LinkedIn post of approximately 4-6 sentences. It should be suitable for a professional audience, encourage discussion, and use strategic hashtags.`;
+                break;
+            case 'Facebook':
+                platformInstruction = `Generate an engaging, conversational, and ${tone} Facebook post of 2-3 short paragraphs. It should be designed to spark conversation, include 1-2 relevant emojis, and use popular hashtags.`;
+                break;
+            case 'Twitter':
+            default:
+                platformInstruction = `Generate a concise, impactful, and ${tone} tweet (under 280 characters). It must be attention-grabbing and include 2-3 highly relevant hashtags.`;
+                break;
+        }
+
+        return `You are an expert social media manager. Your sole task is to generate social media content.
+${platformInstruction}
+
+**CRITICAL RULES:**
+1.  **Direct Output Only:** Provide ONLY the direct post content. Do not include any introductory text, titles, conversational phrases like "Here is your post", or explanations.
+2.  **Tone:** The post must strictly adhere to a ${tone} tone.
+3.  **Formatting:** Use Markdown for emphasis (e.g., **bold text**).
+
+${numOutputs > 1 ? `IMPORTANT: Generate ${numOutputs} distinct post variations, separated by "[---VARIATION_SEPARATOR---]" on a new line with nothing else on it.` : ''}
+
+**Topic:** "${topic}"`
+    }
   },
   {
     id: ContentType.VideoScriptHook,
     name: "Video Script Hook",
-    description: "Generate catchy hooks for short videos.",
+    description: "Create irresistible video hooks that stop the scroll and boost watch time.",
     icon: VideoIcon,
     placeholder: "e.g., A productivity hack that saves me 2 hours a day",
-    prompt: (topic, tone) => `Generate a list of 3 short, catchy, and ${tone} video hooks for a TikTok or YouTube Short about the following topic. Each hook should be under 15 words and designed to grab attention immediately. Format as a Markdown numbered list. Topic: "${topic}"`
+    prompt: (topic, tone) => `You are a viral video scriptwriter specializing in creating high-retention short-form content. Your task is to generate 3 powerful video hooks for a TikTok or YouTube Short.
+
+**CRITICAL RULES:**
+1.  **Tone of Voice:** The hooks MUST strictly reflect the chosen tone: **${tone}**.
+2.  **Value First:** Each hook must grab immediate attention by promising clear, tangible value or sparking intense curiosity.
+3.  **Proven Frameworks:** Use different psychological triggers for each hook (e.g., ask a provocative question, state a surprising fact, challenge a common belief, promise a quick solution).
+4.  **Brevity:** Each hook must be under 15 words.
+
+Format the output as a Markdown numbered list.
+
+**Topic:** "${topic}"`
   },
   {
     id: ContentType.BlogIdea,
     name: "Blog Post Ideas",
-    description: "Generate a list of blog post ideas.",
+    description: "Discover viral blog ideas that attract readers and rank higher.",
     icon: BlogIcon,
     placeholder: "e.g., The future of renewable energy",
-    prompt: (topic, tone) => `Generate a list of 5 creative and ${tone} blog post titles and a brief one-sentence description for each, based on the following topic. Format the output as a Markdown numbered list. Make the title **bold**. Topic: "${topic}"`
+    supportsVariations: true,
+    prompt: (topic, tone, _, numOutputs = 1) => `You are an expert content strategist and SEO specialist. Your task is to generate ${numOutputs} highly professional and engaging blog post idea${numOutputs > 1 ? 's' : ''}.
+
+**CRITICAL RULES:**
+1.  **Tone of Voice:** The ideas MUST strictly reflect the chosen tone: **${tone}**.
+2.  **Value-Driven & Actionable:** Each idea MUST provide a clear, tangible benefit to the reader. Frame it as a solution, a guide, a list of secrets, or an actionable insight. Avoid generic or vague titles.
+3.  **Engaging & SEO-Optimized Titles:** The title must be compelling, creative, and optimized for search engines. It should spark curiosity and clearly communicate the value proposition.
+4.  **Formatting:** For each idea, provide:
+    - An engaging **Title**.
+    - A one-sentence **Description** that highlights the core benefit for the reader (e.g., "This post will teach you how to...", "Learn the framework for avoiding this common mistake...").
+
+${numOutputs > 1 ? 'IMPORTANT: Use "[---VARIATION_SEPARATOR---]" on a new line with nothing else on it to separate each distinct blog idea.' : ''}
+
+Format each idea using Markdown. Make the title **bold**.
+
+**Topic:** "${topic}"`
   },
   {
     id: ContentType.EmailCopy,
     name: "Marketing Email",
-    description: "Write persuasive email copy.",
+    description: "Write powerful, persuasive emails that turn subscribers into customers.",
     icon: EmailIcon,
     placeholder: "e.g., A 20% discount offer for returning customers",
     supportsVariations: true,
-    prompt: (topic, tone, _, numOutputs = 1) => `You are an expert marketing copywriter. Your sole task is to generate the direct email content. Do not include any extra conversational text, introductions, or explanations.
-Write ${numOutputs} persuasive and ${tone} marketing email${numOutputs > 1 ? 's' : ''} for the following purpose.
+    prompt: (topic, tone, _, numOutputs = 1) => `You are an expert marketing copywriter specializing in creating highly engaging and professional emails. Your sole task is to generate the direct email content. Do not include any extra conversational text, introductions, or explanations.
+
+Write ${numOutputs} persuasive marketing email${numOutputs > 1 ? 's' : ''} for the following purpose.
+
+**CRITICAL RULES:**
+1.  **Tone of Voice:** The email's style, language, and feeling MUST strictly reflect the chosen tone: **${tone}**.
+2.  **Emojis:** Incorporate 2-3 relevant emojis naturally within the email body. The emojis you choose must align perfectly with the selected tone. For example:
+    - If the tone is 'Professional', use emojis like ✅, 🚀, 📈.
+    - If the tone is 'Casual' or 'Enthusiastic', use emojis like 👋, 🎉, 😊, 🔥.
+    - If the tone is 'Witty', use emojis like 😉, 💡, 😜.
+3.  **Formatting:**
+    - Start with a heading for the subject line (e.g., '## Subject: ...').
+    - Use **bold text** for the primary call-to-action.
+
 ${numOutputs > 1 ? 'IMPORTANT: Use "[---VARIATION_SEPARATOR---]" on a new line with nothing else on it to separate each distinct email variation.' : ''}
 
-Format each email using Markdown.
-- Start with a heading for the subject line (e.g., '## Subject: ...').
-- Use **bold text** for the call-to-action.
-
-Purpose: "${topic}"`
+**Purpose:** "${topic}"`
   },
   {
     id: ContentType.AdCopy,
     name: "Ad Copy",
-    description: "Generate copy for Google/Facebook ads.",
+    description: "Create compelling ad copy that drives clicks and boosts your ROI.",
     icon: AdIcon,
     placeholder: "e.g., High-performance running shoes for trail running enthusiasts",
     supportsVariations: true,
-    prompt: (topic, tone, _, numOutputs = 1) => `Generate ${numOutputs} version${numOutputs > 1 ? 's' : ''} of compelling ad copy for the following product/service. Each version should have one punchy headline and a short, persuasive body text. The tone should be ${tone}.\n\n${numOutputs > 1 ? 'IMPORTANT: Use "[---VARIATION_SEPARATOR---]" on a new line with nothing else on it to separate each distinct ad copy variation.' : ''}\n\nFormat each version using Markdown, with '## Headline' and '## Body' sections.\n\nTopic: "${topic}"`
+    prompt: (topic, tone, _, numOutputs = 1) => `You are an expert direct-response copywriter focused exclusively on generating high-converting ad copy that drives action. For the topic below, generate ${numOutputs} ad copy version${numOutputs > 1 ? 's' : ''}.
+
+**CRITICAL RULES:**
+1.  **Tone of Voice:** The copy MUST strictly reflect the chosen tone: **${tone}**.
+2.  **Benefit-Driven:** Do not list features. Instead, focus entirely on the user's desired outcome and the value they will receive. Answer the question "What's in it for me?".
+3.  **Clear & Concise:** Use short, punchy sentences. Every word must earn its place.
+
+Each version MUST contain:
+1.  **A Headline:** Grabs attention by addressing a core user pain point or a powerful desired outcome.
+2.  **A Body:** Clearly explains the main benefit and how the product/service improves the user's life.
+
+${numOutputs > 1 ? 'IMPORTANT: Use "[---VARIATION_SEPARATOR---]" on a new line with nothing else on it to separate each distinct ad copy variation.' : ''}
+
+Format each version using Markdown, with '## Headline' and '## Body' sections.
+
+**Topic:** "${topic}"`
   }
 ];
 
@@ -513,7 +591,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
           // Once streaming is complete, process for variations
           const finalVariations = fullResponse.split('[---VARIATION_SEPARATOR---]').map(v => v.trim()).filter(Boolean);
           setGeneratedContents(finalVariations.length > 0 ? finalVariations : [fullResponse]);
-          await handleGenerationResult(finalVariations.length > 0 ? finalVariations[0] : fullResponse, topic, selectedTemplate.name);
+          await handleGenerationResult(fullResponse, topic, selectedTemplate.name);
       }
     } catch (e: any) {
         const errorMessage = e.message || "An unknown error occurred during generation.";
@@ -579,12 +657,24 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
         // Also display the image in the output canvas, to match the reuse behavior of the Marketing Image tool.
         setGeneratedContents([item.content]);
     } else {
-        // For AIImage and text templates, just show the content in the output panel
-        setGeneratedContents([item.content]);
+        const isTextTemplate = template.prompt !== undefined;
+        const variations = item.content.split('[---VARIATION_SEPARATOR---]').map(v => v.trim()).filter(Boolean);
+        
+        if (isTextTemplate && variations.length > 1) {
+            setGeneratedContents(variations);
+            setNumOutputs(variations.length > 3 ? 3 : variations.length);
+            setActiveVariation(0);
+        } else {
+            // This handles AIImage, single-variation text outputs, and old history items.
+            const contentToShow = variations.length > 0 ? variations[0] : item.content;
+            setGeneratedContents([contentToShow]);
+            setNumOutputs(1);
+            setActiveVariation(0);
+        }
     }
 
     window.scrollTo(0, 0);
-  }, []);
+  }, [templates]);
   
   const handleEdit = useCallback((item: HistoryItem) => {
     const editTemplate = templates.find(t => t.id === ContentType.AIImageEditor);

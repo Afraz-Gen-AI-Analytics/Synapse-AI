@@ -214,15 +214,18 @@ const GenerationOutput: React.FC<GenerationOutputProps> = (props) => {
 
             {generatedContents.length > 1 && !isLoading && (
                 <div className="flex border-b border-slate-800 px-4 flex-shrink-0">
-                    {generatedContents.map((_, index) => (
-                        <button
-                            key={index}
-                            onClick={() => setActiveVariation(index)}
-                            className={`px-4 py-2 text-sm font-semibold transition-colors focus:outline-none -mb-px ${activeVariation === index ? 'text-white border-b-2 border-[var(--gradient-end)]' : 'text-slate-400 hover:text-white border-b-2 border-transparent'}`}
-                        >
-                            Variation {index + 1}
-                        </button>
-                    ))}
+                    {generatedContents.map((_, index) => {
+                        const label = selectedTemplate.id === ContentType.BlogIdea ? 'Idea' : 'Variation';
+                        return (
+                            <button
+                                key={index}
+                                onClick={() => setActiveVariation(index)}
+                                className={`px-4 py-2 text-sm font-semibold transition-colors focus:outline-none -mb-px ${activeVariation === index ? 'text-white border-b-2 border-[var(--gradient-end)]' : 'text-slate-400 hover:text-white border-b-2 border-transparent'}`}
+                            >
+                                {label} {index + 1}
+                            </button>
+                        );
+                    })}
                 </div>
             )}
 

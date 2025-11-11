@@ -1,6 +1,7 @@
 
 
 
+
 import { GoogleGenAI, GenerateContentResponse, Type, Modality } from "@google/genai";
 import { BrandProfile, ToolRoute } from "../types";
 
@@ -291,7 +292,7 @@ export async function generateCampaignStrategy(goal: string, brandProfile: Brand
 }
 
 export async function generateCampaignAsset(taskDescription: string, contentType: string, brandProfile: BrandProfile): Promise<any> {
-    const prompt = `
+    let prompt = `
         You are an AI Agent with the persona of a skilled marketer. Your task is: "${taskDescription}".
         Brand info:
         - Brand Name: ${brandProfile.brandName}, Tone: ${brandProfile.toneOfVoice}, Product: ${brandProfile.productDescription}
@@ -300,6 +301,22 @@ export async function generateCampaignAsset(taskDescription: string, contentType
     let schema;
 
     if (contentType === 'Social Media Post') {
+        prompt = `
+            You are an AI social media manager executing a single task from a larger campaign.
+            **Task:** "${taskDescription}"
+            **Brand Info:**
+            - Tone: ${brandProfile.toneOfVoice}
+            - Product: ${brandProfile.productDescription}
+            
+            Based on the task, choose the MOST appropriate platform ('Twitter', 'LinkedIn', 'Facebook') and generate the content for it.
+
+            **PLATFORM-SPECIFIC CONTENT RULES:**
+            - If you choose **Twitter**, the 'copy' must be concise and under 280 characters.
+            - If you choose **LinkedIn**, the 'copy' must be professional and longer, around 4-6 sentences.
+            - If you choose **Facebook**, the 'copy' must be engaging and conversational, 2-3 short paragraphs.
+            
+            Generate the required content in the structured JSON format.
+        `;
          schema = {
             type: Type.OBJECT, properties: {
                 type: { type: Type.STRING, description: "Must be 'social'" }, platform: { type: Type.STRING, enum: ['Twitter', 'LinkedIn', 'Facebook'] },

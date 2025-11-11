@@ -1,5 +1,4 @@
 
-
 import React from 'react';
 import { Template, ContentType } from '../../types';
 import GenerationOutput from '../GenerationOutput'; // New component for the output panel
@@ -41,11 +40,12 @@ const TextGeneratorLayout: React.FC<TextGeneratorLayoutProps> = (props) => {
     } = props;
     
     const isImageTool = selectedTemplate.id === ContentType.AIImage;
+    const isBlogTool = selectedTemplate.id === ContentType.BlogIdea;
 
     return (
         <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-6 lg:h-full">
             {/* Input Column */}
-            <div className="bg-slate-900 rounded-xl border border-slate-800/80 shadow-2xl shadow-black/30 flex flex-col p-6">
+            <div className="bg-gradient-to-br from-slate-900 to-slate-950 rounded-xl border border-slate-800/80 shadow-2xl shadow-black/30 flex flex-col p-6">
                 <div className="mb-6 flex-shrink-0">
                   <h1 className="text-2xl font-bold text-white">{selectedTemplate.name}</h1>
                   <p className="text-slate-400 mt-1">{selectedTemplate.description}</p>
@@ -75,7 +75,7 @@ const TextGeneratorLayout: React.FC<TextGeneratorLayoutProps> = (props) => {
                             <div className="space-y-6">
                                 {selectedTemplate.supportsVariations && (
                                     <div>
-                                        <label htmlFor="numOutputs" className="block text-sm font-medium text-slate-300 mb-2">Number of Outputs</label>
+                                        <label htmlFor="numOutputs" className="block text-sm font-medium text-slate-300 mb-2">{isBlogTool ? 'Number of Ideas' : 'Number of Outputs'}</label>
                                         <div className="relative">
                                             <select id="numOutputs" value={numOutputs} onChange={e => setNumOutputs(Number(e.target.value))} className="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white focus:ring-2 focus:ring-[var(--gradient-end)] focus:border-[var(--gradient-end)] transition appearance-none">
                                                 <option value={1}>1</option>

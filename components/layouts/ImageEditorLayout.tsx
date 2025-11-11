@@ -31,9 +31,9 @@ const ImageEditorLayout: React.FC<ImageEditorLayoutProps> = (props) => {
     } = props;
 
     return (
-        <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-8 lg:h-full">
+        <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-6 lg:h-full">
             {/* Input Column */}
-            <div className="lg:col-span-1 bg-slate-900 rounded-xl border border-slate-800/80 shadow-2xl shadow-black/30 flex flex-col p-6">
+            <div className="bg-gradient-to-br from-slate-900 to-slate-950 rounded-xl border border-slate-800/80 shadow-2xl shadow-black/30 flex flex-col p-6">
                 <div className="mb-6">
                     <h1 className="text-2xl font-bold text-white">{selectedTemplate.name}</h1>
                     <p className="text-slate-400 mt-1">{selectedTemplate.description}</p>
@@ -70,22 +70,20 @@ const ImageEditorLayout: React.FC<ImageEditorLayoutProps> = (props) => {
             </div>
 
             {/* Output Column */}
-            <div className="lg:col-span-2">
-                 <GenerationOutput
-                    isLoading={isLoading}
-                    generatedContent={generatedContent}
-                    generatedContents={generatedContent ? [generatedContent] : []}
-                    activeVariation={0}
-                    setActiveVariation={() => {}}
-                    contentStats={{ words: 0, chars: 0 }}
-                    handleCopy={handleCopy}
-                    selectedTemplate={selectedTemplate}
-                    topic={topic}
-                    originalImageUrl={originalImageUrl}
-                    videoStatus=""
-                    videoUrl={null}
-                />
-            </div>
+            <GenerationOutput
+                isLoading={isLoading}
+                generatedContent={generatedContent}
+                generatedContents={generatedContent ? [generatedContent] : []}
+                activeVariation={0}
+                setActiveVariation={() => {}}
+                contentStats={{ words: 0, chars: 0 }}
+                handleCopy={handleCopy}
+                selectedTemplate={selectedTemplate}
+                topic={topic}
+                originalImageUrl={originalImageUrl}
+                videoStatus=""
+                videoUrl={null}
+            />
         </div>
     );
 };
