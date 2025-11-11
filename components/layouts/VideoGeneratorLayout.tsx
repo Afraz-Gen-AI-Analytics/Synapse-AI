@@ -1,5 +1,4 @@
 
-
 import React from 'react';
 import { Template, User } from '../../types';
 import FileInput from '../FileInput';
@@ -43,7 +42,7 @@ const VideoGeneratorLayout: React.FC<VideoGeneratorLayoutProps> = (props) => {
     return (
         <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-6 lg:h-full">
             {/* Input Column */}
-            <div className="bg-gradient-to-br from-slate-900 via-slate-950 to-black rounded-xl border border-slate-800/80 shadow-2xl shadow-black/30 flex flex-col p-6">
+            <div className="bg-gradient-to-br from-slate-900 to-slate-950 rounded-xl border border-slate-800/80 shadow-2xl shadow-black/30 flex flex-col p-6">
                 <div className="mb-6">
                     <div className="flex items-center gap-3">
                        <h1 className="text-2xl font-bold text-white">{selectedTemplate.name}</h1>
