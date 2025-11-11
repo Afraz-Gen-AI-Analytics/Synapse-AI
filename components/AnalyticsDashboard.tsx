@@ -6,6 +6,7 @@ import SparklesIcon from './icons/SparklesIcon';
 import TrendingUpIcon from './icons/TrendingUpIcon';
 import CheckCircleIcon from './icons/CheckCircleIcon';
 import EyeIcon from './icons/EyeIcon';
+import LineChart from './LineChart';
 
 interface AnalyticsDashboardProps {
     user: User;
@@ -14,204 +15,209 @@ interface AnalyticsDashboardProps {
 const kpiIcons = [SparklesIcon, AgentIcon, TrendingUpIcon, TrendingUpIcon];
 
 const KpiCard: React.FC<Kpi & { icon: React.FC<{className?: string}>, delay: number }> = ({ label, value, change, changeType, icon: Icon, delay }) => (
-    <div className="bg-slate-900 p-5 rounded-xl border border-slate-800/80 shadow-lg shadow-black/30 transition-all duration-300 hover:border-[var(--gradient-end)]/50 hover:-translate-y-1 animate-fade-in-up" style={{ animationDelay: `${delay}ms`}}>
-        <div className="flex items-center space-x-4">
-            <div className="p-3 rounded-lg bg-slate-800/50">
+    <div 
+        className="bg-slate-900/50 p-5 rounded-xl border border-slate-800/80 shadow-lg shadow-black/30 transition-all duration-300 hover:border-[var(--gradient-end)]/50 hover:-translate-y-1 relative overflow-hidden group animate-fade-in-up" 
+        style={{ animationDelay: `${delay}ms` }}
+    >
+        <div 
+            className="absolute -top-1/2 -left-1/2 w-full h-full bg-gradient-to-br from-[var(--gradient-start)] to-transparent opacity-0 group-hover:opacity-10 transition-opacity duration-500"
+            style={{ transform: 'rotate(-45deg)' }}
+        />
+        <div className="relative flex items-center space-x-4">
+             <div className="p-3 rounded-lg bg-slate-800/50 border border-slate-700/50">
                 <Icon className="w-6 h-6 text-[var(--gradient-start)]"/>
             </div>
             <div>
                 <p className="text-sm font-medium text-slate-400">{label}</p>
                 <div className="flex items-baseline space-x-2">
                     <p className="text-2xl font-bold text-white">{value}</p>
-                    <p className={`text-sm font-semibold ${changeType === 'increase' ? 'text-green-400' : 'text-red-400'}`}>
-                        {change}
-                    </p>
+                    {change && (
+                        <p className={`text-sm font-semibold ${changeType === 'increase' ? 'text-green-400' : 'text-red-400'}`}>
+                            {change}
+                        </p>
+                    )}
                 </div>
             </div>
         </div>
     </div>
 );
 
-interface TooltipData {
-    visible: boolean;
-    x: number;
-    y: number;
-    content: React.ReactNode;
-}
 
 const BarChart: React.FC<{ data: ChartData }> = ({ data }) => {
     const chartRef = useRef<HTMLDivElement>(null);
-    const [tooltip, setTooltip] = useState<TooltipData>({ visible: false, x: 0, y: 0, content: null });
+    const [isVisible, setIsVisible] = useState(false);
+
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                if (entry.isIntersecting) {
+                    setIsVisible(true);
+                    observer.unobserve(entry.target);
+                }
+            },
+            { threshold: 0.3 }
+        );
+
+        const currentRef = chartRef.current;
+        if (currentRef) {
+            observer.observe(currentRef);
+        }
+
+        return () => {
+            if (currentRef) {
+                observer.unobserve(currentRef);
+            }
+        };
+    }, []);
+
     const maxValue = useMemo(() => Math.max(...data.values, 1), [data.values]);
     const colors = ['#E025F0', '#4190F2', '#13B1B7', '#FFD700', '#FF4500'];
 
-    const handleMouseMove = (e: React.MouseEvent, index: number, value: number) => {
-        if (!chartRef.current) return;
-        const rect = chartRef.current.getBoundingClientRect();
-        const containerHeight = chartRef.current.clientHeight;
-        const barHeight = (value / maxValue) * containerHeight;
-
-        setTooltip({
-            visible: true,
-            x: e.clientX - rect.left,
-            y: containerHeight - barHeight,
-            content: (
-                <>
-                    <span className="font-semibold">{data.labels[index]}</span>: {data.values[index]}
-                </>
-            ),
-        });
-    };
-
     return (
-        <div ref={chartRef} onMouseLeave={() => setTooltip(prev => ({ ...prev, visible: false }))} className="w-full h-full relative flex items-end gap-3 px-4 pt-4">
-            {data.values.map((value, index) => (
-                <div
-                    key={index}
-                    className="flex-1 h-full flex flex-col justify-end items-center group"
-                    onMouseMove={(e) => handleMouseMove(e, index, value)}
-                >
-                    <div
-                        className="w-full rounded-t-md transition-all duration-300 group-hover:opacity-100 opacity-80"
-                        style={{
-                            height: `${(value / maxValue) * 100}%`,
-                            background: `linear-gradient(to top, ${colors[index % colors.length]}40, ${colors[index % colors.length]}99)`,
-                            transitionProperty: 'height',
-                            transitionDuration: '1s',
-                            transitionTimingFunction: 'ease-out',
-                            transitionDelay: `${150 + index * 100}ms`
-                        }}
-                    ></div>
-                    <p className="text-xs text-slate-400 mt-2 whitespace-nowrap">{data.labels[index]}</p>
-                </div>
-            ))}
-            {tooltip.visible && (
-                <div
-                    className="absolute p-2 bg-slate-800 border border-slate-700 text-white text-xs rounded-md shadow-lg pointer-events-none transition-opacity"
-                    style={{
-                        left: `${tooltip.x}px`,
-                        top: `${tooltip.y}px`,
-                        transform: 'translate(-50%, -100%) translateY(-8px)',
-                        opacity: 1
-                    }}
-                >
-                    {tooltip.content}
-                </div>
-            )}
+        <div ref={chartRef} className="w-full h-full flex justify-around items-end gap-2 sm:gap-4 px-2">
+            {data.labels.map((label, index) => {
+                const value = data.values[index];
+                const heightPercentage = (value / maxValue) * 100;
+                return (
+                    <div key={index} className="flex-1 flex flex-col items-center h-full justify-end group max-w-[60px]">
+                        {/* Value Label */}
+                        <div 
+                            className={`text-xs sm:text-sm font-bold text-white mb-1 transition-opacity duration-700 ${isVisible ? 'opacity-100' : 'opacity-0'}`}
+                            style={{ transitionDelay: `${500 + index * 100}ms` }}
+                        >
+                            {value}
+                        </div>
+                        {/* Bar */}
+                        <div
+                            className="w-full rounded-t-md transition-all duration-1000 ease-out relative"
+                            style={{
+                                height: isVisible ? `${heightPercentage}%` : '0%',
+                                background: `linear-gradient(to top, ${colors[index % colors.length]}70, ${colors[index % colors.length]}FF)`,
+                                boxShadow: isVisible ? `0 0 12px ${colors[index % colors.length]}50` : 'none',
+                                transitionDelay: `${150 + index * 100}ms`
+                            }}
+                        >
+                           {/* Subtle glow element for a premium feel */}
+                           <div className="absolute -inset-x-1 bottom-0 h-1/2 bg-inherit rounded-t-md blur-md opacity-50 group-hover:opacity-75 transition-opacity"></div>
+                        </div>
+                        {/* Category Label */}
+                        <div className="text-xs text-slate-400 mt-2 text-center break-words">{label}</div>
+                    </div>
+                );
+            })}
         </div>
     );
 };
 
-const AreaChart: React.FC<{ data: ChartData }> = ({ data }) => {
-    const chartRef = useRef<SVGSVGElement>(null);
-    const [tooltip, setTooltip] = useState<TooltipData>({ visible: false, x: 0, y: 0, content: null });
-    const [indicator, setIndicator] = useState({ visible: false, x: 0, y: 0 });
 
-    const chartWidth = 500;
-    const chartHeight = 200;
+const AnimatedCounter: React.FC<{ value: number, isVisible: boolean }> = ({ value, isVisible }) => {
+    const [count, setCount] = useState(0);
 
-    const { points, path, areaPath } = useMemo(() => {
-        const maxValue = Math.max(...data.values, 1);
-        const minValue = 0;
-        const yRatio = (chartHeight - 20) / (maxValue - minValue);
-        const xRatio = data.values.length > 1 ? chartWidth / (data.values.length - 1) : chartWidth;
+    useEffect(() => {
+        if (isVisible && value > 0) {
+            let start = 0;
+            const end = value;
+            const duration = 1200;
+            const incrementTime = Math.max(1, duration / end);
 
-        const calculatedPoints = data.values.map((val, i) => {
-            const x = i * xRatio;
-            const y = chartHeight - ((val - minValue) * yRatio) - 10;
-            return { x, y, value: val, label: data.labels[i] };
-        });
+            const timer = setInterval(() => {
+                start += 1;
+                setCount(start);
+                if (start >= end) clearInterval(timer);
+            }, incrementTime);
 
-        const pathD = calculatedPoints.map((p, i) => i === 0 ? `M ${p.x} ${p.y}` : `L ${p.x} ${p.y}`).join(' ');
-        const areaPathD = `${pathD} L ${chartWidth} ${chartHeight} L 0 ${chartHeight} Z`;
-        
-        return { points: calculatedPoints, path: pathD, areaPath: areaPathD };
-    }, [data, chartWidth, chartHeight]);
+            return () => clearInterval(timer);
+        } else if (!isVisible) {
+            setCount(0);
+        } else {
+            setCount(value);
+        }
+    }, [isVisible, value]);
 
-    const handleMouseMove = (e: React.MouseEvent<SVGSVGElement>) => {
-        if (!chartRef.current) return;
-        const rect = chartRef.current.getBoundingClientRect();
-        const svgX = (e.clientX - rect.left) * (chartWidth / rect.width);
-        
-        const closestPoint = points.reduce((prev, curr) => 
-            Math.abs(curr.x - svgX) < Math.abs(prev.x - svgX) ? curr : prev
-        );
-        
-        setIndicator({ visible: true, x: closestPoint.x, y: closestPoint.y });
-        setTooltip({
-            visible: true,
-            x: closestPoint.x * (rect.width / chartWidth),
-            y: closestPoint.y * (rect.height / chartHeight),
-            content: (
-                <>
-                    <span className="font-semibold">{closestPoint.label}</span>: {closestPoint.value}
-                </>
-            ),
-        });
-    };
-
-    return (
-        <div className="w-full h-full relative">
-            <svg
-                ref={chartRef}
-                viewBox={`0 0 ${chartWidth} ${chartHeight}`}
-                className="w-full h-full overflow-visible"
-                onMouseMove={handleMouseMove}
-                onMouseLeave={() => { setTooltip(prev => ({ ...prev, visible: false })); setIndicator({ ...indicator, visible: false }); }}
-            >
-                <defs>
-                    <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="var(--gradient-start)" stopOpacity="0.4"/>
-                        <stop offset="100%" stopColor="var(--gradient-start)" stopOpacity="0"/>
-                    </linearGradient>
-                </defs>
-                <path d={areaPath} fill="url(#areaGradient)" />
-                <path d={path} fill="none" stroke="var(--gradient-start)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-                
-                {indicator.visible && (
-                    <>
-                        <line x1={indicator.x} y1="0" x2={indicator.x} y2={chartHeight} stroke="rgba(255,255,255,0.2)" strokeWidth="1" strokeDasharray="3 3"/>
-                        <circle cx={indicator.x} cy={indicator.y} r="4" fill="var(--gradient-start)" stroke="#0D1117" strokeWidth="2" />
-                    </>
-                )}
-            </svg>
-             {tooltip.visible && (
-                <div
-                    className="absolute p-2 bg-slate-800 border border-slate-700 text-white text-xs rounded-md shadow-lg pointer-events-none"
-                    style={{
-                        left: `${tooltip.x}px`,
-                        top: `${tooltip.y}px`,
-                        transform: 'translate(-50%, -100%) translateY(-8px)',
-                    }}
-                >
-                    {tooltip.content}
-                </div>
-            )}
-        </div>
-    );
-};
+    return <>{count}</>;
+}
 
 
 const AgentOverview: React.FC<{ data: AgentStats }> = ({ data }) => {
+    const chartRef = useRef<HTMLDivElement>(null);
+    const [isVisible, setIsVisible] = useState(false);
+
+    useEffect(() => {
+        const observer = new IntersectionObserver(([entry]) => {
+            if (entry.isIntersecting) {
+                setIsVisible(true);
+                observer.unobserve(entry.target);
+            }
+        }, { threshold: 0.5 });
+
+        const currentRef = chartRef.current;
+        if (currentRef) observer.observe(currentRef);
+        return () => { if (currentRef) observer.unobserve(currentRef); };
+    }, []);
+
     const stats = [
-        { label: 'Active', value: data.active, icon: AgentIcon, color: 'text-green-400' },
-        { label: 'Needs Review', value: data.needsReview, icon: EyeIcon, color: 'text-yellow-400' },
-        { label: 'Completed', value: data.completed, icon: CheckCircleIcon, color: 'text-fuchsia-400' },
+        { label: 'Active', value: data.active, color: '#4ade80' }, // text-green-400
+        { label: 'Needs Review', value: data.needsReview, color: '#facc15' }, // text-yellow-400
+        { label: 'Completed', value: data.completed, color: '#e879f9' }, // text-fuchsia-400
     ];
-     return (
-        <div className="h-full flex flex-col justify-around space-y-4">
-           {stats.map(({label, value, icon: Icon, color}) => (
-               <div key={label} className="flex items-center">
-                   <Icon className={`w-5 h-5 mr-4 flex-shrink-0 ${color}`} />
-                   <div className="flex-1">
-                       <p className="text-slate-300 text-sm font-medium">{label}</p>
-                   </div>
-                   <p className="text-lg font-bold text-white">{value}</p>
-               </div>
-           ))}
-            <div className="border-t border-slate-800 pt-3 flex justify-between items-baseline">
-                <p className="text-slate-300 text-sm font-medium">Total Agents</p>
-                <p className="text-2xl font-bold text-white">{data.total}</p>
+
+    const totalForCalc = data.total > 0 ? (data.active + data.needsReview + data.completed) : 1;
+    const radius = 50;
+    const circumference = 2 * Math.PI * radius;
+
+    let accumulatedPercentage = 0;
+    const segments = stats.map(stat => {
+        const percentage = (stat.value / totalForCalc);
+        const dasharray = percentage * circumference;
+        
+        const segmentData = {
+            ...stat,
+            dasharray: `${dasharray} ${circumference - dasharray}`,
+            offset: -accumulatedPercentage * circumference,
+        };
+        accumulatedPercentage += percentage;
+        return segmentData;
+    });
+
+    return (
+        <div ref={chartRef} className="h-full w-full flex flex-col items-center justify-center space-y-4">
+            <div className="relative w-40 h-40">
+                <svg viewBox="0 0 120 120" className="w-full h-full transform -rotate-90">
+                    <circle cx="60" cy="60" r={radius} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="12" />
+                    {segments.map((segment, index) => (
+                        <circle
+                            key={index}
+                            cx="60"
+                            cy="60"
+                            r={radius}
+                            fill="none"
+                            stroke={segment.color}
+                            strokeWidth="12"
+                            strokeDasharray={circumference}
+                            strokeDashoffset={isVisible ? segment.offset : circumference}
+                            strokeLinecap="round"
+                            style={{
+                                strokeDasharray: segment.dasharray,
+                                transition: 'stroke-dashoffset 1.5s cubic-bezier(0.25, 1, 0.5, 1)',
+                                transitionDelay: `${index * 100}ms`
+                            }}
+                        />
+                    ))}
+                </svg>
+                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                    <span className="text-4xl font-bold text-white"><AnimatedCounter value={data.total} isVisible={isVisible} /></span>
+                    <span className="text-sm text-slate-400">Total Agents</span>
+                </div>
+            </div>
+
+            <div className="flex flex-wrap justify-center gap-x-4 gap-y-1">
+                {stats.map(stat => (
+                    <div key={stat.label} className="flex items-center text-sm">
+                        <span className="w-2.5 h-2.5 rounded-full mr-2" style={{ backgroundColor: stat.color }}></span>
+                        <span className="text-slate-400">{stat.label}:</span>
+                        <span className="font-semibold text-white ml-1.5">{stat.value}</span>
+                    </div>
+                ))}
             </div>
         </div>
     );
@@ -237,14 +243,14 @@ const AnalyticsSkeleton: React.FC = () => (
                 <div className="h-6 bg-slate-800/50 rounded w-1/3 mb-4"></div>
                 <div className="flex-1 w-full bg-slate-800/50 rounded-md"></div>
             </div>
-            <div className="lg:col-span-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-6">
-                <div className="bg-slate-900 rounded-xl border border-slate-800/80 animate-pulse p-6 flex flex-col">
-                <div className="h-6 bg-slate-800/50 rounded w-1/2 mb-4"></div>
-                <div className="flex-1 w-full bg-slate-800/50 rounded-md"></div>
+            <div className="flex flex-col gap-6">
+                 <div className="bg-slate-900 rounded-xl border border-slate-800/80 animate-pulse p-6 flex flex-col flex-1">
+                    <div className="h-6 bg-slate-800/50 rounded w-1/2 mb-4"></div>
+                    <div className="flex-1 w-full bg-slate-800/50 rounded-md"></div>
                 </div>
-                <div className="bg-slate-900 rounded-xl border border-slate-800/80 animate-pulse p-6 flex flex-col">
-                <div className="h-6 bg-slate-800/50 rounded w-1/2 mb-4"></div>
-                <div className="flex-1 w-full bg-slate-800/50 rounded-md"></div>
+                 <div className="bg-slate-900 rounded-xl border border-slate-800/80 animate-pulse p-6 flex flex-col flex-1">
+                    <div className="h-6 bg-slate-800/50 rounded w-1/2 mb-4"></div>
+                    <div className="flex-1 w-full bg-slate-800/50 rounded-md"></div>
                 </div>
             </div>
         </div>
@@ -381,13 +387,14 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ user }) => {
     }, [user.uid]);
 
     const Panel: React.FC<{title: string, children: React.ReactNode, className?: string, delay: number}> = ({ title, children, className, delay }) => (
-        <div className={`bg-slate-900 rounded-xl border border-slate-800/80 shadow-2xl shadow-black/40 ${className} animate-fade-in-up transition-all duration-300 hover:border-[var(--gradient-end)]/50 hover:-translate-y-1`} style={{ animationDelay: `${delay}ms`}}>
-          <div className="p-6 flex flex-col h-full">
-            <h3 className="font-semibold text-white/90 mb-4 text-base flex-shrink-0">{title}</h3>
-            <div className="flex-grow relative">
+        <div 
+            className={`bg-slate-900/70 border border-slate-800 rounded-xl shadow-2xl shadow-black/40 flex flex-col animate-fade-in-up transition-all duration-300 group hover:-translate-y-1 hover:border-[var(--gradient-end)]/50 ${className}`}
+            style={{ animationDelay: `${delay}ms`, backgroundImage: 'radial-gradient(circle at 10% 10%, rgba(128, 128, 128, 0.05), transparent 40%)'}}
+        >
+            <h3 className="font-semibold text-white/90 text-lg p-6 pb-4 flex-shrink-0">{title}</h3>
+            <div className="flex-1 relative flex px-6 pb-6 pt-0">
                 {children}
             </div>
-          </div>
         </div>
     );
 
@@ -400,10 +407,9 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ user }) => {
     }
 
     return (
-        <div className="flex-1 flex flex-col h-full overflow-y-auto">
-            
+        <div className="flex-1 flex flex-col p-1">
             {/* KPI Banner */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6 flex-shrink-0">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 mb-6">
                 {data.kpis.map((kpi, index) => (
                     <KpiCard key={index} {...kpi} icon={kpiIcons[index]} delay={100 + index * 100} />
                 ))}
@@ -411,16 +417,17 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ user }) => {
 
             {/* Main Content Grid */}
             <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-2">
-                    <Panel title="Generations by Type" delay={400} className="min-h-[350px] lg:h-full">
-                        <BarChart data={data.performanceByType} />
+                {/* Main Chart */}
+                <Panel title="Generations by Type" delay={400} className="lg:col-span-2 min-h-[450px]">
+                    <BarChart data={data.performanceByType} />
+                </Panel>
+                
+                {/* Right Column */}
+                <div className="flex flex-col gap-6">
+                    <Panel title="Engagement Over Time (14d)" delay={500} className="min-h-[250px] flex-1">
+                        <LineChart data={data.engagementOverTime} />
                     </Panel>
-                </div>
-                <div className="lg:col-span-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-6">
-                    <Panel title="Activity Over Time" delay={500} className="min-h-[300px] lg:h-full">
-                        <AreaChart data={data.engagementOverTime} />
-                    </Panel>
-                    <Panel title="Agent Overview" delay={600} className="min-h-[300px] lg:h-full">
+                    <Panel title="Agent Overview" delay={600} className="min-h-[250px] flex-1">
                         <AgentOverview data={data.agentStats} />
                     </Panel>
                 </div>
