@@ -1,12 +1,21 @@
 import React, { useEffect, useState, useRef, useMemo } from 'react';
-import { User, AnalyticsData, ChartData, Kpi, AgentStats, HistoryItem, Agent } from '../types';
+import { User, AnalyticsData, ChartData, Kpi, AgentStats, HistoryItem } from '../types';
 import { getHistoryCollection, getAgentsCollection } from '../services/firebaseService';
 import AgentIcon from './icons/AgentIcon';
 import SparklesIcon from './icons/SparklesIcon';
 import TrendingUpIcon from './icons/TrendingUpIcon';
-import CheckCircleIcon from './icons/CheckCircleIcon';
-import EyeIcon from './icons/EyeIcon';
 import LineChart from './LineChart';
+
+// Icons for recent activity
+import SocialIcon from './icons/SocialIcon';
+import BlogIcon from './icons/BlogIcon';
+import EmailIcon from './icons/EmailIcon';
+import AdIcon from './icons/AdIcon';
+import VideoIcon from './icons/VideoIcon';
+import ImageIcon from './icons/ImageIcon';
+import EditImageIcon from './icons/EditImageIcon';
+import FilmIcon from './icons/FilmIcon';
+import CampaignIcon from './icons/CampaignIcon';
 
 interface AnalyticsDashboardProps {
     user: User;
@@ -238,41 +247,49 @@ const AnalyticsSkeleton: React.FC = () => (
             </div>
         ))}
         </div>
-        <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 bg-slate-900 rounded-xl border border-slate-800/80 animate-pulse p-6 flex flex-col">
-                <div className="h-6 bg-slate-800/50 rounded w-1/3 mb-4"></div>
-                <div className="flex-1 w-full bg-slate-800/50 rounded-md"></div>
-            </div>
-            <div className="flex flex-col gap-6">
-                 <div className="bg-slate-900 rounded-xl border border-slate-800/80 animate-pulse p-6 flex flex-col flex-1">
-                    <div className="h-6 bg-slate-800/50 rounded w-1/2 mb-4"></div>
+        <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-6">
+            {[...Array(4)].map((_, i) => (
+                <div key={i} className="bg-slate-900 rounded-xl border border-slate-800/80 animate-pulse p-6 flex flex-col min-h-[400px]">
+                    <div className="h-6 bg-slate-800/50 rounded w-1/3 mb-4"></div>
                     <div className="flex-1 w-full bg-slate-800/50 rounded-md"></div>
                 </div>
-                 <div className="bg-slate-900 rounded-xl border border-slate-800/80 animate-pulse p-6 flex flex-col flex-1">
-                    <div className="h-6 bg-slate-800/50 rounded w-1/2 mb-4"></div>
-                    <div className="flex-1 w-full bg-slate-800/50 rounded-md"></div>
-                </div>
-            </div>
+            ))}
         </div>
     </div>
 );
 
 const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ user }) => {
     const [data, setData] = useState<AnalyticsData | null>(null);
+    const [history, setHistory] = useState<HistoryItem[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+
+    const templateIcons: { [key: string]: React.FC<{className?: string}> } = {
+      "Campaign Builder": CampaignIcon,
+      "AI Ad Creative": ImageIcon,
+      "AI Image Editor": EditImageIcon,
+      "Marketing Video Ad": FilmIcon,
+      "Social Media Post": SocialIcon,
+      "Video Script Hook": VideoIcon,
+      "Blog Post Ideas": BlogIcon,
+      "Marketing Email": EmailIcon,
+      "Ad Copy": AdIcon,
+    };
 
     useEffect(() => {
         const loadAnalytics = async () => {
             setIsLoading(true);
             try {
-                const [history, agents] = await Promise.all([
+                const [historyItems, agents] = await Promise.all([
                     getHistoryCollection(user.uid),
                     getAgentsCollection(user.uid)
                 ]);
 
+                const sortedHistory = historyItems.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+                setHistory(sortedHistory);
+
                 // --- BAR CHART DATA ---
                 const performanceMap: { [key: string]: number } = { 'Social': 0, 'Email': 0, 'Video': 0, 'Ad Copy': 0, 'Blog': 0 };
-                history.forEach(item => {
+                sortedHistory.forEach(item => {
                     if (item.templateName.includes('Social') || item.templateName.includes('Image')) {
                         performanceMap['Social']++;
                     } else if (item.templateName.includes('Email')) {
@@ -304,7 +321,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ user }) => {
                     engagementLabels.push(date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
                 }
 
-                history.forEach(item => {
+                sortedHistory.forEach(item => {
                     const itemDate = new Date(item.timestamp);
                     itemDate.setHours(0, 0, 0, 0);
                     const diffTime = today.getTime() - itemDate.getTime();
@@ -322,7 +339,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ user }) => {
                 };
 
                 // --- KPI DATA ---
-                const totalGenerations = history.length;
+                const totalGenerations = sortedHistory.length;
                 const totalAgents = agents.length;
 
                 const sevenDaysAgo = new Date(today);
@@ -332,7 +349,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ user }) => {
 
                 let gensLast7Days = 0;
                 let gensPrev7Days = 0;
-                history.forEach(item => {
+                sortedHistory.forEach(item => {
                     const itemDate = new Date(item.timestamp);
                     if (itemDate >= sevenDaysAgo) {
                         gensLast7Days++;
@@ -344,11 +361,8 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ user }) => {
                 const weeklyChangeType = weeklyChange >= 0 ? 'increase' : 'decrease';
 
                 let firstGenDate: Date | null = null;
-                if (history.length > 0) {
-                    firstGenDate = history.reduce((earliest, item) => {
-                        const itemDate = new Date(item.timestamp);
-                        return earliest < itemDate ? earliest : itemDate;
-                    }, new Date());
+                if (sortedHistory.length > 0) {
+                    firstGenDate = new Date(sortedHistory[sortedHistory.length - 1].timestamp);
                 }
                 
                 let daysSinceFirstGen = 1;
@@ -416,21 +430,40 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ user }) => {
             </div>
 
             {/* Main Content Grid */}
-            <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Main Chart */}
-                <Panel title="Generations by Type" delay={400} className="lg:col-span-2 min-h-[450px]">
+            <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Panel title="Generations by Type" delay={400} className="min-h-[400px]">
                     <BarChart data={data.performanceByType} />
                 </Panel>
                 
-                {/* Right Column */}
-                <div className="flex flex-col gap-6">
-                    <Panel title="Engagement Over Time (14d)" delay={500} className="min-h-[250px] flex-1">
-                        <LineChart data={data.engagementOverTime} />
-                    </Panel>
-                    <Panel title="Agent Overview" delay={600} className="min-h-[250px] flex-1">
-                        <AgentOverview data={data.agentStats} />
-                    </Panel>
-                </div>
+                <Panel title="Engagement Over Time (14d)" delay={500} className="min-h-[400px]">
+                    <LineChart data={data.engagementOverTime} />
+                </Panel>
+
+                <Panel title="Agent Overview" delay={600} className="min-h-[400px]">
+                    <AgentOverview data={data.agentStats} />
+                </Panel>
+                
+                <Panel title="Recent Activity" delay={700} className="min-h-[400px]">
+                    <div className="w-full h-full space-y-3 overflow-y-auto pr-2 -mr-2">
+                        {history.slice(0, 5).map(item => {
+                            const Icon = templateIcons[item.templateName] || SparklesIcon;
+                            return (
+                                <div key={item.id} className="flex items-center gap-4 p-3 bg-slate-800/50 rounded-lg border border-transparent hover:border-slate-700 transition-colors">
+                                    <div className="p-2 bg-slate-700/50 rounded-md">
+                                        <Icon className="w-5 h-5 text-slate-400 flex-shrink-0" />
+                                    </div>
+                                    <div className="flex-1 overflow-hidden">
+                                        <p className="text-sm font-semibold text-slate-300 truncate" title={item.topic}>{item.topic}</p>
+                                        <p className="text-xs text-slate-500">{item.templateName}</p>
+                                    </div>
+                                </div>
+                            )
+                        })}
+                        {history.length === 0 && (
+                            <div className="flex items-center justify-center h-full text-slate-500">No recent activity.</div>
+                        )}
+                    </div>
+                </Panel>
             </div>
         </div>
     );
