@@ -6,17 +6,6 @@ import SparklesIcon from './icons/SparklesIcon';
 import TrendingUpIcon from './icons/TrendingUpIcon';
 import LineChart from './LineChart';
 
-// Icons for recent activity
-import SocialIcon from './icons/SocialIcon';
-import BlogIcon from './icons/BlogIcon';
-import EmailIcon from './icons/EmailIcon';
-import AdIcon from './icons/AdIcon';
-import VideoIcon from './icons/VideoIcon';
-import ImageIcon from './icons/ImageIcon';
-import EditImageIcon from './icons/EditImageIcon';
-import FilmIcon from './icons/FilmIcon';
-import CampaignIcon from './icons/CampaignIcon';
-
 interface AnalyticsDashboardProps {
     user: User;
 }
@@ -232,6 +221,65 @@ const AgentOverview: React.FC<{ data: AgentStats }> = ({ data }) => {
     );
 };
 
+const HorizontalBarChart: React.FC<{ data: ChartData }> = ({ data }) => {
+    const chartRef = useRef<HTMLDivElement>(null);
+    const [isVisible, setIsVisible] = useState(false);
+
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                if (entry.isIntersecting) {
+                    setIsVisible(true);
+                    observer.unobserve(entry.target);
+                }
+            },
+            { threshold: 0.3 }
+        );
+
+        const currentRef = chartRef.current;
+        if (currentRef) {
+            observer.observe(currentRef);
+        }
+
+        return () => {
+            if (currentRef) {
+                observer.unobserve(currentRef);
+            }
+        };
+    }, []);
+
+    const maxValue = useMemo(() => Math.max(...data.values, 1), [data.values]);
+    const colors = ['#E025F0', '#4190F2', '#13B1B7', '#FFD700', '#FF4500'].reverse();
+
+    return (
+        <div ref={chartRef} className="w-full h-full flex flex-col justify-around gap-4 py-2">
+            {data.labels.map((label, index) => {
+                const value = data.values[index];
+                const widthPercentage = (value / maxValue) * 100;
+                return (
+                    <div key={index} className="flex items-center gap-3 w-full">
+                        <div className="w-1/3 text-xs text-slate-400 text-right truncate" title={label}>{label}</div>
+                        <div className="flex-1 bg-slate-800 rounded-full h-6 p-0.5">
+                             <div
+                                className="h-full rounded-full flex items-center justify-end pr-2 transition-all duration-1000 ease-out"
+                                style={{
+                                    width: isVisible ? `${widthPercentage}%` : '0%',
+                                    background: `linear-gradient(to right, ${colors[index % colors.length]}70, ${colors[index % colors.length]}FF)`,
+                                    boxShadow: isVisible ? `0 0 10px ${colors[index % colors.length]}40` : 'none',
+                                    transitionDelay: `${150 + index * 100}ms`
+                                }}
+                            >
+                                <span className="text-xs font-bold text-white opacity-0 transition-opacity" style={{ opacity: isVisible ? 1 : 0, transitionDelay: `${600 + index * 100}ms` }}>{value}</span>
+                            </div>
+                        </div>
+                    </div>
+                );
+            })}
+        </div>
+    );
+};
+
+
 const AnalyticsSkeleton: React.FC = () => (
     <div className="flex-1 flex flex-col h-full">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6 flex-shrink-0">
@@ -260,20 +308,7 @@ const AnalyticsSkeleton: React.FC = () => (
 
 const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ user }) => {
     const [data, setData] = useState<AnalyticsData | null>(null);
-    const [history, setHistory] = useState<HistoryItem[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-
-    const templateIcons: { [key: string]: React.FC<{className?: string}> } = {
-      "Campaign Builder": CampaignIcon,
-      "AI Ad Creative": ImageIcon,
-      "AI Image Editor": EditImageIcon,
-      "Marketing Video Ad": FilmIcon,
-      "Social Media Post": SocialIcon,
-      "Video Script Hook": VideoIcon,
-      "Blog Post Ideas": BlogIcon,
-      "Marketing Email": EmailIcon,
-      "Ad Copy": AdIcon,
-    };
 
     useEffect(() => {
         const loadAnalytics = async () => {
@@ -285,7 +320,6 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ user }) => {
                 ]);
 
                 const sortedHistory = historyItems.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-                setHistory(sortedHistory);
 
                 // --- BAR CHART DATA ---
                 const performanceMap: { [key: string]: number } = { 'Social': 0, 'Email': 0, 'Video': 0, 'Ad Copy': 0, 'Blog': 0 };
@@ -373,6 +407,18 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ user }) => {
 
                 const avgGensPerDay = totalGenerations > 0 ? (totalGenerations / daysSinceFirstGen).toFixed(1) : '0.0';
 
+                // --- MOST USED TOOLS DATA ---
+                const toolUsageMap = new Map<string, number>();
+                historyItems.forEach(item => {
+                    toolUsageMap.set(item.templateName, (toolUsageMap.get(item.templateName) || 0) + 1);
+                });
+                const sortedTools = Array.from(toolUsageMap.entries()).sort((a, b) => b[1] - a[1]);
+                const topTools = sortedTools.slice(0, 5);
+                const mostUsedToolsData: ChartData = {
+                    labels: topTools.map(entry => entry[0]),
+                    values: topTools.map(entry => entry[1]),
+                };
+
                 // --- FINAL DATA OBJECT ---
                 const analyticsData: AnalyticsData = {
                     kpis: [
@@ -383,6 +429,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ user }) => {
                     ],
                     performanceByType,
                     engagementOverTime,
+                    mostUsedTools: mostUsedToolsData,
                     agentStats: {
                         active: agents.filter(a => a.status === 'active').length,
                         needsReview: agents.reduce((acc, a) => acc + (a.taskStats?.needsReview || 0), 0),
@@ -443,26 +490,8 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ user }) => {
                     <AgentOverview data={data.agentStats} />
                 </Panel>
                 
-                <Panel title="Recent Activity" delay={700} className="min-h-[400px]">
-                    <div className="w-full h-full space-y-3 overflow-y-auto pr-2 -mr-2">
-                        {history.slice(0, 5).map(item => {
-                            const Icon = templateIcons[item.templateName] || SparklesIcon;
-                            return (
-                                <div key={item.id} className="flex items-center gap-4 p-3 bg-slate-800/50 rounded-lg border border-transparent hover:border-slate-700 transition-colors">
-                                    <div className="p-2 bg-slate-700/50 rounded-md">
-                                        <Icon className="w-5 h-5 text-slate-400 flex-shrink-0" />
-                                    </div>
-                                    <div className="flex-1 overflow-hidden">
-                                        <p className="text-sm font-semibold text-slate-300 truncate" title={item.topic}>{item.topic}</p>
-                                        <p className="text-xs text-slate-500">{item.templateName}</p>
-                                    </div>
-                                </div>
-                            )
-                        })}
-                        {history.length === 0 && (
-                            <div className="flex items-center justify-center h-full text-slate-500">No recent activity.</div>
-                        )}
-                    </div>
+                <Panel title="Most Used Tools" delay={700} className="min-h-[400px]">
+                    <HorizontalBarChart data={data.mostUsedTools} />
                 </Panel>
             </div>
         </div>

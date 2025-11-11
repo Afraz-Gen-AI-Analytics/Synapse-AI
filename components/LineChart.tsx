@@ -75,6 +75,19 @@ const LineChart: React.FC<{ data: ChartData }> = ({ data }) => {
         path.setAttribute('d', linePath);
         return path.getTotalLength();
     }, [isVisible, linePath]);
+
+    const yAxisLabels = useMemo(() => {
+        if (yMax <= 0) return [];
+        const labels = [];
+        for (let i = 0; i < numYTicks; i++) {
+            // Calculate value from top to bottom
+            const value = Math.round((yMax / (numYTicks - 1)) * (numYTicks - 1 - i));
+            // Calculate y position
+            const y = PADDING.top + (i * chartHeight / (numYTicks - 1));
+            labels.push({ value, y });
+        }
+        return labels;
+    }, [yMax, numYTicks, chartHeight, PADDING.top]);
     
     return (
         <div className="relative w-full h-full">
@@ -98,6 +111,39 @@ const LineChart: React.FC<{ data: ChartData }> = ({ data }) => {
                             <line key={i} x1={PADDING.left} y1={y} x2={chartWidth + PADDING.left} y2={y} stroke="currentColor" strokeWidth="0.5" />
                         );
                     })}
+                </g>
+
+                {/* Y-Axis Labels */}
+                <g className="text-[10px] fill-slate-500">
+                     {yAxisLabels.map((labelInfo, i) => (
+                        <text
+                            key={i}
+                            x={PADDING.left - 8}
+                            y={labelInfo.y}
+                            dy="0.3em"
+                            textAnchor="end"
+                            className="transition-opacity duration-700"
+                            style={{ opacity: isVisible ? 1 : 0, transitionDelay: `${200 + i * 50}ms` }}
+                        >
+                           {labelInfo.value}
+                        </text>
+                     ))}
+                </g>
+
+                {/* X-Axis Labels */}
+                <g className="text-[10px] fill-slate-500">
+                     {points.map((point, i) => (
+                        <text
+                            key={i}
+                            x={point.x}
+                            y={VIEWBOX_HEIGHT - PADDING.bottom + 15}
+                            textAnchor="middle"
+                            className="transition-opacity duration-700"
+                            style={{ opacity: isVisible ? 1 : 0, transitionDelay: `${300 + i * 70}ms` }}
+                        >
+                            {point.label}
+                        </text>
+                    ))}
                 </g>
                 
                 {/* Area Fill */}

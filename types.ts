@@ -210,6 +210,7 @@ export interface AnalyticsData {
     performanceByType: ChartData;
     engagementOverTime: ChartData;
     agentStats: AgentStats;
+    mostUsedTools: ChartData;
 }
 
 // --- Command Bar Types ---
