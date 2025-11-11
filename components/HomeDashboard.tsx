@@ -103,7 +103,7 @@ const HomeDashboard: React.FC<HomeDashboardProps> = ({ user, templates, onSelect
             
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Left Column: Quick Start */}
-                <div className="lg:col-span-2 flex flex-col bg-slate-900 rounded-xl border border-slate-800/80 shadow-2xl shadow-black/30 p-6">
+                <div className="lg:col-span-2 flex flex-col bg-gradient-to-br from-slate-900 via-slate-950 to-black rounded-xl border border-slate-800/80 shadow-2xl shadow-black/30 p-6">
                     <h2 className="text-xl font-bold text-white mb-4">Quick Start</h2>
                     <div className="grid grid-cols-2 gap-4">
                         {quickStartItems.map(item => (
@@ -129,7 +129,7 @@ const HomeDashboard: React.FC<HomeDashboardProps> = ({ user, templates, onSelect
                 {/* Right Column: Usage, Agents & History */}
                 <div className="flex flex-col space-y-6">
                     {user.plan === 'freemium' && (
-                         <div className="flex flex-col bg-slate-900 rounded-xl border border-slate-800/80 shadow-2xl shadow-black/30 p-6">
+                         <div className="flex flex-col bg-gradient-to-br from-slate-900 via-slate-950 to-black rounded-xl border border-slate-800/80 shadow-2xl shadow-black/30 p-6">
                             <div className="flex items-center mb-4">
                                <SparklesIcon className="w-5 h-5 mr-3 text-slate-400" />
                                <h2 className="text-xl font-bold text-white">Plan Usage</h2>
@@ -138,7 +138,7 @@ const HomeDashboard: React.FC<HomeDashboardProps> = ({ user, templates, onSelect
                         </div>
                     )}
 
-                    <div className="flex-1 flex flex-col bg-slate-900 rounded-xl border border-slate-800/80 shadow-2xl shadow-black/30 p-6">
+                    <div className="flex-1 flex flex-col bg-gradient-to-br from-slate-900 via-slate-950 to-black rounded-xl border border-slate-800/80 shadow-2xl shadow-black/30 p-6">
                         <div className="flex items-center mb-4">
                            <AgentIcon className="w-5 h-5 mr-3 text-slate-400" />
                            <h2 className="text-xl font-bold text-white">Active Agents</h2>
@@ -156,7 +156,7 @@ const HomeDashboard: React.FC<HomeDashboardProps> = ({ user, templates, onSelect
                            )}
                         </div>
                     </div>
-                    <div className="flex-1 flex flex-col bg-slate-900 rounded-xl border border-slate-800/80 shadow-2xl shadow-black/30 p-6">
+                    <div className="flex-1 flex flex-col bg-gradient-to-br from-slate-900 via-slate-950 to-black rounded-xl border border-slate-800/80 shadow-2xl shadow-black/30 p-6">
                        <div className="flex items-center mb-4">
                            <HistoryIcon className="w-5 h-5 mr-3 text-slate-400" />
                            <h2 className="text-xl font-bold text-white">Recent Activity</h2>
@@ -175,7 +175,7 @@ const HomeDashboard: React.FC<HomeDashboardProps> = ({ user, templates, onSelect
                 </div>
             </div>
 
-            <div className="bg-slate-900 rounded-xl border border-slate-800/80 shadow-2xl shadow-black/30 p-6" style={{backgroundImage: 'radial-gradient(circle at top left, rgba(65, 144, 242, 0.1), transparent 40%)'}}>
+            <div className="bg-gradient-to-br from-slate-900 via-slate-950 to-black rounded-xl border border-slate-800/80 shadow-2xl shadow-black/30 p-6">
                 <h2 className="text-xl font-bold text-white mb-4">Power Up Your Workflow</h2>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <button

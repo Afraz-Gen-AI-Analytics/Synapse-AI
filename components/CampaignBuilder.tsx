@@ -413,7 +413,7 @@ const CampaignBuilder: React.FC<CampaignBuilderProps> = ({ template, user, onUpg
 
 
     return (
-        <div className="flex flex-col md:h-full bg-gradient-to-br from-slate-900 to-slate-950 rounded-xl border border-slate-800/80 shadow-2xl shadow-black/30 p-6 sm:p-8 md:overflow-hidden">
+        <div className="flex flex-col md:h-full bg-gradient-to-br from-slate-900 via-slate-950 to-black rounded-xl border border-slate-800/80 shadow-2xl shadow-black/30 p-6 sm:p-8 md:overflow-hidden">
             <div className="mb-12 flex-shrink-0 flex justify-center">
                 <Stepper currentStep={step} />
             </div>

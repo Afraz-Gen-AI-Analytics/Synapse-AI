@@ -1,4 +1,5 @@
 
+
 import React from 'react';
 import { Template } from '../../types';
 import FileInput from '../FileInput';
@@ -33,7 +34,7 @@ const ImageEditorLayout: React.FC<ImageEditorLayoutProps> = (props) => {
     return (
         <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-6 lg:h-full">
             {/* Input Column */}
-            <div className="bg-gradient-to-br from-slate-900 to-slate-950 rounded-xl border border-slate-800/80 shadow-2xl shadow-black/30 flex flex-col p-6">
+            <div className="bg-gradient-to-br from-slate-900 via-slate-950 to-black rounded-xl border border-slate-800/80 shadow-2xl shadow-black/30 flex flex-col p-6">
                 <div className="mb-6">
                     <h1 className="text-2xl font-bold text-white">{selectedTemplate.name}</h1>
                     <p className="text-slate-400 mt-1">{selectedTemplate.description}</p>
