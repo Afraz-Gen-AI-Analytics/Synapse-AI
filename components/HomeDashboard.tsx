@@ -175,7 +175,7 @@ const HomeDashboard: React.FC<HomeDashboardProps> = ({ user, templates, onSelect
                 </div>
             </div>
 
-            <div className="bg-gradient-to-br from-slate-900 to-slate-950 rounded-xl border border-slate-800/80 shadow-2xl shadow-black/30 p-6" style={{backgroundImage: 'radial-gradient(circle at top left, rgba(65, 144, 242, 0.1), transparent 40%)'}}>
+            <div className="bg-gradient-to-br from-slate-900 to-slate-950 rounded-xl border border-slate-800/80 shadow-2xl shadow-black/30 p-6">
                 <h2 className="text-xl font-bold text-white mb-4">Power Up Your Workflow</h2>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <button
