@@ -21,6 +21,7 @@ import VideoIcon from './icons/VideoIcon';
 import ImageIcon from './icons/ImageIcon';
 import EditImageIcon from './icons/EditImageIcon';
 import CampaignIcon from './icons/CampaignIcon';
+import ResonanceIcon from './icons/ResonanceIcon';
 
 
 interface HistoryViewProps {
@@ -33,6 +34,7 @@ interface HistoryViewProps {
 
 const templateIcons: { [key: string]: React.FC<{className?: string}> } = {
   "Campaign Builder": CampaignIcon,
+  "Resonance Engine": ResonanceIcon,
   "AI Ad Creative": ImageIcon,
   "AI Image Editor": EditImageIcon,
   "Marketing Video Ad": FilmIcon,

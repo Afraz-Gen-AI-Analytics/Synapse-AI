@@ -1,23 +1,20 @@
-
-
-
-
-
-
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
-import { ContentType, Template, HistoryItem, User, ToolRoute } from '../types';
+import { ContentType, Template, HistoryItem, User, ToolRoute, BrandProfile } from '../types';
 import { 
     generateContentStream, 
     generateImage, 
     editImage, 
     generateVideo, 
     getVideosOperation,
-    routeUserIntent
+    routeUserIntent,
+    getResonanceFeedback
 } from '../services/geminiService';
 import { 
     updateUserDoc,
     FREEMIUM_GENERATION_LIMIT,
-    addHistoryDoc
+    addHistoryDoc,
+    getBrandProfile,
+    isBrandProfileComplete
 } from '../services/firebaseService';
 import { useToast } from '../contexts/ToastContext';
 
@@ -39,6 +36,7 @@ import EditImageIcon from './icons/EditImageIcon';
 import FilmIcon from './icons/FilmIcon';
 import SparklesIcon from './icons/SparklesIcon';
 import HeadsetIcon from './icons/HeadsetIcon';
+import ResonanceIcon from './icons/ResonanceIcon';
 import Tooltip from './Tooltip';
 import ProFeatureBadge from './ProFeatureBadge';
 
@@ -58,6 +56,7 @@ import VideoGeneratorLayout from './layouts/VideoGeneratorLayout';
 import UsageUpgradeCard from './UsageUpgradeCard';
 import BottomNavBar from './BottomNavBar';
 import CommandBar from './CommandBar';
+import CompleteProfilePrompt from './CompleteProfilePrompt';
 
 declare global {
   interface AIStudio {
@@ -170,6 +169,19 @@ const templates: Template[] = [
     isPro: true,
   },
   {
+    id: ContentType.ResonanceEngine,
+    name: "Resonance Engine",
+    description: "Simulate your audience's reaction and get predictive feedback before you publish.",
+    icon: ResonanceIcon,
+    isPro: true,
+    placeholder: "Paste your social media post, email, or ad copy here to test its resonance with your target audience...",
+    fields: [
+      { name: "contentGoal", label: "Content Goal", options: ["Raise Awareness", "Drive Engagement", "Generate Leads", "Drive Sales", "Educate or Inform"], defaultValue: "Raise Awareness" },
+      { name: "platform", label: "Platform / Format", options: ["Social Media (General)", "X / Twitter Post", "LinkedIn Post", "Email Subject Line", "Email Body", "Ad Headline", "Ad Body", "Landing Page Headline"], defaultValue: "Social Media (General)" },
+      { name: "emotion", label: "Key Emotion to Evoke", options: ["Urgency", "Curiosity", "Trust", "Excitement", "FOMO", "Inspiration", "Joy"], defaultValue: "Curiosity" }
+    ],
+  },
+  {
     id: ContentType.AIImage,
     name: "AI Ad Creative",
     description: "Generate high-impact ad creatives and marketing visuals in seconds.",
@@ -209,7 +221,8 @@ const templates: Template[] = [
       { name: "platform", label: "Platform", options: ["Twitter", "LinkedIn", "Facebook"], defaultValue: "Twitter" }
     ],
     supportsVariations: true,
-    prompt: (topic, tone, platform = "Twitter", numOutputs = 1) => {
+    prompt: ({ topic, tone, fields, numOutputs = 1 }) => {
+        const platform = fields.platform || "Twitter";
         let platformInstruction = '';
         switch (platform) {
             case 'LinkedIn':
@@ -243,17 +256,35 @@ ${numOutputs > 1 ? `IMPORTANT: Generate ${numOutputs} distinct post variations, 
     description: "Create irresistible video hooks that stop the scroll and boost watch time.",
     icon: VideoIcon,
     placeholder: "e.g., A productivity hack that saves me 2 hours a day",
-    prompt: (topic, tone) => `You are a viral video scriptwriter specializing in creating high-retention short-form content. Your task is to generate 3 powerful video hooks for a TikTok or YouTube Short.
+    fields: [
+      { 
+        name: "hookStyle", 
+        label: "Hook Style", 
+        options: ["General", "Question", "Bold Statement", "Storytelling", "Problem/Solution", "Statistic/Fact"], 
+        defaultValue: "General" 
+      }
+    ],
+    prompt: ({ topic, tone, fields }) => {
+        const hookStyle = fields.hookStyle || 'General';
+        let styleInstruction = '';
+        if (hookStyle && hookStyle !== 'General') {
+            styleInstruction = `**Hook Style:** The hooks MUST follow the **${hookStyle}** framework.`;
+        } else {
+            styleInstruction = '**Proven Frameworks:** Use different psychological triggers for each hook (e.g., ask a provocative question, state a surprising fact, challenge a common belief, promise a quick solution).';
+        }
+
+        return `You are a viral video scriptwriter specializing in creating high-retention short-form content. Your task is to generate 3 powerful video hooks for a TikTok or YouTube Short.
 
 **CRITICAL RULES:**
 1.  **Tone of Voice:** The hooks MUST strictly reflect the chosen tone: **${tone}**.
 2.  **Value First:** Each hook must grab immediate attention by promising clear, tangible value or sparking intense curiosity.
-3.  **Proven Frameworks:** Use different psychological triggers for each hook (e.g., ask a provocative question, state a surprising fact, challenge a common belief, promise a quick solution).
+3.  ${styleInstruction}
 4.  **Brevity:** Each hook must be under 15 words.
 
 Format the output as a Markdown numbered list.
 
-**Topic:** "${topic}"`
+**Topic:** "${topic}"`;
+    }
   },
   {
     id: ContentType.BlogIdea,
@@ -262,7 +293,7 @@ Format the output as a Markdown numbered list.
     icon: BlogIcon,
     placeholder: "e.g., The future of renewable energy",
     supportsVariations: true,
-    prompt: (topic, tone, _, numOutputs = 1) => `You are an expert content strategist and SEO specialist. Your task is to generate ${numOutputs} highly professional and engaging blog post idea${numOutputs > 1 ? 's' : ''}.
+    prompt: ({ topic, tone, numOutputs = 1 }) => `You are an expert content strategist and SEO specialist. Your task is to generate ${numOutputs} highly professional and engaging blog post idea${numOutputs > 1 ? 's' : ''}.
 
 **CRITICAL RULES:**
 1.  **Tone of Voice:** The ideas MUST strictly reflect the chosen tone: **${tone}**.
@@ -285,7 +316,7 @@ Format each idea using Markdown. Make the title **bold**.
     icon: EmailIcon,
     placeholder: "e.g., A 20% discount offer for returning customers",
     supportsVariations: true,
-    prompt: (topic, tone, _, numOutputs = 1) => `You are an expert marketing copywriter specializing in creating highly engaging and professional emails. Your sole task is to generate the direct email content. Do not include any extra conversational text, introductions, or explanations.
+    prompt: ({ topic, tone, numOutputs = 1 }) => `You are an expert marketing copywriter specializing in creating highly engaging and professional emails. Your sole task is to generate the direct email content. Do not include any extra conversational text, introductions, or explanations.
 
 Write ${numOutputs} persuasive marketing email${numOutputs > 1 ? 's' : ''} for the following purpose.
 
@@ -310,7 +341,7 @@ ${numOutputs > 1 ? 'IMPORTANT: Use "[---VARIATION_SEPARATOR---]" on a new line w
     icon: AdIcon,
     placeholder: "e.g., High-performance running shoes for trail running enthusiasts",
     supportsVariations: true,
-    prompt: (topic, tone, _, numOutputs = 1) => `You are an expert direct-response copywriter focused exclusively on generating high-converting ad copy that drives action. For the topic below, generate ${numOutputs} ad copy version${numOutputs > 1 ? 's' : ''}.
+    prompt: ({ topic, tone, numOutputs = 1 }) => `You are an expert direct-response copywriter focused exclusively on generating high-converting ad copy that drives action. For the topic below, generate ${numOutputs} ad copy version${numOutputs > 1 ? 's' : ''}.
 
 **CRITICAL RULES:**
 1.  **Tone of Voice:** The copy MUST strictly reflect the chosen tone: **${tone}**.
@@ -338,7 +369,7 @@ type Tab = 'home' | 'tools' | 'live-agent' | 'agents' | 'history' | 'analytics' 
 const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
   const [activeTab, setActiveTab] = useState<Tab>('home');
   const [initialHistoryTab, setInitialHistoryTab] = useState<'tools' | 'campaigns'>('tools');
-  const [selectedTemplate, setSelectedTemplate] = useState<Template>(templates[1]); // Default to AI Image
+  const [selectedTemplate, setSelectedTemplate] = useState<Template>(templates[1]); // Default to Resonance Engine
   const [topic, setTopic] = useState('');
   const [tone, setTone] = useState(tones[0]);
   const [extraFields, setExtraFields] = useState<{ [key: string]: string }>({ aspectRatio: '1:1', resolution: '720p', style: 'Photorealistic' });
@@ -364,11 +395,19 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
   const [commandLoading, setCommandLoading] = useState(false);
   const [commandError, setCommandError] = useState<string | null>(null);
 
+  // State for features requiring brand profile
+  const [brandProfile, setBrandProfile] = useState<BrandProfile | null>(null);
+  const [isProfileComplete, setIsProfileComplete] = useState<boolean | null>(null);
+
   // State for redirecting after settings save
   const [navigationSource, setNavigationSource] = useState<Tab | null>(null);
 
   useEffect(() => {
     setCurrentUser(user);
+    getBrandProfile(user.uid).then(profile => {
+        setBrandProfile(profile);
+        setIsProfileComplete(isBrandProfileComplete(profile));
+    });
   }, [user]);
 
   useEffect(() => {
@@ -540,6 +579,17 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
     try {
       let fullResponse = "";
       switch (selectedTemplate.id) {
+        case ContentType.ResonanceEngine:
+            if (!brandProfile) throw new Error("Brand profile not loaded.");
+            const feedback = await getResonanceFeedback(topic, brandProfile, {
+                contentGoal: extraFields.contentGoal || 'Raise Awareness',
+                platform: extraFields.platform || 'Social Media (General)',
+                emotion: extraFields.emotion || 'Curiosity'
+            });
+            fullResponse = JSON.stringify(feedback);
+            setGeneratedContents([fullResponse]);
+            await handleGenerationResult(fullResponse, topic, selectedTemplate.name);
+            break;
         case ContentType.AIImage:
             fullResponse = await generateImage(topic, (extraFields.aspectRatio || '1:1') as any, extraFields.style || 'Photorealistic');
             setGeneratedContents([fullResponse]);
@@ -576,7 +626,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
             }
             break;
         default:
-          const prompt = selectedTemplate.prompt!(topic, tone, extraFields.platform, numOutputs);
+          const prompt = selectedTemplate.prompt!({ topic, tone, fields: extraFields, numOutputs });
           const stream = generateContentStream(prompt);
           // Handle streaming text generation
           for await (const chunk of stream) {
@@ -605,14 +655,14 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
       setIsLoading(false);
       setVideoStatus('');
     }
-  }, [topic, tone, selectedTemplate, extraFields, currentUser, handleGenerationResult, uploadedImage, isVeoKeySelected, numOutputs, addToast]);
+  }, [topic, tone, selectedTemplate, extraFields, currentUser, brandProfile, handleGenerationResult, uploadedImage, isVeoKeySelected, numOutputs, addToast]);
 
   const generatedContent = useMemo(() => generatedContents[activeVariation] || '', [generatedContents, activeVariation]);
 
   const handleCopy = useCallback((content: string, templateName: string, itemTopic?: string) => {
     const currentTopic = itemTopic || topic;
     
-    if (templateName.includes("Image") || templateName.includes("Video")) {
+    if (templateName.includes("Image") || templateName.includes("Video") || templateName.includes("Resonance")) {
         if(currentTopic) {
             navigator.clipboard.writeText(currentTopic);
             addToast('Prompt copied to clipboard!');
@@ -657,7 +707,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
         // Also display the image in the output canvas, to match the reuse behavior of the Marketing Image tool.
         setGeneratedContents([item.content]);
     } else {
-        const isTextTemplate = template.prompt !== undefined;
+        const isTextTemplate = template.prompt !== undefined || template.id === ContentType.ResonanceEngine;
         const variations = item.content.split('[---VARIATION_SEPARATOR---]').map(v => v.trim()).filter(Boolean);
         
         if (isTextTemplate && variations.length > 1) {
@@ -718,7 +768,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
   };
 
   const contentStats = useMemo(() => {
-    if (!generatedContent || selectedTemplate.id === ContentType.AIImage || selectedTemplate.id === ContentType.AIImageEditor || selectedTemplate.id === ContentType.AIVideoGenerator) return { words: 0, chars: 0 };
+    if (!generatedContent || selectedTemplate.id === ContentType.AIImage || selectedTemplate.id === ContentType.AIImageEditor || selectedTemplate.id === ContentType.AIVideoGenerator || selectedTemplate.id === ContentType.ResonanceEngine) return { words: 0, chars: 0 };
     const tempDiv = document.createElement('div');
     tempDiv.innerHTML = markdownToHtml(generatedContent).replace(/<br\s*\/?>/gi, ' ');
     const plainText = tempDiv.textContent || tempDiv.innerText || '';
@@ -796,6 +846,14 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
   );
 
   const renderToolLayout = () => {
+    // Profile check for features that need it
+    if ((selectedTemplate.id === ContentType.ResonanceEngine || selectedTemplate.id === ContentType.Campaign) && !isProfileComplete) {
+        if (isProfileComplete === null) {
+             return <div className="flex-1 flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--gradient-end)]"></div></div>;
+        }
+        return <CompleteProfilePrompt featureName={selectedTemplate.name} onNavigate={() => handleNavigateToSettings('tools')} />;
+    }
+      
     switch (selectedTemplate.id) {
         case ContentType.AIImage:
         case ContentType.SocialMediaPost:
@@ -803,6 +861,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
         case ContentType.BlogIdea:
         case ContentType.EmailCopy:
         case ContentType.AdCopy:
+        case ContentType.ResonanceEngine:
             return <TextGeneratorLayout 
                 selectedTemplate={selectedTemplate}
                 topic={topic} setTopic={setTopic}
@@ -917,8 +976,8 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
                 <SparklesIcon className="w-6 h-6" />
                 </button>
             </Tooltip>
-            <Tooltip text="Live Agent">
-                <button onClick={() => handleTabChange('live-agent')} className={`p-3 rounded-lg transition-colors ${activeTab === 'live-agent' ? 'bg-gradient-to-t from-[var(--gradient-start)] to-[var(--gradient-end)] text-white' : 'text-slate-400 hover:bg-slate-800'}`} aria-label="Live Agent">
+            <Tooltip text="AI Command">
+                <button onClick={() => handleTabChange('live-agent')} className={`p-3 rounded-lg transition-colors ${activeTab === 'live-agent' ? 'bg-gradient-to-t from-[var(--gradient-start)] to-[var(--gradient-end)] text-white' : 'text-slate-400 hover:bg-slate-800'}`} aria-label="AI Command">
                 <HeadsetIcon className="w-6 h-6"/>
                 </button>
             </Tooltip>

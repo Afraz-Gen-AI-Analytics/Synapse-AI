@@ -19,6 +19,7 @@ export enum ContentType {
   AIImage,
   AIImageEditor,
   AIVideoGenerator,
+  ResonanceEngine,
 }
 
 export interface Template {
@@ -26,13 +27,14 @@ export interface Template {
   name: string;
   description: string;
   icon: React.FC<{ className?: string }>;
-  prompt?: (topic: string, tone: string, platform?: string, numOutputs?: number) => string;
+  prompt?: (options: { topic: string; tone: string; fields: { [key: string]: string }; numOutputs?: number }) => string;
   placeholder?: string;
   fields?: {
     name: string;
     label: string;
     options?: string[];
     defaultValue?: string;
+    placeholder?: string;
   }[];
   isPro?: boolean;
   supportsVariations?: boolean;
@@ -161,6 +163,20 @@ export interface AgentLog {
     message: string;
     timestamp: string;
 }
+
+// --- Resonance Engine Types ---
+export interface ResonanceFeedback {
+    firstImpression: string;
+    clarityScore: number;
+    clarityReasoning: string;
+    persuasionScore: number;
+    persuasionReasoning: string;
+    keyQuestions: string[];
+    suggestedImprovement: string;
+    goalAlignment: string;
+    emotionAnalysis: string;
+}
+
 
 // --- Brand & Analytics ---
 

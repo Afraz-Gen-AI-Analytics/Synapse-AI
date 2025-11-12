@@ -191,8 +191,8 @@ const HomeDashboard: React.FC<HomeDashboardProps> = ({ user, templates, onSelect
                         className="flex flex-col items-start p-4 rounded-lg text-left transition-all bg-slate-800/50 hover:bg-slate-800 border border-slate-700/70 hover:border-sky-500/50"
                     >
                         <HeadsetIcon className="w-7 h-7 mb-3 text-sky-400" />
-                        <span className="font-semibold text-white">Talk to Live Agent</span>
-                        <span className="text-sm text-slate-400 mt-1">Brainstorm in real-time with a conversational AI partner.</span>
+                        <span className="font-semibold text-white">AI Command</span>
+                        <span className="text-sm text-slate-400 mt-1">Instant strategies and platform guidance via voice.</span>
                     </button>
                     <button
                         onClick={() => onTabChange('analytics')}

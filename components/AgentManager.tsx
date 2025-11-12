@@ -210,7 +210,7 @@ const AgentManager: React.FC<AgentManagerProps> = ({ user, onUpgrade, onNavigate
                 isConfirming={isDeleting}
             />}
             <div className="p-6 bg-slate-900 rounded-xl border border-slate-800/80 shadow-2xl shadow-black/30 flex-1 flex flex-col">
-                <div className="flex justify-between items-center mb-6 flex-shrink-0">
+                <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-6 flex-shrink-0 gap-4">
                     <div>
                         <div className="flex items-center gap-3">
                            <h1 className="text-2xl font-bold text-white">Agent Command Center</h1>
@@ -218,7 +218,7 @@ const AgentManager: React.FC<AgentManagerProps> = ({ user, onUpgrade, onNavigate
                         </div>
                         <p className="text-slate-400 mt-1">Deploy your autonomous AI workforce to run entire campaigns. <span className="font-semibold">A Pro feature.</span></p>
                     </div>
-                    <button onClick={handleDeployAgent} className="flex items-center bg-gradient-to-r from-[var(--gradient-start)] to-[var(--gradient-end)] hover:opacity-90 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-300 ease-in-out shadow-lg shadow-fuchsia-500/20">
+                    <button onClick={handleDeployAgent} className="flex-shrink-0 flex items-center justify-center bg-gradient-to-r from-[var(--gradient-start)] to-[var(--gradient-end)] hover:opacity-90 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-300 ease-in-out shadow-lg shadow-fuchsia-500/20">
                         <AgentIcon className="w-5 h-5 mr-2" />
                         Deploy New Agent
                     </button>

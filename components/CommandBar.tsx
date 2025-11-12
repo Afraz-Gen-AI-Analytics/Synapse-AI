@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import SearchIcon from './icons/SearchIcon';
 import SparklesIcon from './icons/SparklesIcon';
 
@@ -12,8 +12,33 @@ const LoadingSpinner: React.FC = () => (
   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-t-2 border-transparent border-b-white"></div>
 );
 
+const examplePrompts = [
+    "A tweet announcing a summer sale",
+    "Generate a photorealistic image of a wolf on a snowy mountain",
+    "Write a marketing email for a new productivity app",
+    "Plan a campaign to promote a new coffee shop",
+    "Test this ad copy for clarity: 'Our new shoes make you run faster'",
+    "Create three blog post ideas about sustainable travel",
+    "Generate a video ad of a robot serving coffee"
+];
+
+
 const CommandBar: React.FC<CommandBarProps> = ({ onCommand, isLoading, error }) => {
     const [command, setCommand] = useState('');
+    const [currentExample, setCurrentExample] = useState(examplePrompts[0]);
+
+    useEffect(() => {
+        const intervalId = setInterval(() => {
+            setCurrentExample(prevExample => {
+                const currentIndex = examplePrompts.indexOf(prevExample);
+                const nextIndex = (currentIndex + 1) % examplePrompts.length;
+                return examplePrompts[nextIndex];
+            });
+        }, 60000); // Change every minute
+
+        return () => clearInterval(intervalId);
+    }, []);
+
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -21,12 +46,6 @@ const CommandBar: React.FC<CommandBarProps> = ({ onCommand, isLoading, error }) 
             onCommand(command);
         }
     };
-
-    const examplePrompts = [
-        "A tweet announcing a summer sale",
-        "Generate a photorealistic image of a wolf on a snowy mountain",
-        "Write a marketing email for a new productivity app"
-    ];
 
     return (
         <div className="w-full max-w-3xl mx-auto animate-fade-in-up flex-shrink-0">
@@ -56,7 +75,7 @@ const CommandBar: React.FC<CommandBarProps> = ({ onCommand, isLoading, error }) 
             <div className="text-center mt-4">
                 <p className="text-sm text-slate-500">
                     Try an example:
-                    <button onClick={() => setCommand(examplePrompts[0])} className="ml-2 text-slate-400 hover:text-white transition-colors">"{examplePrompts[0]}"</button>
+                    <button onClick={() => setCommand(currentExample)} className="ml-2 text-slate-400 hover:text-white transition-colors">"{currentExample}"</button>
                 </p>
             </div>
         </div>

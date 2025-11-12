@@ -1,9 +1,5 @@
-
-
-
-
 import { GoogleGenAI, GenerateContentResponse, Type, Modality } from "@google/genai";
-import { BrandProfile, ToolRoute } from "../types";
+import { BrandProfile, ToolRoute, ResonanceFeedback } from "../types";
 
 
 // A custom error class to hold a user-friendly message that can be displayed directly in the UI.
@@ -210,6 +206,49 @@ export async function generateStructuredContent(prompt: string, schema: any): Pr
   } catch (error: any) {
     handleGeminiError(error, 'structured content generation');
   }
+}
+
+export async function getResonanceFeedback(content: string, brandProfile: BrandProfile, options: { contentGoal: string; platform: string; emotion: string; }): Promise<ResonanceFeedback> {
+    const prompt = `
+        You are an AI embodiment of a specific target audience. Your personality, skepticism, and needs perfectly match this description: "${brandProfile.targetAudience}".
+        Your task is to analyze the following piece of marketing content based on a specific set of objectives.
+
+        **Marketing Content to Analyze:**
+        ---
+        ${content}
+        ---
+
+        **Content Objectives:**
+        - **Goal:** This content is intended to **${options.contentGoal}**.
+        - **Platform:** It will be published as a **${options.platform}**.
+        - **Desired Emotion:** It should make the audience feel **${options.emotion}**.
+
+        Based on your persona and these objectives, provide structured feedback.
+
+        **CRITICAL RULES:**
+        1.  **Evaluate Against Objectives:** Your entire analysis must be through the lens of the stated Goal, Platform, and Desired Emotion.
+        2.  **Score honestly (1-10):** 1 is terrible, 10 is perfect for achieving the goal.
+        3.  **Be specific in your reasoning:** Don't just say "it's good," explain *why* from your persona's perspective.
+        4.  **Provide actionable suggestions.**
+    `;
+
+    const schema = {
+        type: Type.OBJECT,
+        properties: {
+            firstImpression: { type: Type.STRING, description: "Your immediate, gut reaction in one sentence." },
+            clarityScore: { type: Type.NUMBER, description: "On a scale of 1-10, how clear is the message?" },
+            clarityReasoning: { type: Type.STRING, description: "Explain your clarity score. What was confusing or clear?" },
+            persuasionScore: { type: Type.NUMBER, description: "On a scale of 1-10, how likely are you to take the action defined by the 'Goal'?" },
+            persuasionReasoning: { type: Type.STRING, description: "Explain your persuasion score. What made it effective or ineffective for the goal?" },
+            keyQuestions: { type: Type.ARRAY, items: { type: Type.STRING }, description: "List 2-3 questions or doubts that immediately come to mind." },
+            suggestedImprovement: { type: Type.STRING, description: "What is the single most important change that would make this more compelling?" },
+            goalAlignment: { type: Type.STRING, description: "In 1-2 sentences, analyze how well the content aligns with its stated Goal. Provide specific reasons." },
+            emotionAnalysis: { type: Type.STRING, description: "In 1-2 sentences, analyze if the content successfully evokes the Desired Emotion. Explain why or why not." }
+        },
+        required: ["firstImpression", "clarityScore", "clarityReasoning", "persuasionScore", "persuasionReasoning", "keyQuestions", "suggestedImprovement", "goalAlignment", "emotionAnalysis"]
+    };
+
+    return await generateStructuredContent(prompt, schema) as ResonanceFeedback;
 }
 
 export async function generateAgentPlan(goal: string, persona: string, brandProfile: BrandProfile): Promise<any> {
@@ -464,15 +503,27 @@ export async function getVideosOperation(operation: any): Promise<any> {
 export async function routeUserIntent(command: string): Promise<ToolRoute> {
   const prompt = `
     You are an intelligent routing system for an AI platform. Analyze the user's command and determine the best tool and pre-fill information.
-    Available Tool IDs: 'CampaignBuilder', 'MarketingImage', 'MarketingImageEditor', 'MarketingVideoAd', 'SocialMediaPost', 'VideoScriptHook', 'BlogPostIdeas', 'MarketingEmail', 'AdCopy'.
-    Analyze the user's command and extract the main topic and specific parameters (like platform for social media).
-    User Command: "${command}"
+    Available Tool IDs: 'CampaignBuilder', 'ResonanceEngine', 'AIAdCreative', 'AIImageEditor', 'MarketingVideoAd', 'SocialMediaPost', 'VideoScriptHook', 'BlogPostIdeas', 'MarketingEmail', 'AdCopy'.
+    
+    **Tool Descriptions & Routing Logic:**
+    - 'CampaignBuilder': For planning multi-step marketing campaigns. Keywords: "plan", "campaign", "strategy".
+    - 'ResonanceEngine': For analyzing or getting feedback on existing content. Keywords: "analyze", "test", "feedback", "review this".
+    - 'AIAdCreative': For generating a new image from a description. Keywords: "image", "photo", "picture", "graphic", "generate an image".
+    - 'AIImageEditor': For modifying an existing image. Keywords: "edit this image", "change the background", "add text to photo".
+    - 'MarketingVideoAd': For creating a short video ad. Keywords: "video", "ad", "commercial".
+    - 'SocialMediaPost': For specific social media content. Keywords: "tweet", "LinkedIn post", "Facebook update".
+    - 'VideoScriptHook': For short video intros. Keywords: "hook", "intro", "script for TikTok".
+    - 'BlogPostIdeas': For brainstorming blog titles. Keywords: "blog ideas", "article topics".
+    - 'MarketingEmail': For writing email copy. Keywords: "email", "newsletter".
+    - 'AdCopy': For text-based ads (e.g., Google Ads). Keywords: "ad copy", "headline", "google ad".
+
+    Analyze the user's command: "${command}" and extract the main topic and specific parameters (like platform for social media).
   `;
 
   const schema = {
     type: Type.OBJECT,
     properties: {
-      toolId: { type: Type.STRING, description: "The ID of the best tool for the user's command.", enum: ['CampaignBuilder', 'MarketingImage', 'MarketingImageEditor', 'MarketingVideoAd', 'SocialMediaPost', 'VideoScriptHook', 'BlogPostIdeas', 'MarketingEmail', 'AdCopy'] },
+      toolId: { type: Type.STRING, description: "The ID of the best tool for the user's command.", enum: ['CampaignBuilder', 'ResonanceEngine', 'AIAdCreative', 'AIImageEditor', 'MarketingVideoAd', 'SocialMediaPost', 'VideoScriptHook', 'BlogPostIdeas', 'MarketingEmail', 'AdCopy'] },
       prefill: {
         type: Type.OBJECT, properties: {
           topic: { type: Type.STRING, description: "The main subject extracted from the command." },
