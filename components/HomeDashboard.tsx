@@ -49,14 +49,7 @@ const HomeDashboard: React.FC<HomeDashboardProps> = ({ user, templates, onSelect
     const emailTemplate = templates.find(t => t.id === ContentType.EmailCopy);
     const campaignTemplate = templates.find(t => t.id === ContentType.Campaign);
     const videoTemplate = templates.find(t => t.id === ContentType.AIVideoGenerator);
-
-    const exploreToolsCard = {
-      id: 'explore-tools',
-      name: 'Explore All Tools',
-      description: 'Find the perfect tool for any task in our full creation suite.',
-      icon: SparklesIcon,
-      isCustom: true,
-    };
+    const resonanceTemplate = templates.find(t => t.id === ContentType.ResonanceEngine);
 
     const quickStartItems = [
         socialTemplate,
@@ -64,8 +57,8 @@ const HomeDashboard: React.FC<HomeDashboardProps> = ({ user, templates, onSelect
         blogTemplate,
         emailTemplate,
         videoTemplate,
-        exploreToolsCard,
-    ].filter(Boolean) as (Template | typeof exploreToolsCard)[];
+        resonanceTemplate,
+    ].filter(Boolean) as Template[];
 
     return (
         <div className="flex-1 flex flex-col space-y-6">
@@ -108,14 +101,8 @@ const HomeDashboard: React.FC<HomeDashboardProps> = ({ user, templates, onSelect
                     <div className="grid grid-cols-2 gap-4">
                         {quickStartItems.map(item => (
                              <button
-                                key={item.id as string}
-                                onClick={() => {
-                                    if ('isCustom' in item && item.isCustom) {
-                                        onTabChange('tools');
-                                    } else {
-                                        onSelectTemplate(item as Template);
-                                    }
-                                }}
+                                key={item.id}
+                                onClick={() => onSelectTemplate(item)}
                                 className="flex flex-col items-start p-4 rounded-lg text-left transition-all bg-slate-800/50 hover:bg-slate-800 border border-slate-700/70 hover:border-[var(--gradient-end)]/50"
                             >
                                 <item.icon className="w-7 h-7 mb-3 text-[var(--gradient-start)]" />

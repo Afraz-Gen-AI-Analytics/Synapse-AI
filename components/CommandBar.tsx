@@ -36,7 +36,7 @@ const CommandBar: React.FC<CommandBarProps> = ({ onCommand, isLoading, error }) 
                 const nextIndex = (currentIndex + 1) % examplePrompts.length;
                 return examplePrompts[nextIndex];
             });
-        }, 5000); // Change every 5 seconds
+        }, 3500); // Change every 3.5 seconds
 
         return () => clearInterval(intervalId);
     }, []);
