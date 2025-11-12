@@ -813,7 +813,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
 
   const renderToolLayout = () => {
     // Profile check for features that need it
-    if ((selectedTemplate.id === ContentType.ResonanceEngine || selectedTemplate.id === ContentType.Campaign) && !isProfileComplete) {
+    if (selectedTemplate.id === ContentType.Campaign && !isProfileComplete) {
         if (isProfileComplete === null) {
              return <div className="flex-1 flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--gradient-end)]"></div></div>;
         }
@@ -939,8 +939,8 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
                 <SparklesIcon className="w-6 h-6" />
                 </button>
             </Tooltip>
-            <Tooltip text="AI Command">
-                <button onClick={() => handleTabChange('live-agent')} className={`p-3 rounded-lg transition-colors ${activeTab === 'live-agent' ? 'bg-gradient-to-t from-[var(--gradient-start)] to-[var(--gradient-end)] text-white' : 'text-slate-400 hover:bg-slate-800'}`} aria-label="AI Command">
+            <Tooltip text="Live Agent">
+                <button onClick={() => handleTabChange('live-agent')} className={`p-3 rounded-lg transition-colors ${activeTab === 'live-agent' ? 'bg-gradient-to-t from-[var(--gradient-start)] to-[var(--gradient-end)] text-white' : 'text-slate-400 hover:bg-slate-800'}`} aria-label="Live Agent">
                 <HeadsetIcon className="w-6 h-6"/>
                 </button>
             </Tooltip>

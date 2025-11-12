@@ -351,7 +351,7 @@ const LiveAgentView: React.FC<LiveAgentViewProps> = ({ user }) => {
     return (
         <div className="flex-1 flex flex-col bg-slate-900 rounded-xl border border-slate-800/80 shadow-2xl shadow-black/30 p-0 overflow-hidden">
             <div className="p-6 border-b border-slate-800 flex-shrink-0">
-                <h1 className="text-2xl font-bold text-white flex items-center gap-3"><HeadsetIcon className="w-7 h-7"/> AI Command</h1>
+                <h1 className="text-2xl font-bold text-white flex items-center gap-3"><HeadsetIcon className="w-7 h-7"/> Live Agent</h1>
                 <p className="text-slate-400 mt-1">Speak directly to your AI partner for instant strategies, content creation, and platform guidance.</p>
             </div>
 
