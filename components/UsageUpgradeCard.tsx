@@ -2,7 +2,7 @@ import React from 'react';
 import { User } from '../types';
 import { FREEMIUM_GENERATION_LIMIT } from '../services/firebaseService';
 import SparklesIcon from './icons/SparklesIcon';
-import CheckCircleIcon from './icons/CheckCircleIcon';
+import ProPlanIcon from './icons/ProPlanIcon';
 
 interface UsageUpgradeCardProps {
     user: User;
@@ -12,10 +12,12 @@ interface UsageUpgradeCardProps {
 const UsageUpgradeCard: React.FC<UsageUpgradeCardProps> = ({ user, onUpgrade }) => {
     if (user.plan === 'pro') {
         return (
-            <div className="p-4 bg-slate-800/50 rounded-lg text-center border border-slate-700/70">
-                 <CheckCircleIcon className="w-8 h-8 mx-auto text-green-400 mb-2"/>
-                 <p className="font-bold gradient-text">Pro Plan Active</p>
-                 <p className="text-xs text-slate-400 mt-1">All features unlocked.</p>
+            <div className="p-3 bg-slate-800/50 rounded-lg border border-slate-700/70 min-h-20 flex flex-col items-center justify-center text-center">
+                <ProPlanIcon className="w-7 h-7 mb-2"/>
+                <div>
+                    <p className="font-bold text-white">Pro Plan</p>
+                    <p className="text-xs text-slate-400">All features unlocked</p>
+                </div>
             </div>
         );
     }
@@ -24,15 +26,17 @@ const UsageUpgradeCard: React.FC<UsageUpgradeCardProps> = ({ user, onUpgrade }) 
     const usagePercentage = (generationsLeft / FREEMIUM_GENERATION_LIMIT) * 100;
 
     return (
-        <div className="p-4 bg-slate-800/50 rounded-lg text-center border border-slate-700/70">
-            <p className="text-sm font-bold gradient-text">
-                {generationsLeft > 0 ? `${generationsLeft} generations left` : "Upgrade to Pro"}
-            </p>
-            <div className="w-full bg-slate-700 rounded-full h-1.5 mt-2">
-                <div 
-                    className="bg-gradient-to-r from-[var(--gradient-start)] to-[var(--gradient-end)] h-1.5 rounded-full" 
-                    style={{ width: `${usagePercentage}%`, transition: 'width 0.5s ease-in-out' }}
-                ></div>
+        <div className="p-3 bg-slate-800/50 rounded-lg text-center border border-slate-700/70 flex flex-col min-h-20">
+            <div className="flex-grow">
+                <p className="text-sm font-bold gradient-text">
+                    {generationsLeft > 0 ? `${generationsLeft} generations left` : "Upgrade to Pro"}
+                </p>
+                <div className="w-full bg-slate-700 rounded-full h-1.5 mt-2">
+                    <div 
+                        className="bg-gradient-to-r from-[var(--gradient-start)] to-[var(--gradient-end)] h-1.5 rounded-full" 
+                        style={{ width: `${usagePercentage}%`, transition: 'width 0.5s ease-in-out' }}
+                    ></div>
+                </div>
             </div>
             <button 
                 onClick={onUpgrade} 
