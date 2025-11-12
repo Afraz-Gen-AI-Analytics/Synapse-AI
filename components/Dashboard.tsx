@@ -388,8 +388,6 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
   const [originalImageUrl, setOriginalImageUrl] = useState<string | null>(null); // For Image Comparator
   const [videoStatus, setVideoStatus] = useState<string>('');
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
-  const [isVeoKeySelected, setIsVeoKeySelected] = useState(false);
-  const [veoKeyCheckError, setVeoKeyCheckError] = useState('');
 
   // State for Command Bar
   const [commandLoading, setCommandLoading] = useState(false);
@@ -409,15 +407,6 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
         setIsProfileComplete(isBrandProfileComplete(profile));
     });
   }, [user]);
-
-  useEffect(() => {
-    const checkVeoKey = async () => {
-        if (window.aistudio && await window.aistudio.hasSelectedApiKey()) {
-            setIsVeoKeySelected(true);
-        }
-    };
-    checkVeoKey();
-  }, []);
 
   const handleTabChange = (tab: Tab) => {
     setActiveTab(tab);
@@ -565,11 +554,6 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
         return;
     }
 
-     if (selectedTemplate.id === ContentType.AIVideoGenerator && !isVeoKeySelected) {
-        addToast('Please select an API key to use the video generator.', 'error');
-        return;
-    }
-
     setIsLoading(true);
     setGeneratedContents([]);
     setActiveVariation(0);
@@ -646,16 +630,11 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
     } catch (e: any) {
         const errorMessage = e.message || "An unknown error occurred during generation.";
         addToast(errorMessage, 'error');
-
-        if (selectedTemplate.id === ContentType.AIVideoGenerator && errorMessage.includes('Your API key is invalid')) {
-            setVeoKeyCheckError('Your API key may be invalid. Please re-select it.');
-            setIsVeoKeySelected(false);
-        }
     } finally {
       setIsLoading(false);
       setVideoStatus('');
     }
-  }, [topic, tone, selectedTemplate, extraFields, currentUser, brandProfile, handleGenerationResult, uploadedImage, isVeoKeySelected, numOutputs, addToast]);
+  }, [topic, tone, selectedTemplate, extraFields, currentUser, brandProfile, handleGenerationResult, uploadedImage, numOutputs, addToast]);
 
   const generatedContent = useMemo(() => generatedContents[activeVariation] || '', [generatedContents, activeVariation]);
 
@@ -753,19 +732,6 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
     window.scrollTo(0, 0);
   }, [templates]);
 
-
-  const handleSelectVeoKey = async () => {
-    if (window.aistudio) {
-        try {
-            await window.aistudio.openSelectKey();
-            setIsVeoKeySelected(true); 
-            setVeoKeyCheckError('');
-        } catch (error) {
-            console.error("Error opening API key selection:", error);
-            addToast('Could not open the API key selector.', 'error');
-        }
-    }
-  };
 
   const contentStats = useMemo(() => {
     if (!generatedContent || selectedTemplate.id === ContentType.AIImage || selectedTemplate.id === ContentType.AIImageEditor || selectedTemplate.id === ContentType.AIVideoGenerator || selectedTemplate.id === ContentType.ResonanceEngine) return { words: 0, chars: 0 };
@@ -904,9 +870,6 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
                 handleCopy={handleCopy}
                 uploadedImage={uploadedImage}
                 handleFileSelect={handleFileSelect}
-                isVeoKeySelected={isVeoKeySelected}
-                handleSelectVeoKey={handleSelectVeoKey}
-                veoKeyCheckError={veoKeyCheckError}
             />;
         case ContentType.Campaign:
              return <CampaignBuilder 

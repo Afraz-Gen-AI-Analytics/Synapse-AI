@@ -1,4 +1,5 @@
 
+
 import React from 'react';
 import { Template, User } from '../../types';
 import FileInput from '../FileInput';
@@ -23,9 +24,6 @@ interface VideoGeneratorLayoutProps {
     handleCopy: (content: string, templateName: string) => void;
     uploadedImage: UploadedFile | null;
     handleFileSelect: (file: UploadedFile | null) => void;
-    isVeoKeySelected: boolean;
-    handleSelectVeoKey: () => void;
-    veoKeyCheckError: string;
 }
 
 const LoadingSpinner: React.FC = () => (
@@ -36,7 +34,7 @@ const VideoGeneratorLayout: React.FC<VideoGeneratorLayoutProps> = (props) => {
     const {
         selectedTemplate, user, topic, setTopic, extraFields, handleFieldChange,
         isLoading, handleGenerate, videoStatus, videoUrl,
-        handleCopy, uploadedImage, handleFileSelect, isVeoKeySelected, handleSelectVeoKey, veoKeyCheckError
+        handleCopy, uploadedImage, handleFileSelect,
     } = props;
 
     return (
@@ -94,17 +92,7 @@ const VideoGeneratorLayout: React.FC<VideoGeneratorLayoutProps> = (props) => {
                     </div>
                 </div>
                 <div className="mt-auto pt-6 border-t border-slate-800">
-                    {isVeoKeySelected ? (
-                        <div className="text-xs text-center text-green-400 bg-green-900/30 p-2 rounded-md">API Key selected and ready.</div>
-                    ) : (
-                        <div className="p-3 bg-yellow-900/30 border border-yellow-700 text-yellow-300 text-sm rounded-lg text-center">
-                            <p className="font-semibold">Action Required</p>
-                            <p className="text-xs mb-2">Video generation requires selecting an API key. <a href="https://ai.google.dev/gemini-api/docs/billing" target="_blank" rel="noopener noreferrer" className="underline">Billing charges may apply.</a></p>
-                            <button onClick={handleSelectVeoKey} className="text-white bg-yellow-600/50 hover:bg-yellow-600/80 font-bold py-2 px-4 rounded-md text-sm">Select API Key</button>
-                            {veoKeyCheckError && <p className="text-red-400 text-xs mt-2">{veoKeyCheckError}</p>}
-                        </div>
-                    )}
-                    <button onClick={handleGenerate} disabled={isLoading} className="w-full mt-4 flex items-center justify-center bg-gradient-to-r from-[var(--gradient-start)] to-[var(--gradient-end)] hover:opacity-90 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-fuchsia-500/20">
+                    <button onClick={handleGenerate} disabled={isLoading} className="w-full flex items-center justify-center bg-gradient-to-r from-[var(--gradient-start)] to-[var(--gradient-end)] hover:opacity-90 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-fuchsia-500/20">
                         {isLoading ? <LoadingSpinner/> : <span className="flex items-center"><SparklesIcon className="w-5 h-5 mr-2" /> {user.plan === 'freemium' ? 'Upgrade to Generate Video' : 'Generate'}</span>}
                     </button>
                 </div>
