@@ -12,7 +12,7 @@ const ProPlanIcon: React.FC<{ className?: string }> = ({ className = "w-7 h-7" }
     
     {/* Larger and bolder Checkmark */}
     <path
-      d="M8 16L15 23L25 12"
+      d="M9 16L15 22L24 13"
       stroke="white"
       strokeWidth="5"
       strokeLinecap="round"
