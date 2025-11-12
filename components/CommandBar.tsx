@@ -13,13 +13,15 @@ const LoadingSpinner: React.FC = () => (
 );
 
 const examplePrompts = [
-    "A tweet announcing a summer sale",
-    "Generate a photorealistic image of a wolf on a snowy mountain",
-    "Write a marketing email for a new productivity app",
-    "Plan a campaign to promote a new coffee shop",
-    "Test this ad copy for clarity: 'Our new shoes make you run faster'",
-    "Create three blog post ideas about sustainable travel",
-    "Generate a video ad of a robot serving coffee"
+    "Plan a launch campaign for a mobile app",
+    "Analyze ad copy for an e-commerce site",
+    "Create an ad image for a new sneaker",
+    "Generate a video ad for a new tech gadget",
+    "Write a tweet about sustainable fashion",
+    "Create a video hook for a cooking channel",
+    "Brainstorm blog topics about remote work",
+    "Draft a promo email for a summer sale",
+    "Write ad copy for a new productivity app",
 ];
 
 
@@ -34,7 +36,7 @@ const CommandBar: React.FC<CommandBarProps> = ({ onCommand, isLoading, error }) 
                 const nextIndex = (currentIndex + 1) % examplePrompts.length;
                 return examplePrompts[nextIndex];
             });
-        }, 60000); // Change every minute
+        }, 5000); // Change every 5 seconds
 
         return () => clearInterval(intervalId);
     }, []);
