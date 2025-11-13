@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import SynapseLogo from './icons/SynapseLogo';
-import { signInWithEmail } from '../services/firebaseService';
+import { signInWithEmail, signInWithGoogle } from '../services/firebaseService';
 import { User } from '../types';
+import GoogleIcon from './icons/GoogleIcon';
 
 interface LoginProps {
   onLoginSuccess: (user: User) => void;
@@ -13,8 +14,9 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess, onNavigate }) => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setIsLoading(true);
@@ -37,6 +39,19 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess, onNavigate }) => {
         setIsLoading(false);
     }
   };
+  
+  const handleGoogleSignIn = async () => {
+    setError('');
+    setIsGoogleLoading(true);
+    try {
+        const user = await signInWithGoogle();
+        onLoginSuccess(user);
+    } catch (err: any) {
+        setError(err.message || 'An unexpected error occurred during Google sign-in.');
+    } finally {
+        setIsGoogleLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#0D1117] p-4">
@@ -48,7 +63,29 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess, onNavigate }) => {
         </div>
         
         <div className="bg-slate-900 border border-slate-800 rounded-xl p-8 shadow-2xl shadow-black/30">
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <button
+                type="button"
+                onClick={handleGoogleSignIn}
+                disabled={isGoogleLoading || isLoading}
+                className="w-full flex justify-center items-center gap-3 bg-white hover:bg-gray-200 text-slate-800 font-semibold py-3 px-4 rounded-lg transition-colors duration-300 ease-in-out disabled:opacity-70 disabled:cursor-not-allowed border border-slate-300"
+            >
+                {isGoogleLoading ? (
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-slate-800"></div>
+                ) : (
+                    <>
+                        <GoogleIcon className="w-5 h-5" />
+                        Continue with Google
+                    </>
+                )}
+            </button>
+            
+            <div className="flex items-center my-6">
+                <div className="flex-grow border-t border-slate-700"></div>
+                <span className="flex-shrink mx-4 text-slate-500 text-sm">OR</span>
+                <div className="flex-grow border-t border-slate-700"></div>
+            </div>
+
+            <form onSubmit={handleEmailSubmit} className="space-y-6">
                  <div>
                     <label htmlFor="email" className="block text-sm font-medium text-slate-300 mb-2">
                         Email Address
@@ -80,15 +117,15 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess, onNavigate }) => {
                     />
                 </div>
                 
-                {error && <p className="text-red-400 text-sm">{error}</p>}
+                {error && <p className="text-red-400 text-sm text-center">{error}</p>}
 
                 <div>
                     <button
                         type="submit"
-                        disabled={isLoading}
+                        disabled={isLoading || isGoogleLoading}
                         className="w-full flex justify-center bg-gradient-to-r from-[var(--gradient-start)] to-[var(--gradient-end)] hover:opacity-90 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-300 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-fuchsia-500/20"
                     >
-                        {isLoading ? 'Signing In...' : 'Sign In'}
+                        {isLoading ? 'Signing In...' : 'Sign In with Email'}
                     </button>
                 </div>
             </form>

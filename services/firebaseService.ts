@@ -8,7 +8,9 @@ import {
     createUserWithEmailAndPassword, 
     signInWithEmailAndPassword, 
     signOut,
-    User as FirebaseAuthUser
+    User as FirebaseAuthUser,
+    GoogleAuthProvider,
+    signInWithPopup
 } from "firebase/auth";
 import { 
     getFirestore, 
@@ -79,7 +81,7 @@ const mapFirebaseUserToAppUser = async (firebaseUser: FirebaseAuthUser): Promise
 
     const newUser: Omit<User, 'uid'> = {
         email: firebaseUser.email!,
-        displayName: firebaseUser.email!.split('@')[0],
+        displayName: firebaseUser.displayName || firebaseUser.email!.split('@')[0],
         plan: 'freemium',
         generationsUsed: 0,
         theme: 'Twilight',
@@ -92,7 +94,7 @@ const mapFirebaseUserToAppUser = async (firebaseUser: FirebaseAuthUser): Promise
     if (!brandProfileSnap.exists()) {
          const newBrandProfile: Omit<BrandProfile, 'id'> = {
             userId: firebaseUser.uid,
-            brandName: `${firebaseUser.email!.split('@')[0]}'s Brand`,
+            brandName: `${newUser.displayName}'s Brand`,
             targetAudience: '',
             messagingPillars: '',
             toneOfVoice: 'Professional',
@@ -170,6 +172,28 @@ export const signInWithEmail = async (email: string, password: string): Promise<
 export const signOutUser = async (): Promise<void> => {
     await signOut(auth);
 };
+
+export const signInWithGoogle = async (): Promise<User> => {
+    const provider = new GoogleAuthProvider();
+    try {
+        const result = await signInWithPopup(auth, provider);
+        const firebaseUser = result.user;
+        // mapFirebaseUserToAppUser will handle creating the user doc if it's the first time
+        const appUser = await mapFirebaseUserToAppUser(firebaseUser);
+        return appUser;
+    } catch (error: any) {
+        // Handle specific popup errors
+        if (error.code === 'auth/popup-closed-by-user') {
+            throw new Error('Sign-in cancelled. Please try again.');
+        }
+        if (error.code === 'auth/account-exists-with-different-credential') {
+            throw new Error('An account already exists with this email address. Please sign in with the original method.');
+        }
+        console.error("Google Sign-In Error:", error);
+        throw new Error(error.message || 'An unexpected error occurred during Google sign-in.');
+    }
+};
+
 
 export const updateUserDoc = async (userId: string, data: Partial<Omit<User, 'uid'>>): Promise<void> => {
     const userDocRef = doc(db, 'users', userId);
