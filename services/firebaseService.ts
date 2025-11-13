@@ -90,7 +90,7 @@ const mapFirebaseUserToAppUser = async (firebaseUser: FirebaseAuthUser): Promise
     const newUser: Omit<User, 'uid'> = {
         email: firebaseUser.email!,
         displayName: firebaseUser.displayName || firebaseUser.email!.split('@')[0],
-        photoURL: firebaseUser.photoURL || undefined,
+        photoURL: firebaseUser.photoURL || null,
         plan: 'freemium',
         generationsUsed: 0,
         theme: 'Twilight',
@@ -162,6 +162,7 @@ export const signUpWithEmail = async (email: string, password: string): Promise<
     const newUser: Omit<User, 'uid'> = {
         email,
         displayName: email.split('@')[0],
+        photoURL: null,
         plan: 'freemium',
         generationsUsed: 0,
         theme: 'Twilight',
