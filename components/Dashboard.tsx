@@ -661,17 +661,39 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
   const handleCopy = useCallback((content: string, templateName: string, itemTopic?: string) => {
     const currentTopic = itemTopic || topic;
     
-    if (templateName.includes("Image") || templateName.includes("Video") || templateName.includes("Resonance")) {
+    const isAssetGenerationTool = templateName === "AI Ad Creative" || templateName === "AI Image Editor" || templateName === "Marketing Video Ad";
+
+    if (isAssetGenerationTool) {
         if(currentTopic) {
             navigator.clipboard.writeText(currentTopic);
             addToast('Prompt copied to clipboard!');
         }
     } else if (content) {
-      const tempDiv = document.createElement('div');
-      tempDiv.innerHTML = markdownToHtml(content).replace(/<br\s*\/?>/gi, '\n');
-      const plainText = tempDiv.textContent || tempDiv.innerText || '';
-      navigator.clipboard.writeText(plainText);
-      addToast('Content copied to clipboard!');
+      if (templateName === "Resonance Engine") {
+          try {
+              const feedback = JSON.parse(content);
+              const reportText = `Resonance Feedback Report:\n\n` +
+                  `First Impression: "${feedback.firstImpression}"\n\n` +
+                  `Clarity Score: ${feedback.clarityScore}/10\n${feedback.clarityReasoning}\n\n` +
+                  `Persuasion Score: ${feedback.persuasionScore}/10\n${feedback.persuasionReasoning}\n\n` +
+                  `Key Questions & Doubts:\n${feedback.keyQuestions.map((q: string) => `- ${q}`).join('\n')}\n\n` +
+                  `Suggested Improvement:\n${feedback.suggestedImprovement}\n\n` +
+                  `Goal Alignment:\n${feedback.goalAlignment}\n\n` +
+                  `Emotional Resonance:\n${feedback.emotionAnalysis}`;
+              navigator.clipboard.writeText(reportText);
+              addToast('Feedback report copied to clipboard!');
+          } catch(e) {
+              // Fallback for malformed JSON or other content
+              navigator.clipboard.writeText(content);
+              addToast('Content copied to clipboard!');
+          }
+      } else {
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = markdownToHtml(content).replace(/<br\s*\/?>/gi, '\n');
+        const plainText = tempDiv.textContent || tempDiv.innerText || '';
+        navigator.clipboard.writeText(plainText);
+        addToast('Content copied to clipboard!');
+      }
     }
   }, [addToast, topic]);
   

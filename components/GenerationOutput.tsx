@@ -14,6 +14,8 @@ import LightbulbIcon from './icons/LightbulbIcon';
 import QuestionMarkCircleIcon from './icons/QuestionMarkCircleIcon';
 import CheckCircleIcon from './icons/CheckCircleIcon';
 import TargetIcon from './icons/TargetIcon';
+import DownloadIcon from './icons/DownloadIcon';
+import { useToast } from '../contexts/ToastContext';
 
 interface GenerationOutputProps {
     isLoading: boolean;
@@ -198,6 +200,11 @@ const GenerationOutput: React.FC<GenerationOutputProps> = (props) => {
     const isVideoTool = selectedTemplate.id === ContentType.AIVideoGenerator;
     const isResonanceTool = selectedTemplate.id === ContentType.ResonanceEngine;
 
+    const copyButtonText = isResonanceTool 
+        ? 'Copy Report' 
+        : (isImageTool || isVideoTool || isImageEditTool) 
+            ? 'Copy Prompt' 
+            : 'Copy';
 
     const renderMainContent = () => {
         // --- LOADING STATES ---
@@ -288,27 +295,28 @@ const GenerationOutput: React.FC<GenerationOutputProps> = (props) => {
         <div className="bg-slate-900 rounded-xl border border-slate-800/80 shadow-2xl shadow-black/30 flex flex-col p-0 lg:h-full">
             <div className="flex justify-between items-center p-4 border-b border-slate-800 flex-shrink-0">
                 <h2 className="font-semibold text-white">Creation Canvas</h2>
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2 md:gap-4">
                     {generatedContent && !isLoading && !isImageTool && !isVideoTool && !isResonanceTool && (
-                        <div className="text-xs text-slate-400 flex justify-end gap-4">
+                        <div className="text-xs text-slate-400 hidden md:flex justify-end gap-4">
                             <span>{contentStats.words} words</span>
                             <span>{contentStats.chars} characters</span>
                         </div>
                     )}
                      {(isImageTool || isImageEditTool) && generatedContent && !isLoading && (
-                        <a href={generatedContent} download={`synapse-ai-${topic.substring(0, 20)}.png`} className="flex items-center text-sm text-slate-300 hover:text-white transition-colors">
-                            <svg className="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M13 10H18L12 16L6 10H11V3H13V10ZM4 19H20V12H22V20C22 20.5523 21.5523 21 21 21H3C2.44772 21 2 20.5523 2 20V12H4V19Z"></path></svg>
-                            Download
+                        <a href={generatedContent} download={`synapse-ai-${topic.substring(0, 20)}.png`} className="flex items-center text-sm text-slate-300 hover:text-white transition-colors p-2 md:p-0 rounded-md md:rounded-none hover:bg-slate-700 md:hover:bg-transparent" title="Download">
+                            <DownloadIcon className="w-4 h-4 md:mr-2"/>
+                            <span className="hidden md:inline">Download</span>
                         </a>
                     )}
                      {isVideoTool && videoUrl && !isLoading && (
-                        <a href={videoUrl} download={`synapse-ai-video.mp4`} className="flex items-center text-sm text-slate-300 hover:text-white transition-colors">
-                           <svg className="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M13 10H18L12 16L6 10H11V3H13V10ZM4 19H20V12H22V20C22 20.5523 21.5523 21 21 21H3C2.44772 21 2 20.5523 2 20V12H4V19Z"></path></svg>
-                           Download
+                        <a href={videoUrl} download={`synapse-ai-video.mp4`} className="flex items-center text-sm text-slate-300 hover:text-white transition-colors p-2 md:p-0 rounded-md md:rounded-none hover:bg-slate-700 md:hover:bg-transparent" title="Download">
+                           <DownloadIcon className="w-4 h-4 md:mr-2"/>
+                           <span className="hidden md:inline">Download</span>
                         </a>
                     )}
-                    <button onClick={() => handleCopy(generatedContent, selectedTemplate.name, topic)} disabled={!generatedContent && !topic || isLoading} className="flex items-center text-sm text-slate-300 hover:text-white disabled:text-slate-500 disabled:cursor-not-allowed transition-colors">
-                        <CopyIcon className="w-4 h-4 mr-2" /> {isImageTool || isVideoTool || isImageEditTool || isResonanceTool ? 'Copy Prompt' : 'Copy'}
+                    <button onClick={() => handleCopy(generatedContent, selectedTemplate.name, topic)} disabled={!generatedContent && !topic || isLoading} className="flex items-center text-sm text-slate-300 hover:text-white disabled:text-slate-500 disabled:cursor-not-allowed transition-colors p-2 md:p-0 rounded-md md:rounded-none hover:bg-slate-700 md:hover:bg-transparent" title={copyButtonText}>
+                        <CopyIcon className="w-4 h-4 md:mr-2" />
+                        <span className="hidden md:inline">{copyButtonText}</span>
                     </button>
                 </div>
             </div>
