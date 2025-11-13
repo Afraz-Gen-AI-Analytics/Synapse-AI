@@ -7,6 +7,7 @@ export interface User {
   plan: 'freemium' | 'pro';
   generationsUsed: number;
   theme?: string; // e.g., 'Twilight', 'Sunrise'
+  onboardingCompleted?: boolean;
 }
 
 export enum ContentType {

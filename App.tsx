@@ -72,7 +72,7 @@ const App: React.FC = () => {
       case 'signup':
         return <Signup onSignupSuccess={handleAuthSuccess} onNavigate={handleNavigation} />;
       case 'dashboard':
-        return user ? <Dashboard user={user} onLogout={handleLogout} /> : <Login onLoginSuccess={handleAuthSuccess} onNavigate={handleNavigation} />;
+        return user ? <Dashboard onLogout={handleLogout} /> : <Login onLoginSuccess={handleAuthSuccess} onNavigate={handleNavigation} />;
       default:
         return <LandingPage onNavigate={handleNavigation} />;
     }

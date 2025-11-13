@@ -83,6 +83,7 @@ const mapFirebaseUserToAppUser = async (firebaseUser: FirebaseAuthUser): Promise
         plan: 'freemium',
         generationsUsed: 0,
         theme: 'Twilight',
+        onboardingCompleted: false,
     };
     
     // Also need to create the brand profile if it's missing.
@@ -153,6 +154,7 @@ export const signUpWithEmail = async (email: string, password: string): Promise<
         plan: 'freemium',
         generationsUsed: 0,
         theme: 'Twilight',
+        onboardingCompleted: false,
     };
     await setDoc(userDocRef, newUser);
 

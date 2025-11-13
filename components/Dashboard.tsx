@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import React, { useState, useCallback, useMemo, useEffect, useContext } from 'react';
 import { ContentType, Template, HistoryItem, User, ToolRoute, BrandProfile } from '../types';
 import { 
     generateContentStream, 
@@ -17,6 +17,8 @@ import {
     isBrandProfileComplete
 } from '../services/firebaseService';
 import { useToast } from '../contexts/ToastContext';
+import { AuthContext } from '../App';
+import OnboardingWizard from './OnboardingWizard';
 
 import SocialIcon from './icons/SocialIcon';
 import BlogIcon from './icons/BlogIcon';
@@ -69,7 +71,6 @@ declare global {
 }
 
 interface DashboardProps {
-  user: User;
   onLogout: () => void;
 }
 
@@ -148,7 +149,7 @@ const compressImageForHistory = (base64DataUrl: string, maxSizeInBytes: number =
             
             if (compressedDataUrl.length > maxSizeInBytes) {
                 console.warn(`Image could not be compressed enough for history. Final size: ${compressedDataUrl.length} bytes.`);
-                return reject(new Error('Image is too large to save in history, even after compression.'));
+                return reject(new Error('Image is too large to save to history, even after compression.'));
             }
 
             resolve(compressedDataUrl);
@@ -366,7 +367,9 @@ type UploadedFile = { data: string; mimeType: string; name: string; dataUrl: str
 
 type Tab = 'home' | 'tools' | 'live-agent' | 'agents' | 'history' | 'analytics' | 'settings';
 
-const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
+const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
+  const { user, setUser } = useContext(AuthContext);
+
   const [activeTab, setActiveTab] = useState<Tab>('home');
   const [initialHistoryTab, setInitialHistoryTab] = useState<'tools' | 'campaigns'>('tools');
   const [selectedTemplate, setSelectedTemplate] = useState<Template>(templates[1]); // Default to Resonance Engine
@@ -379,7 +382,6 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
   const [numOutputs, setNumOutputs] = useState(1);
   
   const [isLoading, setIsLoading] = useState(false);
-  const [currentUser, setCurrentUser] = useState<User>(user);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [isToolsDrawerOpen, setIsToolsDrawerOpen] = useState(false);
   const { addToast } = useToast();
@@ -401,12 +403,24 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
   const [navigationSource, setNavigationSource] = useState<Tab | null>(null);
 
   useEffect(() => {
-    setCurrentUser(user);
-    getBrandProfile(user.uid).then(profile => {
-        setBrandProfile(profile);
-        setIsProfileComplete(isBrandProfileComplete(profile));
-    });
+    if (user) {
+        getBrandProfile(user.uid).then(profile => {
+            setBrandProfile(profile);
+            setIsProfileComplete(isBrandProfileComplete(profile));
+        });
+    }
   }, [user]);
+
+  const handleOnboardingComplete = useCallback(async () => {
+    if (!user || !setUser) return;
+    try {
+        await updateUserDoc(user.uid, { onboardingCompleted: true });
+        setUser({ ...user, onboardingCompleted: true });
+        addToast("Setup complete! Welcome to your command center.", "success");
+    } catch (error) {
+        addToast("There was an error completing your setup. Please try again.", "error");
+    }
+  }, [user, setUser, addToast]);
 
   const handleTabChange = (tab: Tab) => {
     setActiveTab(tab);
@@ -478,6 +492,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
   };
   
   const handleGenerationResult = useCallback(async (result: string, genTopic: string, templateName: string) => {
+    if (!user) return;
     try {
         const isImageTemplate = templateName === "AI Ad Creative" || templateName === "AI Image Editor";
         let contentToSave = result;
@@ -490,9 +505,11 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
                 addToast("Image generated, but it's too large to save to history.", "info");
                 
                 // Still increment generation count even if history save fails
-                const updatedUser = { ...currentUser, generationsUsed: currentUser.generationsUsed + 1 };
-                setCurrentUser(updatedUser);
-                await updateUserDoc(currentUser.uid, { generationsUsed: updatedUser.generationsUsed });
+                if (setUser) {
+                  const updatedUser = { ...user, generationsUsed: user.generationsUsed + 1 };
+                  setUser(updatedUser);
+                  await updateUserDoc(user.uid, { generationsUsed: updatedUser.generationsUsed });
+                }
                 
                 return; // Exit without attempting to save the large item
             }
@@ -515,18 +532,19 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
             }
         }
 
-        await addHistoryDoc(currentUser.uid, {
-            userId: currentUser.uid,
+        await addHistoryDoc(user.uid, {
+            userId: user.uid,
             templateName: templateName,
             content: contentToSave,
             topic: genTopic,
             timestamp: new Date().toISOString(),
         });
         
-        const updatedUser = { ...currentUser, generationsUsed: currentUser.generationsUsed + 1 };
-        setCurrentUser(updatedUser);
-        
-        await updateUserDoc(currentUser.uid, { generationsUsed: updatedUser.generationsUsed });
+        if (setUser) {
+          const updatedUser = { ...user, generationsUsed: user.generationsUsed + 1 };
+          setUser(updatedUser);
+          await updateUserDoc(user.uid, { generationsUsed: updatedUser.generationsUsed });
+        }
 
     } catch (err: any) {
         console.error("Failed to save history item:", err);
@@ -536,7 +554,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
              addToast("Could not save generation to history.", "error");
         }
     }
-  }, [currentUser, addToast]);
+  }, [user, addToast, setUser]);
 
   const handleGenerate = useCallback(async () => {
     if (!topic) {
@@ -544,7 +562,9 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
       return;
     }
     
-    if (currentUser.plan === 'freemium' && (currentUser.generationsUsed >= FREEMIUM_GENERATION_LIMIT || selectedTemplate.isPro)) {
+    if (!user) return;
+    
+    if (user.plan === 'freemium' && (user.generationsUsed >= FREEMIUM_GENERATION_LIMIT || selectedTemplate.isPro)) {
         setShowUpgradeModal(true);
         return;
     }
@@ -634,7 +654,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
       setIsLoading(false);
       setVideoStatus('');
     }
-  }, [topic, tone, selectedTemplate, extraFields, currentUser, brandProfile, handleGenerationResult, uploadedImage, numOutputs, addToast]);
+  }, [topic, tone, selectedTemplate, extraFields, user, brandProfile, handleGenerationResult, uploadedImage, numOutputs, addToast]);
 
   const generatedContent = useMemo(() => generatedContents[activeVariation] || '', [generatedContents, activeVariation]);
 
@@ -703,7 +723,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
     }
 
     window.scrollTo(0, 0);
-  }, [templates]);
+  }, []);
   
   const handleEdit = useCallback((item: HistoryItem) => {
     const editTemplate = templates.find(t => t.id === ContentType.AIImageEditor);
@@ -730,7 +750,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
     setOriginalImageUrl(fileForEditing.dataUrl); // This sets the 'before' image in the comparator
 
     window.scrollTo(0, 0);
-  }, [templates]);
+  }, []);
 
 
   const contentStats = useMemo(() => {
@@ -744,10 +764,11 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
   }, [generatedContent, selectedTemplate]);
 
   const handleUpgrade = async () => {
+    if (!user || !setUser) return;
     try {
-        const updatedUserData = { ...currentUser, plan: 'pro' as const };
-        await updateUserDoc(currentUser.uid, { plan: 'pro' });
-        setCurrentUser(updatedUserData); // Update local state immediately for responsiveness
+        const updatedUserData = { ...user, plan: 'pro' as const };
+        await updateUserDoc(user.uid, { plan: 'pro' });
+        setUser(updatedUserData); // Update local state immediately for responsiveness
         setShowUpgradeModal(false);
         addToast("Upgrade successful! Welcome to the Pro plan.", "success");
     } catch (error) {
@@ -805,13 +826,16 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
           </button>
         ))}
         </nav>
-        <div className="mt-auto flex-shrink-0 pt-6 border-t border-slate-800">
-            <UsageUpgradeCard user={currentUser} onUpgrade={() => setShowUpgradeModal(true)} />
-        </div>
+        { user && (
+            <div className="mt-auto flex-shrink-0 pt-6 border-t border-slate-800">
+                <UsageUpgradeCard user={user} onUpgrade={() => setShowUpgradeModal(true)} />
+            </div>
+        )}
     </aside>
   );
 
   const renderToolLayout = () => {
+    if (!user) return null;
     // Profile check for features that need it
     if (selectedTemplate.id === ContentType.Campaign && !isProfileComplete) {
         if (isProfileComplete === null) {
@@ -861,7 +885,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
         case ContentType.AIVideoGenerator:
             return <VideoGeneratorLayout
                 selectedTemplate={selectedTemplate}
-                user={currentUser}
+                user={user}
                 topic={topic} setTopic={setTopic}
                 extraFields={extraFields} handleFieldChange={handleFieldChange}
                 isLoading={isLoading}
@@ -874,7 +898,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
         case ContentType.Campaign:
              return <CampaignBuilder 
                 template={selectedTemplate} 
-                user={currentUser}
+                user={user}
                 onUpgrade={() => setShowUpgradeModal(true)}
                 onNavigateToSettings={() => handleNavigateToSettings('tools')}
                 onNavigateToHistory={handleNavigateToCampaignHistory}
@@ -885,10 +909,11 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
   }
 
   const renderContent = () => {
+    if (!user) return null;
     switch (activeTab) {
       case 'home':
         return <HomeDashboard 
-                    user={currentUser} 
+                    user={user} 
                     onSelectTemplate={handleTemplateSelect} 
                     templates={templates} 
                     onUpgrade={() => setShowUpgradeModal(true)}
@@ -904,19 +929,31 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
             </div>
         );
       case 'live-agent':
-        return <LiveAgentView user={currentUser} />;
+        return <LiveAgentView user={user} />;
       case 'agents':
-        return <AgentManager user={currentUser} onUpgrade={() => setShowUpgradeModal(true)} onNavigateToSettings={() => handleNavigateToSettings('agents')} />;
+        return <AgentManager user={user} onUpgrade={() => setShowUpgradeModal(true)} onNavigateToSettings={() => handleNavigateToSettings('agents')} />;
       case 'analytics':
-        return <AnalyticsDashboard user={currentUser} />;
+        return <AnalyticsDashboard user={user} />;
       case 'settings':
-        return <SettingsView user={currentUser} onUserUpdate={setCurrentUser} onSaveSuccess={handleSettingsSaveSuccess} />;
+        return <SettingsView user={user} onUserUpdate={(updatedUser) => setUser(updatedUser)} onSaveSuccess={handleSettingsSaveSuccess} />;
       case 'history':
-        return <HistoryView user={currentUser} onReuse={handleReuse} onCopy={handleCopy} onEdit={handleEdit} initialTab={initialHistoryTab} />;
+        return <HistoryView user={user} onReuse={handleReuse} onCopy={handleCopy} onEdit={handleEdit} initialTab={initialHistoryTab} />;
       default:
         return null;
     }
   };
+
+  if (!user) {
+    return (
+        <div className="min-h-screen flex items-center justify-center">
+            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-[var(--gradient-end)]"></div>
+        </div>
+      );
+  }
+  
+  if (!user.onboardingCompleted) {
+    return <OnboardingWizard user={user} onComplete={handleOnboardingComplete} />;
+  }
 
 
   return (
@@ -961,7 +998,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
             </Tooltip>
           </nav>
           <div className="mt-auto mb-2 relative">
-             <UserProfile user={currentUser} onLogout={onLogout} onSettingsClick={() => handleTabChange('settings')} />
+             <UserProfile user={user} onLogout={onLogout} onSettingsClick={() => handleTabChange('settings')} />
           </div>
       </aside>
 
@@ -984,7 +1021,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
       </main>
 
       <BottomNavBar 
-        user={currentUser} 
+        user={user} 
         activeTab={activeTab} 
         onTabChange={handleTabChange}
         onToggleToolsDrawer={() => setIsToolsDrawerOpen(true)}
