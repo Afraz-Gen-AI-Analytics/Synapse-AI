@@ -1,5 +1,3 @@
-
-
 import React, { useState, useEffect, useRef } from 'react';
 import SynapseLogo from './icons/SynapseLogo';
 import CheckIcon from './icons/CheckIcon';
@@ -26,7 +24,7 @@ import TrendingUpIcon from './icons/TrendingUpIcon';
 
 
 interface LandingPageProps {
-  onNavigate: (view: 'login' | 'signup') => void;
+  onNavigate: (view: 'login' | 'signup' | 'terms' | 'privacy') => void;
 }
 
 const companyLogos = [
@@ -559,8 +557,15 @@ const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
       </AnimatedSection>
 
       <footer className="border-t border-slate-800 py-8">
-        <div className="container mx-auto px-4 text-center text-slate-400">
-          <p>&copy; {new Date().getFullYear()} Synapse AI. All rights reserved.</p>
+        <div className="container mx-auto px-4 text-center text-slate-400 text-sm">
+           <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
+              <span>&copy; {new Date().getFullYear()} Synapse AI. All rights reserved.</span>
+              <span className="hidden sm:inline">|</span>
+              <div className="flex gap-4">
+                <button onClick={() => onNavigate('terms')} className="hover:text-white transition-colors">Terms of Service</button>
+                <button onClick={() => onNavigate('privacy')} className="hover:text-white transition-colors">Privacy Policy</button>
+              </div>
+          </div>
         </div>
       </footer>
     </div>

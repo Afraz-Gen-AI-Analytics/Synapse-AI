@@ -6,7 +6,7 @@ import GoogleIcon from './icons/GoogleIcon';
 
 interface LoginProps {
   onLoginSuccess: (user: User) => void;
-  onNavigate: (view: 'signup' | 'landing') => void;
+  onNavigate: (view: 'signup' | 'landing' | 'terms' | 'privacy') => void;
 }
 
 const Login: React.FC<LoginProps> = ({ onLoginSuccess, onNavigate }) => {
@@ -129,6 +129,16 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess, onNavigate }) => {
                     </button>
                 </div>
             </form>
+             <p className="text-center text-slate-500 text-xs mt-6">
+                By signing in, you agree to our{' '}
+                <button onClick={() => onNavigate('terms')} className="font-semibold text-slate-400 hover:text-white underline">
+                    Terms of Service
+                </button>
+                 {' '}and{' '}
+                <button onClick={() => onNavigate('privacy')} className="font-semibold text-slate-400 hover:text-white underline">
+                    Privacy Policy
+                </button>.
+            </p>
         </div>
         <p className="text-center text-slate-400 mt-6">
             Don't have an account?{' '}

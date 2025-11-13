@@ -3,12 +3,14 @@ import LandingPage from './components/LandingPage';
 import Dashboard from './components/Dashboard';
 import Login from './components/Login';
 import Signup from './components/Signup';
+import TermsAndConditions from './components/TermsAndConditions';
+import PrivacyPolicy from './components/PrivacyPolicy';
 import { onAuthStateChanged, signOutUser } from './services/firebaseService';
 import { User } from './types';
 import { ToastProvider } from './contexts/ToastContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 
-type View = 'landing' | 'login' | 'signup' | 'dashboard';
+type View = 'landing' | 'login' | 'signup' | 'dashboard' | 'terms' | 'privacy';
 
 // Create a context to provide user state throughout the app
 export const AuthContext = createContext<{ user: User | null; setUser: React.Dispatch<React.SetStateAction<User | null>> }>({ user: null, setUser: () => {} });
@@ -27,8 +29,8 @@ const App: React.FC = () => {
             setView('dashboard');
         } else {
             setUser(null);
-            // Only switch to landing if not already on login/signup
-            setView(currentView => (currentView === 'login' || currentView === 'signup' ? currentView : 'landing'));
+            // Only switch to landing if not on a persistent page like login, signup or legal pages
+            setView(currentView => (['login', 'signup', 'terms', 'privacy'].includes(currentView) ? currentView : 'landing'));
         }
         setIsLoadingUser(false);
     });
@@ -71,6 +73,10 @@ const App: React.FC = () => {
         return <Login onLoginSuccess={handleAuthSuccess} onNavigate={handleNavigation} />;
       case 'signup':
         return <Signup onSignupSuccess={handleAuthSuccess} onNavigate={handleNavigation} />;
+      case 'terms':
+        return <TermsAndConditions onNavigate={handleNavigation} />;
+      case 'privacy':
+        return <PrivacyPolicy onNavigate={handleNavigation} />;
       case 'dashboard':
         return user ? <Dashboard onLogout={handleLogout} /> : <Login onLoginSuccess={handleAuthSuccess} onNavigate={handleNavigation} />;
       default:
