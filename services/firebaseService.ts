@@ -71,7 +71,15 @@ const mapFirebaseUserToAppUser = async (firebaseUser: FirebaseAuthUser): Promise
     const userDocSnap = await firestoreGetDoc(userDocRef);
 
     if (userDocSnap.exists()) {
-        return { uid: firebaseUser.uid, ...(userDocSnap.data() as Omit<User, 'uid'>) };
+        const appUserFromDb = { uid: firebaseUser.uid, ...(userDocSnap.data() as Omit<User, 'uid'>) };
+
+        // Sync photoURL from Auth provider to our DB if it has changed.
+        if (firebaseUser.photoURL && appUserFromDb.photoURL !== firebaseUser.photoURL) {
+            await firestoreUpdateDoc(userDocRef, { photoURL: firebaseUser.photoURL });
+            appUserFromDb.photoURL = firebaseUser.photoURL;
+        }
+        
+        return appUserFromDb;
     }
     
     // Document doesn't exist. This can happen due to a race condition on signup
@@ -82,6 +90,7 @@ const mapFirebaseUserToAppUser = async (firebaseUser: FirebaseAuthUser): Promise
     const newUser: Omit<User, 'uid'> = {
         email: firebaseUser.email!,
         displayName: firebaseUser.displayName || firebaseUser.email!.split('@')[0],
+        photoURL: firebaseUser.photoURL || undefined,
         plan: 'freemium',
         generationsUsed: 0,
         theme: 'Twilight',

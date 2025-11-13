@@ -34,9 +34,13 @@ const UserProfile: React.FC<UserProfileProps> = ({ user, onLogout, onSettingsCli
         <div ref={menuRef}>
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center font-bold text-white hover:opacity-90 transition-opacity"
+                className="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center font-bold text-white hover:opacity-90 transition-opacity overflow-hidden"
             >
-                {getInitials(user.email)}
+                {user.photoURL ? (
+                    <img src={user.photoURL} alt={user.displayName} className="w-full h-full object-cover" />
+                ) : (
+                    getInitials(user.email)
+                )}
             </button>
 
             {isOpen && (

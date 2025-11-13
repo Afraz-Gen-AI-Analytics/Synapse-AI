@@ -4,6 +4,7 @@ export interface User {
   uid: string; // Changed from id: number to uid: string
   email: string;
   displayName: string;
+  photoURL?: string;
   plan: 'freemium' | 'pro';
   generationsUsed: number;
   theme?: string; // e.g., 'Twilight', 'Sunrise'
