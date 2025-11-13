@@ -70,8 +70,24 @@ const BottomNavBar: React.FC<BottomNavBarProps> = ({ user, activeTab, onTabChang
         <div className="fixed bottom-0 left-0 right-0 h-16 bg-slate-900/80 backdrop-blur-sm border-t border-slate-800/50 shadow-t-2xl md:hidden z-30">
             <div className="h-full flex items-center justify-around">
                 {tabs.map(tab => {
-                    const isActive = activeTab === tab.id || (tab.id === 'more' && isMoreMenuOpen);
+                    const isActive = activeTab === tab.id || (tab.id === 'more' && isMoreMenuOpen) || (activeTab === 'tools' && tab.id === 'create');
                     const action = (tab.id === 'more') ? tab.action : () => handleTabClick(tab.action);
+
+                    if (tab.id === 'create') {
+                         return (
+                            <div key={tab.id} className="flex-1 h-full">
+                                <button
+                                    onClick={action}
+                                    className="flex flex-col items-center justify-center w-full h-full text-xs transition-colors duration-200 focus:outline-none"
+                                    aria-label="Create new content"
+                                >
+                                    <div className="w-10 h-10 flex items-center justify-center rounded-xl bg-gradient-to-r from-[var(--gradient-start)] to-[var(--gradient-end)] shadow-lg shadow-[color:var(--gradient-start)]/30 transition-transform duration-200 hover:scale-105 active:scale-95">
+                                        <CreateIcon className="w-6 h-6 text-white" />
+                                    </div>
+                                </button>
+                            </div>
+                         );
+                    }
 
                     if (tab.id === 'more') {
                         return (
