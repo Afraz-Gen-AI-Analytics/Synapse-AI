@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect, useRef } from 'react';
 import SynapseLogo from './icons/SynapseLogo';
 import CheckIcon from './icons/CheckIcon';
@@ -20,6 +21,8 @@ import { useIntersectionObserver } from '../hooks/useIntersectionObserver';
 import UserIcon from './icons/UserIcon';
 import InfoIcon from './icons/InfoIcon';
 import Tooltip from './Tooltip';
+import SparklesIcon from './icons/SparklesIcon';
+import TrendingUpIcon from './icons/TrendingUpIcon';
 
 
 interface LandingPageProps {
@@ -335,23 +338,23 @@ const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
           <div className="grid md:grid-cols-3 gap-8">
             <AnimatedSection delay={0}>
               <div className="bg-slate-900 p-8 rounded-xl border border-slate-800 transition-all duration-300 hover:border-[var(--gradient-end)]/50 hover:-translate-y-2 group hover:shadow-lg hover:shadow-[color:var(--gradient-end)]/20 h-full">
-                  <SocialIcon className="w-12 h-12 text-[var(--gradient-end)] mb-4 transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6"/>
-                  <h3 className="text-xl font-bold mb-2">Precision Content Tools</h3>
-                  <p className="text-slate-400">Generate flawless, on-brand copy for any platform, powered by your unique Brand Voice profile.</p>
+                  <SparklesIcon className="w-12 h-12 text-[var(--gradient-end)] mb-4 transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6"/>
+                  <h3 className="text-xl font-bold mb-2">Core Content Tools</h3>
+                  <p className="text-slate-400">Access a rich suite of content generators for social media, blogs, emails, and ad copy to kickstart your creative workflow.</p>
               </div>
             </AnimatedSection>
             <AnimatedSection delay={150}>
               <div className="bg-slate-900 p-8 rounded-xl border-2 border-[var(--gradient-start)]/80 transition-all duration-300 hover:-translate-y-2 shadow-2xl shadow-fuchsia-900/20 group hover:shadow-lg hover:shadow-[color:var(--gradient-start)]/30 h-full">
                   <AgentIcon className="w-12 h-12 text-[var(--gradient-start)] mb-4 transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6" />
-                  <h3 className="text-xl font-bold mb-2">Autonomous Agents</h3>
-                  <p className="text-slate-400">Our flagship feature. Deploy AI agents that plan and execute entire marketing campaigns based on your strategic goals.</p>
+                  <h3 className="text-xl font-bold mb-2">Autonomous Pro Suite</h3>
+                  <p className="text-slate-400">Unlock our flagship Pro Suite to plan, execute, and analyze with Campaign Builder, Autonomous Agents, Resonance Engine, and Video Ads.</p>
               </div>
             </AnimatedSection>
              <AnimatedSection delay={300}>
                <div className="bg-slate-900 p-8 rounded-xl border border-slate-800 transition-all duration-300 hover:border-[var(--gradient-end)]/50 hover:-translate-y-2 group hover:shadow-lg hover:shadow-[color:var(--gradient-end)]/20 h-full">
-                  <AnalyticsIcon className="w-12 h-12 text-[var(--gradient-end)] mb-4 transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6"/>
-                  <h3 className="text-xl font-bold mb-2">Actionable Analytics</h3>
-                  <p className="text-slate-400">Track content performance, measure campaign ROI, and gain the strategic insights you need to make data-driven decisions.</p>
+                  <TrendingUpIcon className="w-12 h-12 text-[var(--gradient-end)] mb-4 transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6"/>
+                  <h3 className="text-xl font-bold mb-2">Analytics & Live Guidance</h3>
+                  <p className="text-slate-400">Measure campaign performance with actionable analytics and get real-time strategic advice from your AI co-pilot via voice.</p>
               </div>
             </AnimatedSection>
           </div>
@@ -466,7 +469,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
                             Autonomous AI Agents
                         </li>
                         <li className="flex items-center"><CheckIcon className="w-5 h-5 text-green-400 mr-3" /> Performance Analytics</li>
-                         <li className="flex items-center"><CheckIcon className="w-5 h-5 text-green-400 mr-3" /> Brand Voice Configuration</li>
+                         <li className="flex items-center"><CheckIcon className="w-5 h-5 text-green-400 mr-3" /> All Pro Tools Included</li>
                     </ul>
                     <button onClick={() => onNavigate('signup')} className="mt-auto w-full bg-gradient-to-r from-[var(--gradient-start)] to-[var(--gradient-end)] hover:opacity-90 text-white font-semibold py-3 rounded-lg transition-colors">Go Pro</button>
                 </div>
@@ -535,10 +538,14 @@ const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
           </div>
           <div className="space-y-2">
             <FaqItem question="What makes Synapse different from other AI writers?">
-                While other tools generate text, Synapse is a strategic partner. Our flagship Autonomous Agents feature allows you to deploy an AI workforce to plan and execute entire campaigns. Combined with analytics and brand voice personalization, it's a complete command center for growth.
+                <>
+                  Synapse goes beyond simple text generation to offer a complete strategic toolkit. We provide a rich suite of <span className="font-semibold text-slate-200">Core Content Tools</span> (for social media, blogs, emails, and ads) accessible to all users. What truly sets us apart is our <span className="font-semibold text-slate-200">Autonomous Pro Suite</span>, featuring our Campaign Builder, AI Agents that execute entire strategies, the Resonance Engine for audience feedback, and Marketing Video Ads. It's an end-to-end command center for your growth.
+                </>
             </FaqItem>
             <FaqItem question="How do the AI Agents work?">
-                You provide an agent with a name, a persona (like 'Social Media Manager'), and a high-level goal. The agent then uses AI to generate a strategic plan of action and executes it, creating content, and logging its progress, all while adhering to your defined brand voice.
+                <>
+                  Our AI Agents are a flagship Pro feature. You simply provide a high-level goal, like 'launch a new product.' The agent then autonomously plans a multi-step strategy, generates all the necessary content (social posts, emails, etc.), and prepares it for deployment, all while adhering to your brand's unique voice.
+                </>
             </FaqItem>
             <FaqItem question="Is my data secure?">
                 Absolutely. We prioritize user privacy and data security. All your generated content, brand profile, and account information are encrypted and securely stored.

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import SynapseLogo from './icons/SynapseLogo';
+import CheckIcon from './icons/CheckIcon';
 
 interface UpgradeModalProps {
   onClose: () => void;
@@ -23,13 +24,13 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({ onClose, onUpgrade }) => {
       >
         <SynapseLogo className="w-12 h-12 mx-auto mb-4" />
         <h2 className="text-2xl font-bold gradient-text mb-2">Unlock Your Full Potential</h2>
-        <p className="text-slate-400 mb-6">You've reached your limit on the Freemium plan. Upgrade to Pro to access unlimited generations and powerful features like Autonomous Agents.</p>
+        <p className="text-slate-400 mb-6">Upgrade to Pro to unlock unlimited generations and access our complete suite of powerful tools.</p>
         
-        <div className="text-left bg-slate-800/50 p-4 rounded-lg mb-6 space-y-2 text-sm">
-            <p className="flex items-center"><span className="text-green-400 mr-2">✓</span> Unlimited Generations</p>
-            <p className="flex items-center"><span className="text-green-400 mr-2">✓</span> Autonomous AI Agents</p>
-            <p className="flex items-center"><span className="text-green-400 mr-2">✓</span> Campaign Builder & Analytics</p>
-            <p className="flex items-center"><span className="text-green-400 mr-2">✓</span> AI Video Generation</p>
+        <div className="text-left bg-slate-800/50 p-4 rounded-lg mb-6 space-y-3 text-sm">
+            <p className="flex items-center"><CheckIcon className="w-5 h-5 text-green-400 mr-3 flex-shrink-0" /> Unlimited generations</p>
+            <p className="flex items-center"><CheckIcon className="w-5 h-5 text-green-400 mr-3 flex-shrink-0" /> Autonomous AI Agents</p>
+            <p className="flex items-center"><CheckIcon className="w-5 h-5 text-green-400 mr-3 flex-shrink-0" /> Performance Analytics</p>
+            <p className="flex items-center"><CheckIcon className="w-5 h-5 text-green-400 mr-3 flex-shrink-0" /> All Pro Tools Included</p>
         </div>
         
         <button 
