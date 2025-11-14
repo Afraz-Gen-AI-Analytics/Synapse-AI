@@ -9,6 +9,7 @@ import HeadsetIcon from './icons/HeadsetIcon';
 import AnalyticsIcon from './icons/AnalyticsIcon';
 import FilmIcon from './icons/FilmIcon';
 import SynapseVisualizer from './SynapseVisualizer';
+import ImageIcon from './icons/ImageIcon';
 
 type Tab = 'home' | 'tools' | 'live-agent' | 'agents' | 'history' | 'analytics' | 'settings';
 interface HomeDashboardProps {
@@ -49,7 +50,7 @@ const HomeDashboard: React.FC<HomeDashboardProps> = ({ user, templates, onSelect
     const emailTemplate = templates.find(t => t.id === ContentType.EmailCopy);
     const campaignTemplate = templates.find(t => t.id === ContentType.Campaign);
     const videoTemplate = templates.find(t => t.id === ContentType.AIVideoGenerator);
-    const resonanceTemplate = templates.find(t => t.id === ContentType.ResonanceEngine);
+    const aiAdCreativeTemplate = templates.find(t => t.id === ContentType.AIImage);
 
     const quickStartItems = [
         socialTemplate,
@@ -57,7 +58,7 @@ const HomeDashboard: React.FC<HomeDashboardProps> = ({ user, templates, onSelect
         blogTemplate,
         emailTemplate,
         videoTemplate,
-        resonanceTemplate,
+        aiAdCreativeTemplate,
     ].filter(Boolean) as Template[];
 
     return (
