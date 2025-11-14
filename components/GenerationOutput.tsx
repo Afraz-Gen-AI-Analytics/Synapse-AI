@@ -310,7 +310,7 @@ const GenerationOutput: React.FC<GenerationOutputProps> = (props) => {
                 <h2 className="font-semibold text-white">Creation Canvas</h2>
                 <div className="flex items-center">
                     {generatedContent && !isLoading && !isImageTool && !isImageEditTool && !isVideoTool && !isResonanceTool && (
-                        <div className="text-xs text-slate-400 hidden md:flex justify-end gap-4 mr-4">
+                        <div className="text-xs text-slate-400 flex justify-end gap-4 mr-4">
                             <span>{contentStats.words} words</span>
                             <span>{contentStats.chars} characters</span>
                         </div>
