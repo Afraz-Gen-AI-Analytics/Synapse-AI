@@ -17,6 +17,7 @@ import TargetIcon from './icons/TargetIcon';
 import DownloadIcon from './icons/DownloadIcon';
 import EditIcon from './icons/EditIcon';
 import { useToast } from '../contexts/ToastContext';
+import ExternalLinkIcon from './icons/ExternalLinkIcon';
 
 interface GenerationOutputProps {
     isLoading: boolean;
@@ -197,6 +198,8 @@ const GenerationOutput: React.FC<GenerationOutputProps> = (props) => {
         originalImageUrl, videoStatus, videoUrl, onEditImage
     } = props;
     
+    const { addToast } = useToast();
+    
     const isImageTool = selectedTemplate.id === ContentType.AIImage;
     const isImageEditTool = selectedTemplate.id === ContentType.AIImageEditor;
     const isVideoTool = selectedTemplate.id === ContentType.AIVideoGenerator;
@@ -207,6 +210,28 @@ const GenerationOutput: React.FC<GenerationOutputProps> = (props) => {
         : (isImageTool || isVideoTool || isImageEditTool) 
             ? 'Copy Prompt' 
             : 'Copy';
+
+    const handleOpenInGmail = () => {
+        let subject = '';
+        let body = generatedContent;
+
+        const subjectMatch = generatedContent.match(/^## Subject:\s*(.*)/);
+        if (subjectMatch && subjectMatch[1]) {
+            subject = subjectMatch[1].trim();
+            // Remove subject line from body
+            body = generatedContent.replace(/^## Subject:\s*(.*)\r?\n/, '').trim();
+        }
+
+        // Convert markdown body to plain text for the URL
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = markdownToHtml(body).replace(/<br\s*\/?>/gi, '\n');
+        const plainTextBody = tempDiv.textContent || tempDiv.innerText || '';
+
+        const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(plainTextBody)}`;
+        
+        window.open(gmailUrl, '_blank');
+        addToast("Opening email in Gmail compose window.", "info");
+    };
 
     const renderMainContent = () => {
         if (isLoading) {
@@ -309,6 +334,13 @@ const GenerationOutput: React.FC<GenerationOutputProps> = (props) => {
                                <DownloadIcon className="w-4 h-4 md:mr-1.5"/>
                                <span className="hidden md:inline">Download</span>
                             </a>
+                        )}
+                        
+                        {selectedTemplate.id === ContentType.EmailCopy && generatedContent && !isLoading && (
+                             <button onClick={handleOpenInGmail} className="flex items-center p-2 rounded-md hover:bg-slate-700 hover:text-white transition-colors" title="Open in Gmail">
+                                <ExternalLinkIcon className="w-4 h-4 md:mr-1.5" />
+                                <span className="hidden md:inline">Email</span>
+                            </button>
                         )}
 
                         <button onClick={() => handleCopy(generatedContent, selectedTemplate.name, topic)} disabled={(!generatedContent && !topic) || isLoading} className="flex items-center p-2 rounded-md hover:bg-slate-700 hover:text-white disabled:text-slate-500 disabled:cursor-not-allowed transition-colors" title={copyButtonText}>
