@@ -190,7 +190,7 @@ const templates: Template[] = [
     placeholder: "e.g., A vibrant banner ad for a summer sale on sunglasses, 16:9 aspect ratio",
     fields: [
       { name: "aspectRatio", label: "Aspect Ratio", options: ["1:1", "16:9", "9:16", "4:3", "3:4"], defaultValue: "1:1" },
-      { name: "style", label: "Image Style", options: ["Photorealistic", "3D Render", "Graphic Illustration", "Abstract", "Minimalist"], defaultValue: "Photorealistic" }
+      { name: "style", label: "Image Style", options: ["Photorealistic", "Studio Level", "3D Render", "Graphic Illustration", "Minimalist"], defaultValue: "Photorealistic" }
     ],
   },
    {

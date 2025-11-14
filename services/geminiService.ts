@@ -404,20 +404,34 @@ export async function generateImage(prompt: string, aspectRatio: '1:1' | '16:9' 
 
   try {
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    
+    let styleInstruction = `**Style:** Embody a ${style.toLowerCase()} aesthetic.`;
+    if (style.toLowerCase() === 'studio level') {
+        styleInstruction = `
+      **Style: Studio Level Product Photography**
+      - **Goal:** Create a premium "hero shot" suitable for a high-end advertisement or product landing page.
+      - **Lighting:** Employ professional studio lighting techniques. Think softboxes for clean highlights, rim lighting to define edges, and controlled, soft shadows to create depth. Avoid flat, boring light.
+      - **Background:** Use a clean, professional studio background. This could be a solid color (often light gray, white, or black), a subtle gradient, or a simple, elegant texture. The background must not distract from the subject.
+      - **Focus & Detail:** The subject must be in sharp, perfect focus, with every detail rendered crisply. Use a shallow depth of field if appropriate to make the subject pop.
+      - **Composition:** The subject should be the undeniable focal point. Use classic composition rules (like rule of thirds) to create a visually pleasing and impactful image.
+        `;
+    }
+
     const fullPrompt = `
-      You are a world-class AI visual designer specializing in creating stunning, high-impact marketing imagery and advertisement posters. Your goal is to transform user prompts, even simple ones, into professional, high-quality visuals that are ready for a marketing campaign.
+      You are a world-class AI visual designer and commercial photographer specializing in creating stunning, high-impact marketing imagery. Your goal is to transform user prompts into professional, high-quality visuals ready for a major campaign.
 
       **Core Principles:**
-      - **Professionalism:** Generate images that look like they were made by a top-tier advertising agency. Think clean lighting, professional composition, and high resolution.
-      - **Marketing Focus:** The final image must be suitable for use in an ad, on a website, or in a social media campaign.
-      - **Creativity:** If the prompt is simple (e.g., "a watch"), creatively interpret it as a luxury product photoshoot. Add appropriate backgrounds, lighting, and context.
+      - **Professionalism:** Generate images that look like they were made by a top-tier advertising agency.
+      - **Marketing Focus:** The final image must be compelling and suitable for use in an ad, on a website, or in a social media campaign.
+      - **Creativity:** If the prompt is simple (e.g., "a watch"), creatively interpret it as a luxury product photoshoot. Add appropriate context to elevate the subject.
       - **Clarity:** Ensure the subject is clearly and attractively presented.
+
+      ${styleInstruction}
 
       **User Request:**
       "${prompt}"
 
-      **Execution Details:**
-      - **Style:** ${style.toLowerCase()}
+      **General Execution Details:**
       - **Quality:** Ultra-high resolution, photorealistic details, cinematic lighting, sharp focus.
       - **Composition:** Apply principles of professional photography and graphic design.
     `;
