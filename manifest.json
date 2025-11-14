@@ -13,18 +13,41 @@
       "src": "icon-192.svg",
       "sizes": "192x192",
       "type": "image/svg+xml",
-      "purpose": "any"
+      "purpose": "any maskable"
     },
     {
       "src": "icon-512.svg",
       "sizes": "512x512",
       "type": "image/svg+xml",
-      "purpose": "any"
+      "purpose": "any maskable"
     }
   ],
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "background_color": "#0D1117",
-  "theme_color": "#0D1117"
+  "theme_color": "#0D1117",
+  "shortcuts": [
+    {
+      "name": "New Social Post",
+      "short_name": "Social Post",
+      "description": "Create a new social media post",
+      "url": "/?tool=SocialMediaPost",
+      "icons": [{ "src": "icon-192.svg", "sizes": "192x192" }]
+    },
+    {
+      "name": "New Campaign",
+      "short_name": "Campaign",
+      "description": "Build a new marketing campaign",
+      "url": "/?tool=CampaignBuilder",
+      "icons": [{ "src": "icon-192.svg", "sizes": "192x192" }]
+    },
+    {
+      "name": "View History",
+      "short_name": "History",
+      "description": "View your generation history",
+      "url": "/?tab=history",
+      "icons": [{ "src": "icon-192.svg", "sizes": "192x192" }]
+    }
+  ]
 }

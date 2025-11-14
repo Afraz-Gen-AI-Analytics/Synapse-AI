@@ -422,7 +422,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
     }
   }, [user, setUser, addToast]);
 
-  const handleTabChange = (tab: Tab) => {
+  const handleTabChange = useCallback((tab: Tab) => {
     setActiveTab(tab);
     if (tab === 'history') {
         // When user clicks the main history tab, always default to 'tools'
@@ -430,7 +430,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
     }
     setGeneratedContents([]);
     setVideoUrl(null);
-  }
+  }, []);
 
   const handleNavigateToCampaignHistory = () => {
     setInitialHistoryTab('campaigns');
@@ -477,6 +477,21 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
         setExtraFields({});
     }
   }, []);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const toolName = params.get('tool');
+    const tabName = params.get('tab');
+
+    if (toolName) {
+      const template = templates.find(t => t.name.replace(/\s/g, '') === toolName);
+      if (template) {
+        handleTemplateSelect(template);
+      }
+    } else if (tabName && ['home', 'tools', 'live-agent', 'agents', 'history', 'analytics', 'settings'].includes(tabName)) {
+      handleTabChange(tabName as Tab);
+    }
+  }, [handleTemplateSelect, handleTabChange]);
   
   const handleFileSelect = (file: UploadedFile | null) => {
     setUploadedImage(file);
