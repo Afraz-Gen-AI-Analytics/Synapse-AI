@@ -2,69 +2,29 @@
   "short_name": "Synapse AI",
   "name": "Synapse AI - Your Content Co-pilot",
   "description": "An AI-powered content co-pilot to supercharge your marketing. Generate high-quality social media posts, blog ideas, and email copy in seconds, designed to solve modern content creation challenges and scale your business.",
-  "id": "/",
   "icons": [
     {
-      "src": "/icon.svg",
+      "src": "icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any"
     },
     {
-      "src": "/icon-192.svg",
+      "src": "icon-192.svg",
       "sizes": "192x192",
       "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
-      "src": "/icon-512.svg",
+      "src": "icon-512.svg",
       "sizes": "512x512",
       "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "purpose": "any"
     }
   ],
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "background_color": "#0D1117",
-  "theme_color": "#0D1117",
-  "shortcuts": [
-    {
-      "name": "Create Content",
-      "short_name": "Create",
-      "description": "Jump to the content creation tools",
-      "url": "/?action=create",
-      "icons": [{ "src": "/icon-192.svg", "sizes": "192x192", "type": "image/svg+xml" }]
-    },
-    {
-      "name": "Manage Agents",
-      "short_name": "Agents",
-      "description": "View and manage your autonomous AI agents",
-      "url": "/?action=agents",
-      "icons": [{ "src": "/icon-192.svg", "sizes": "192x192", "type": "image/svg+xml" }]
-    },
-    {
-      "name": "View History",
-      "short_name": "History",
-      "description": "Access your past generations and campaigns",
-      "url": "/?action=history",
-      "icons": [{ "src": "/icon-192.svg", "sizes": "192x192", "type": "image/svg+xml" }]
-    }
-  ],
-  "screenshots": [
-    {
-      "src": "https://i.imgur.com/u5vx235.png",
-      "sizes": "1083x836",
-      "type": "image/png",
-      "form_factor": "wide",
-      "label": "The Synapse AI content creation dashboard."
-    },
-    {
-      "src": "https://i.imgur.com/Qe8s3sI.png",
-      "sizes": "1083x836",
-      "type": "image/png",
-      "form_factor": "wide",
-      "label": "Plan entire marketing campaigns with AI Agents."
-    }
-  ]
+  "theme_color": "#0D1117"
 }

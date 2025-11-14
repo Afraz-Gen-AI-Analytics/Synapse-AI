@@ -6,9 +6,7 @@ import App from './App';
 // Add PWA service worker registration
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    // FIX: Use an absolute URL based on the current origin to avoid cross-origin errors.
-    const swUrl = new URL('/sw.js', window.location.origin).href;
-    navigator.serviceWorker.register(swUrl).then(registration => {
+    navigator.serviceWorker.register('/sw.js').then(registration => {
       console.log('SW registered: ', registration);
     }).catch(registrationError => {
       console.log('SW registration failed: ', registrationError);
