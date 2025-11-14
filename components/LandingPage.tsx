@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import SynapseLogo from './icons/SynapseLogo';
 import CheckIcon from './icons/CheckIcon';
@@ -287,9 +288,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
             </div>
              <div className="mt-8 flex justify-center items-center gap-4 text-slate-400 opacity-0 animate-fade-in-up" style={{ animationDelay: '0.8s' }}>
                 <div className="flex -space-x-2">
-                    <div className="w-8 h-8 rounded-full bg-slate-700 border-2 border-slate-900 flex items-center justify-center"><UserIcon className="w-4 h-4 text-slate-400"/></div>
-                    <div className="w-8 h-8 rounded-full bg-slate-700 border-2 border-slate-900 flex items-center justify-center"><UserIcon className="w-4 h-4 text-slate-400"/></div>
-                    <div className="w-8 h-8 rounded-full bg-slate-700 border-2 border-slate-900 flex items-center justify-center"><UserIcon className="w-4 h-4 text-slate-400"/></div>
+                    <img className="w-8 h-8 rounded-full border-2 border-slate-900 object-cover" src="https://randomuser.me/api/portraits/women/68.jpg" alt="User 1" />
+                    <img className="w-8 h-8 rounded-full border-2 border-slate-900 object-cover" src="https://randomuser.me/api/portraits/men/75.jpg" alt="User 2" />
+                    <img className="w-8 h-8 rounded-full border-2 border-slate-900 object-cover" src="https://randomuser.me/api/portraits/women/44.jpg" alt="User 3" />
                 </div>
                 <p className="text-sm">Join <span className="font-bold text-white">10,000+</span> happy marketers</p>
             </div>

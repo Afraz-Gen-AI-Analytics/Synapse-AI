@@ -1,5 +1,6 @@
 
 
+
 import React from 'react';
 import { Template, User } from '../../types';
 import FileInput from '../FileInput';
@@ -24,6 +25,7 @@ interface VideoGeneratorLayoutProps {
     handleCopy: (content: string, templateName: string) => void;
     uploadedImage: UploadedFile | null;
     handleFileSelect: (file: UploadedFile | null) => void;
+    onEditImage: (imageDataUrl: string) => void;
 }
 
 const LoadingSpinner: React.FC = () => (
@@ -34,7 +36,7 @@ const VideoGeneratorLayout: React.FC<VideoGeneratorLayoutProps> = (props) => {
     const {
         selectedTemplate, user, topic, setTopic, extraFields, handleFieldChange,
         isLoading, handleGenerate, videoStatus, videoUrl,
-        handleCopy, uploadedImage, handleFileSelect,
+        handleCopy, uploadedImage, handleFileSelect, onEditImage,
     } = props;
 
     return (
@@ -112,6 +114,7 @@ const VideoGeneratorLayout: React.FC<VideoGeneratorLayoutProps> = (props) => {
                 originalImageUrl={null}
                 videoStatus={videoStatus}
                 videoUrl={videoUrl}
+                onEditImage={onEditImage}
             />
         </div>
     );

@@ -1,4 +1,5 @@
 
+
 import React from 'react';
 import { Template } from '../../types';
 import FileInput from '../FileInput';
@@ -18,6 +19,7 @@ interface ImageEditorLayoutProps {
     uploadedImage: UploadedFile | null;
     handleFileSelect: (file: UploadedFile | null) => void;
     originalImageUrl: string | null;
+    onEditImage: (imageDataUrl: string) => void;
 }
 
 const LoadingSpinner: React.FC = () => (
@@ -27,7 +29,8 @@ const LoadingSpinner: React.FC = () => (
 const ImageEditorLayout: React.FC<ImageEditorLayoutProps> = (props) => {
     const {
         selectedTemplate, topic, setTopic, isLoading, handleGenerate,
-        generatedContent, handleCopy, uploadedImage, handleFileSelect, originalImageUrl
+        generatedContent, handleCopy, uploadedImage, handleFileSelect, originalImageUrl,
+        onEditImage
     } = props;
 
     return (
@@ -83,6 +86,7 @@ const ImageEditorLayout: React.FC<ImageEditorLayoutProps> = (props) => {
                 originalImageUrl={originalImageUrl}
                 videoStatus=""
                 videoUrl={null}
+                onEditImage={onEditImage}
             />
         </div>
     );

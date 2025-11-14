@@ -20,6 +20,7 @@ interface TextGeneratorLayoutProps {
     generatedContent: string;
     contentStats: { words: number, chars: number };
     handleCopy: (content: string, templateName: string) => void;
+    onEditImage: (imageDataUrl: string) => void;
     numOutputs: number;
     setNumOutputs: (value: number) => void;
     generatedContents: string[];
@@ -35,7 +36,7 @@ const TextGeneratorLayout: React.FC<TextGeneratorLayoutProps> = (props) => {
     const {
         selectedTemplate, topic, setTopic, tone, setTone, tones,
         extraFields, handleFieldChange, isLoading, handleGenerate,
-        generatedContent, contentStats, handleCopy,
+        generatedContent, contentStats, handleCopy, onEditImage,
         numOutputs, setNumOutputs, generatedContents, activeVariation, setActiveVariation
     } = props;
     
@@ -157,6 +158,7 @@ const TextGeneratorLayout: React.FC<TextGeneratorLayoutProps> = (props) => {
                 handleCopy={handleCopy}
                 selectedTemplate={selectedTemplate}
                 topic={topic}
+                onEditImage={onEditImage}
                 // Pass props for shared component that are not used in this context.
                 originalImageUrl={null}
                 videoStatus=""

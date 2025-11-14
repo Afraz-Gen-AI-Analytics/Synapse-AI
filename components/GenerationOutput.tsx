@@ -5,7 +5,7 @@ import SynapseCoreIcon from './icons/SynapseCoreIcon'; // Changed from BrainCirc
 import CopyIcon from './icons/CopyIcon';
 import ImageIcon from './icons/ImageIcon';
 import SparklesIcon from './icons/SparklesIcon';
-import ImageComparator from './ImageComparator';
+import ImageSliderComparator from './ImageSliderComparator';
 import VideoPlayer from './VideoPlayer';
 import FilmIcon from './icons/FilmIcon';
 import EditImageIcon from './icons/EditImageIcon';
@@ -15,6 +15,7 @@ import QuestionMarkCircleIcon from './icons/QuestionMarkCircleIcon';
 import CheckCircleIcon from './icons/CheckCircleIcon';
 import TargetIcon from './icons/TargetIcon';
 import DownloadIcon from './icons/DownloadIcon';
+import EditIcon from './icons/EditIcon';
 import { useToast } from '../contexts/ToastContext';
 
 interface GenerationOutputProps {
@@ -30,6 +31,7 @@ interface GenerationOutputProps {
     originalImageUrl: string | null;
     videoStatus: string;
     videoUrl: string | null;
+    onEditImage: (imageDataUrl: string) => void;
 }
 
 const textLoadingMessages = [
@@ -192,7 +194,7 @@ const GenerationOutput: React.FC<GenerationOutputProps> = (props) => {
     const {
         isLoading, generatedContent, generatedContents, activeVariation, setActiveVariation,
         contentStats, handleCopy, selectedTemplate, topic,
-        originalImageUrl, videoStatus, videoUrl
+        originalImageUrl, videoStatus, videoUrl, onEditImage
     } = props;
     
     const isImageTool = selectedTemplate.id === ContentType.AIImage;
@@ -207,25 +209,13 @@ const GenerationOutput: React.FC<GenerationOutputProps> = (props) => {
             : 'Copy';
 
     const renderMainContent = () => {
-        // --- LOADING STATES ---
         if (isLoading) {
             if (isVideoTool) {
                 return <VideoPlayer status={videoStatus} url={null} />;
             }
-            if (isImageEditTool && originalImageUrl) {
-                return (
-                    <div className="relative w-full h-full flex items-center justify-center">
-                        <img src={originalImageUrl} alt="Editing in progress" className="max-w-full max-h-full object-contain rounded-md opacity-30" />
-                        <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center text-center">
-                            <LoadingState template={selectedTemplate} />
-                        </div>
-                    </div>
-                );
-            }
             return <LoadingState template={selectedTemplate} />;
         }
 
-        // --- GENERATED CONTENT STATES ---
         if (videoUrl) {
             return <VideoPlayer status="" url={videoUrl} />;
         }
@@ -240,12 +230,11 @@ const GenerationOutput: React.FC<GenerationOutputProps> = (props) => {
                 }
             }
             if (isImageEditTool && originalImageUrl) {
-                return <ImageComparator before={originalImageUrl} after={generatedContent} />;
+                return <ImageSliderComparator before={originalImageUrl} after={generatedContent} />;
             }
             if (isImageTool || isImageEditTool) {
                 return <img src={generatedContent} alt={topic} className="object-contain max-w-full max-h-full rounded-md animate-fade-in-up" />;
             }
-            // Default to text content
             return (
                 <div className="w-full">
                     <div
@@ -256,7 +245,6 @@ const GenerationOutput: React.FC<GenerationOutputProps> = (props) => {
             );
         }
 
-        // --- PLACEHOLDER STATES ---
         let PlaceholderIcon = SparklesIcon;
         let placeholderTitle = "Your masterpiece awaits...";
         let placeholderText = "Your AI-generated content will appear here.";
@@ -295,29 +283,39 @@ const GenerationOutput: React.FC<GenerationOutputProps> = (props) => {
         <div className="bg-slate-900 rounded-xl border border-slate-800/80 shadow-2xl shadow-black/30 flex flex-col p-0 lg:h-full">
             <div className="flex justify-between items-center p-4 border-b border-slate-800 flex-shrink-0">
                 <h2 className="font-semibold text-white">Creation Canvas</h2>
-                <div className="flex items-center gap-2 md:gap-4">
-                    {generatedContent && !isLoading && !isImageTool && !isVideoTool && !isResonanceTool && (
-                        <div className="text-xs text-slate-400 hidden md:flex justify-end gap-4">
+                <div className="flex items-center">
+                    {generatedContent && !isLoading && !isImageTool && !isImageEditTool && !isVideoTool && !isResonanceTool && (
+                        <div className="text-xs text-slate-400 hidden md:flex justify-end gap-4 mr-4">
                             <span>{contentStats.words} words</span>
                             <span>{contentStats.chars} characters</span>
                         </div>
                     )}
-                     {(isImageTool || isImageEditTool) && generatedContent && !isLoading && (
-                        <a href={generatedContent} download={`synapse-ai-${topic.substring(0, 20)}.png`} className="flex items-center text-sm text-slate-300 hover:text-white transition-colors p-2 md:p-0 rounded-md md:rounded-none hover:bg-slate-700 md:hover:bg-transparent" title="Download">
-                            <DownloadIcon className="w-4 h-4 md:mr-2"/>
-                            <span className="hidden md:inline">Download</span>
-                        </a>
-                    )}
-                     {isVideoTool && videoUrl && !isLoading && (
-                        <a href={videoUrl} download={`synapse-ai-video.mp4`} className="flex items-center text-sm text-slate-300 hover:text-white transition-colors p-2 md:p-0 rounded-md md:rounded-none hover:bg-slate-700 md:hover:bg-transparent" title="Download">
-                           <DownloadIcon className="w-4 h-4 md:mr-2"/>
-                           <span className="hidden md:inline">Download</span>
-                        </a>
-                    )}
-                    <button onClick={() => handleCopy(generatedContent, selectedTemplate.name, topic)} disabled={!generatedContent && !topic || isLoading} className="flex items-center text-sm text-slate-300 hover:text-white disabled:text-slate-500 disabled:cursor-not-allowed transition-colors p-2 md:p-0 rounded-md md:rounded-none hover:bg-slate-700 md:hover:bg-transparent" title={copyButtonText}>
-                        <CopyIcon className="w-4 h-4 md:mr-2" />
-                        <span className="hidden md:inline">{copyButtonText}</span>
-                    </button>
+                    <div className="flex items-center gap-2 md:gap-3 text-sm text-slate-300">
+                        {isImageTool && generatedContent && !isLoading && onEditImage && (
+                            <button onClick={() => onEditImage(generatedContent)} className="flex items-center p-2 rounded-md hover:bg-slate-700 hover:text-white transition-colors" title="Edit Image">
+                                <EditIcon className="w-4 h-4 md:mr-1.5"/>
+                                <span className="hidden md:inline">Edit</span>
+                            </button>
+                        )}
+
+                        {((isImageTool || isImageEditTool) && generatedContent && !isLoading) && (
+                            <a href={generatedContent} download={`synapse-ai-${topic.substring(0, 20)}.png`} className="flex items-center p-2 rounded-md hover:bg-slate-700 hover:text-white transition-colors" title="Download">
+                                <DownloadIcon className="w-4 h-4 md:mr-1.5"/>
+                                <span className="hidden md:inline">Download</span>
+                            </a>
+                        )}
+                        {isVideoTool && videoUrl && !isLoading && (
+                            <a href={videoUrl} download={`synapse-ai-video.mp4`} className="flex items-center p-2 rounded-md hover:bg-slate-700 hover:text-white transition-colors" title="Download">
+                               <DownloadIcon className="w-4 h-4 md:mr-1.5"/>
+                               <span className="hidden md:inline">Download</span>
+                            </a>
+                        )}
+
+                        <button onClick={() => handleCopy(generatedContent, selectedTemplate.name, topic)} disabled={(!generatedContent && !topic) || isLoading} className="flex items-center p-2 rounded-md hover:bg-slate-700 hover:text-white disabled:text-slate-500 disabled:cursor-not-allowed transition-colors" title={copyButtonText}>
+                            <CopyIcon className="w-4 h-4 md:mr-1.5" />
+                            <span className="hidden md:inline">{copyButtonText}</span>
+                        </button>
+                    </div>
                 </div>
             </div>
 

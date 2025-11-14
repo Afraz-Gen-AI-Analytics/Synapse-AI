@@ -491,7 +491,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
     setExtraFields(prev => ({ ...prev, [fieldName]: value }));
   };
   
-  const handleGenerationResult = useCallback(async (result: string, genTopic: string, templateName: string) => {
+  const handleGenerationResult = useCallback(async (result: string, genTopic: string, templateName: string, originalContentDataUrl?: string) => {
     if (!user) return;
     try {
         const isImageTemplate = templateName === "AI Ad Creative" || templateName === "AI Image Editor";
@@ -504,14 +504,13 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
                 console.error("Image compression failed for history:", compressionError);
                 addToast("Image generated, but it's too large to save to history.", "info");
                 
-                // Still increment generation count even if history save fails
                 if (setUser) {
                   const updatedUser = { ...user, generationsUsed: user.generationsUsed + 1 };
                   setUser(updatedUser);
                   await updateUserDoc(user.uid, { generationsUsed: updatedUser.generationsUsed });
                 }
                 
-                return; // Exit without attempting to save the large item
+                return;
             }
         } else if (!isImageTemplate) {
             const FIRESTORE_FIELD_MAX_BYTES = 1000000;
@@ -532,13 +531,24 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
             }
         }
 
-        await addHistoryDoc(user.uid, {
+        const historyItem: Omit<HistoryItem, 'id'> = {
             userId: user.uid,
             templateName: templateName,
             content: contentToSave,
             topic: genTopic,
             timestamp: new Date().toISOString(),
-        });
+        };
+
+        if (templateName === "AI Image Editor" && originalContentDataUrl) {
+            try {
+                const compressedOriginal = await compressImageForHistory(originalContentDataUrl);
+                historyItem.originalContent = compressedOriginal;
+            } catch (compressionError) {
+                console.warn("Could not save original image to history due to compression error:", compressionError);
+            }
+        }
+        
+        await addHistoryDoc(user.uid, historyItem);
         
         if (setUser) {
           const updatedUser = { ...user, generationsUsed: user.generationsUsed + 1 };
@@ -603,7 +613,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
             if (!uploadedImage) throw new Error("No image uploaded.");
             fullResponse = await editImage(uploadedImage.data, uploadedImage.mimeType, topic);
             setGeneratedContents([fullResponse]);
-            await handleGenerationResult(fullResponse, topic, selectedTemplate.name);
+            await handleGenerationResult(fullResponse, topic, selectedTemplate.name, uploadedImage.dataUrl);
             break;
         case ContentType.AIVideoGenerator:
             setVideoStatus('Initializing...');
@@ -632,17 +642,14 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
         default:
           const prompt = selectedTemplate.prompt!({ topic, tone, fields: extraFields, numOutputs });
           const stream = generateContentStream(prompt);
-          // Handle streaming text generation
           for await (const chunk of stream) {
               fullResponse += chunk;
-              // Update state with the streaming content for a live effect
               setGeneratedContents(prev => {
                   const newContents = [...prev];
                   newContents[0] = (newContents[0] || '') + chunk;
                   return newContents;
               });
           }
-          // Once streaming is complete, process for variations
           const finalVariations = fullResponse.split('[---VARIATION_SEPARATOR---]').map(v => v.trim()).filter(Boolean);
           setGeneratedContents(finalVariations.length > 0 ? finalVariations : [fullResponse]);
           await handleGenerationResult(fullResponse, topic, selectedTemplate.name);
@@ -683,7 +690,6 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
               navigator.clipboard.writeText(reportText);
               addToast('Feedback report copied to clipboard!');
           } catch(e) {
-              // Fallback for malformed JSON or other content
               navigator.clipboard.writeText(content);
               addToast('Content copied to clipboard!');
           }
@@ -705,28 +711,38 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
         return;
     }
 
-    // Common setup
     setActiveTab('tools');
     setTopic(item.topic);
     setSelectedTemplate(template);
     
-    // Clear all content/file state first to avoid stale data from other tools
     setGeneratedContents([]);
     setUploadedImage(null);
     setOriginalImageUrl(null);
     
-    // Apply the reused item's state based on template type
     if (template.id === ContentType.AIImageEditor) {
-        const dataUrl = item.content;
-        const mimeType = dataUrl.substring(dataUrl.indexOf(':') + 1, dataUrl.indexOf(';'));
-        const base64Data = dataUrl.split(',')[1];
-        const fileForEditing: UploadedFile = {
-            data: base64Data, mimeType, name: `reused.jpg`, dataUrl
-        };
-        // Set the image for the file input to enable editing
-        setUploadedImage(fileForEditing);
-        // Also display the image in the output canvas, to match the reuse behavior of the Marketing Image tool.
-        setGeneratedContents([item.content]);
+        if (item.originalContent) {
+            const originalMimeType = item.originalContent.substring(item.originalContent.indexOf(':') + 1, item.originalContent.indexOf(';'));
+            const originalBase64 = item.originalContent.split(',')[1];
+            const fileForEditing: UploadedFile = {
+                data: originalBase64,
+                mimeType: originalMimeType,
+                name: `reused_original_${item.id.substring(0, 5)}.jpg`,
+                dataUrl: item.originalContent
+            };
+            setUploadedImage(fileForEditing);
+            setOriginalImageUrl(item.originalContent);
+            setGeneratedContents([item.content]);
+        } else {
+            const dataUrl = item.content;
+            const mimeType = dataUrl.substring(dataUrl.indexOf(':') + 1, dataUrl.indexOf(';'));
+            const base64Data = dataUrl.split(',')[1];
+            const fileForEditing: UploadedFile = {
+                data: base64Data, mimeType, name: `reused_${item.id.substring(0, 5)}.jpg`, dataUrl
+            };
+            setUploadedImage(fileForEditing);
+            setOriginalImageUrl(item.content);
+            setGeneratedContents([item.content]);
+        }
     } else {
         const isTextTemplate = template.prompt !== undefined || template.id === ContentType.ResonanceEngine;
         const variations = item.content.split('[---VARIATION_SEPARATOR---]').map(v => v.trim()).filter(Boolean);
@@ -736,7 +752,6 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
             setNumOutputs(variations.length > 3 ? 3 : variations.length);
             setActiveVariation(0);
         } else {
-            // This handles AIImage, single-variation text outputs, and old history items.
             const contentToShow = variations.length > 0 ? variations[0] : item.content;
             setGeneratedContents([contentToShow]);
             setNumOutputs(1);
@@ -751,15 +766,12 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
     const editTemplate = templates.find(t => t.id === ContentType.AIImageEditor);
     if (!editTemplate) return;
 
-    // 1. Navigate to the editor tool
     setActiveTab('tools');
     setSelectedTemplate(editTemplate);
 
-    // 2. Clear previous states to ensure a clean slate
     setTopic('');
     setGeneratedContents([]);
     
-    // 3. Prepare and load the image from history
     const dataUrl = item.content;
     const mimeType = dataUrl.substring(dataUrl.indexOf(':') + 1, dataUrl.indexOf(';'));
     const base64Data = dataUrl.split(',')[1];
@@ -767,12 +779,35 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
         data: base64Data, mimeType, name: `editing-${item.id.substring(0, 5)}.jpg`, dataUrl
     };
     
-    // 4. Set the states required by the ImageEditorLayout
     setUploadedImage(fileForEditing);
-    setOriginalImageUrl(fileForEditing.dataUrl); // This sets the 'before' image in the comparator
+    setOriginalImageUrl(fileForEditing.dataUrl);
 
     window.scrollTo(0, 0);
   }, []);
+
+  const handleEditGeneratedImage = useCallback((imageDataUrl: string) => {
+    const editTemplate = templates.find(t => t.id === ContentType.AIImageEditor);
+    if (!editTemplate) {
+      addToast("Image Editor tool not found.", "error");
+      return;
+    }
+    setActiveTab('tools');
+    setSelectedTemplate(editTemplate);
+    setTopic('');
+    setGeneratedContents([]);
+    const mimeType = imageDataUrl.substring(imageDataUrl.indexOf(':') + 1, imageDataUrl.indexOf(';'));
+    const base64Data = imageDataUrl.split(',')[1];
+    const fileForEditing: UploadedFile = {
+        data: base64Data,
+        mimeType,
+        name: `generated-for-edit.png`,
+        dataUrl: imageDataUrl
+    };
+    setUploadedImage(fileForEditing);
+    setOriginalImageUrl(fileForEditing.dataUrl);
+    window.scrollTo(0, 0);
+    addToast("Ready to edit your generated image!", "info");
+  }, [templates, addToast]);
 
 
   const contentStats = useMemo(() => {
@@ -809,7 +844,6 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
 
         if (targetTemplate) {
             handleTemplateSelect(targetTemplate);
-            // Use a timeout to ensure state update from handleTemplateSelect has propagated
             setTimeout(() => {
                 setTopic(result.prefill.topic);
                 if (result.prefill.platform && targetTemplate.id === ContentType.SocialMediaPost) {
@@ -858,7 +892,6 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
 
   const renderToolLayout = () => {
     if (!user) return null;
-    // Profile check for features that need it
     if (selectedTemplate.id === ContentType.Campaign && !isProfileComplete) {
         if (isProfileComplete === null) {
              return <div className="flex-1 flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--gradient-end)]"></div></div>;
@@ -885,7 +918,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
                 generatedContent={generatedContent}
                 contentStats={contentStats}
                 handleCopy={handleCopy}
-                // Variation props
+                onEditImage={handleEditGeneratedImage}
                 numOutputs={numOutputs}
                 setNumOutputs={setNumOutputs}
                 generatedContents={generatedContents}
@@ -898,11 +931,12 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
                 topic={topic} setTopic={setTopic}
                 isLoading={isLoading}
                 handleGenerate={handleGenerate}
-                generatedContent={generatedContent} // Image editor only produces one output
+                generatedContent={generatedContent}
                 handleCopy={handleCopy}
                 uploadedImage={uploadedImage}
                 handleFileSelect={handleFileSelect}
                 originalImageUrl={originalImageUrl}
+                onEditImage={handleEditGeneratedImage}
             />;
         case ContentType.AIVideoGenerator:
             return <VideoGeneratorLayout
@@ -916,6 +950,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
                 handleCopy={handleCopy}
                 uploadedImage={uploadedImage}
                 handleFileSelect={handleFileSelect}
+                onEditImage={handleEditGeneratedImage}
             />;
         case ContentType.Campaign:
              return <CampaignBuilder 
@@ -982,7 +1017,6 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
     <div className="flex h-screen bg-[#0D1117] text-white overflow-hidden">
       {showUpgradeModal && <UpgradeModal onClose={() => setShowUpgradeModal(false)} onUpgrade={handleUpgrade} />}
       
-      {/* Main Navigation Rail - Desktop */}
       <aside className="hidden md:flex w-20 bg-slate-900/80 backdrop-blur-sm p-2 border-r border-slate-800/50 flex-col items-center flex-shrink-0 z-20">
           <div className="my-2">
             <SynapseLogo className="w-9 h-9" />
@@ -1024,14 +1058,12 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
           </div>
       </aside>
 
-      {/* Mobile Tools Drawer */}
       <div className={`fixed inset-0 z-40 transition-opacity md:hidden ${isToolsDrawerOpen ? 'bg-black/60' : 'bg-transparent pointer-events-none'}`} onClick={() => setIsToolsDrawerOpen(false)}>
         <div className={`fixed inset-y-0 left-0 border-r border-slate-800/50 transition-transform transform ${isToolsDrawerOpen ? 'translate-x-0' : '-translate-x-full'}`} onClick={e => e.stopPropagation()}>
             <ToolsPanel isMobile={true}/>
         </div>
       </div>
 
-      {/* Sub Navigation Panel (for Tools) - Desktop */}
       {activeTab === 'tools' && (
         <div className="hidden md:flex border-r border-slate-800/50">
             <ToolsPanel />

@@ -49,6 +49,7 @@ export interface HistoryItem {
   content: string;
   timestamp: string;
   topic: string;
+  originalContent?: string; // For image editor history
 }
 
 // --- Structured Content Types for Agents ---
