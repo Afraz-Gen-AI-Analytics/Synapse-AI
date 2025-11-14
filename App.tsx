@@ -20,8 +20,19 @@ const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [view, setView] = useState<View>('landing');
   const [isLoadingUser, setIsLoadingUser] = useState(true);
+  const [initialDashboardTab, setInitialDashboardTab] = useState<string | null>(null);
 
   useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const action = urlParams.get('action');
+    if (action) {
+      if (action === 'create') setInitialDashboardTab('tools');
+      if (action === 'agents') setInitialDashboardTab('agents');
+      if (action === 'history') setInitialDashboardTab('history');
+      // Clear query params to avoid re-triggering on refresh
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+
     const unsubscribe = onAuthStateChanged((currentUser) => {
         setIsLoadingUser(true);
         if (currentUser) {
@@ -29,8 +40,13 @@ const App: React.FC = () => {
             setView('dashboard');
         } else {
             setUser(null);
-            // Only switch to landing if not on a persistent page like login, signup or legal pages
-            setView(currentView => (['login', 'signup', 'terms', 'privacy'].includes(currentView) ? currentView : 'landing'));
+            // If user is not logged in but tries to use a shortcut, redirect to login
+            if (action) {
+                setView('login');
+            } else {
+                // Only switch to landing if not on a persistent page like login, signup or legal pages
+                setView(currentView => (['login', 'signup', 'terms', 'privacy'].includes(currentView) ? currentView : 'landing'));
+            }
         }
         setIsLoadingUser(false);
     });
@@ -78,7 +94,7 @@ const App: React.FC = () => {
       case 'privacy':
         return <PrivacyPolicy onNavigate={handleNavigation} />;
       case 'dashboard':
-        return user ? <Dashboard onLogout={handleLogout} /> : <Login onLoginSuccess={handleAuthSuccess} onNavigate={handleNavigation} />;
+        return user ? <Dashboard onLogout={handleLogout} initialTab={initialDashboardTab} /> : <Login onLoginSuccess={handleAuthSuccess} onNavigate={handleNavigation} />;
       default:
         return <LandingPage onNavigate={handleNavigation} />;
     }

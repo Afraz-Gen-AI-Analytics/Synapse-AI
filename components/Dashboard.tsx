@@ -72,6 +72,7 @@ declare global {
 
 interface DashboardProps {
   onLogout: () => void;
+  initialTab?: string | null;
 }
 
 export const markdownToHtml = (text: string) => {
@@ -367,10 +368,10 @@ type UploadedFile = { data: string; mimeType: string; name: string; dataUrl: str
 
 type Tab = 'home' | 'tools' | 'live-agent' | 'agents' | 'history' | 'analytics' | 'settings';
 
-const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
+const Dashboard: React.FC<DashboardProps> = ({ onLogout, initialTab }) => {
   const { user, setUser } = useContext(AuthContext);
 
-  const [activeTab, setActiveTab] = useState<Tab>('home');
+  const [activeTab, setActiveTab] = useState<Tab>(initialTab && ['home', 'tools', 'live-agent', 'agents', 'history', 'analytics', 'settings'].includes(initialTab) ? initialTab as Tab : 'home');
   const [initialHistoryTab, setInitialHistoryTab] = useState<'tools' | 'campaigns'>('tools');
   const [selectedTemplate, setSelectedTemplate] = useState<Template>(templates[1]); // Default to Resonance Engine
   const [topic, setTopic] = useState('');
