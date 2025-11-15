@@ -2,6 +2,7 @@ import React from 'react';
 import { Template, ContentType } from '../../types';
 import GenerationOutput from '../GenerationOutput'; // New component for the output panel
 import ProFeatureBadge from '../ProFeatureBadge';
+import SpeechToTextInput from '../SpeechToTextInput'; // Import the new component
 
 import SparklesIcon from '../icons/SparklesIcon';
 import ChevronDownIcon from '../icons/ChevronDownIcon';
@@ -59,20 +60,20 @@ const TextGeneratorLayout: React.FC<TextGeneratorLayoutProps> = (props) => {
                   <p className="text-slate-400 mt-1">{selectedTemplate.description}</p>
                 </div>
                 <div className="flex-1 flex flex-col gap-6 overflow-y-auto pr-2 -mr-2">
-                 <div>
-                  <label htmlFor="topic" className="block text-sm font-medium text-slate-300 mb-2">
+                 <div className="flex-grow flex flex-col">
+                  <label htmlFor="topic" className="block text-sm font-semibold text-slate-300 mb-2">
                     { isImageTool ? '1. Describe the image you want to create' : 
                       isResonanceTool ? '1. Content to Analyze' :
-                      selectedTemplate.name === 'Blog Post Ideas' ? 'Topic' : '1. Describe your product, service, or goal'
+                      selectedTemplate.name === 'Blog Post Ideas' ? '1. Topic' : '1. Describe your product, service, or goal'
                     }
                   </label>
-                  <textarea
+                  <SpeechToTextInput
                     id="topic"
                     rows={isImageTool ? 4 : isResonanceTool ? 8 : 6}
                     value={topic}
-                    onChange={(e) => setTopic(e.target.value)}
+                    onTextChange={setTopic}
                     placeholder={selectedTemplate.placeholder}
-                    className="w-full bg-slate-800/50 border border-slate-700 rounded-lg p-3 text-white placeholder-slate-500 focus:ring-2 focus:ring-[var(--gradient-end)] focus:border-[var(--gradient-end)] transition"
+                    className="w-full h-full flex-grow bg-slate-800/50 border border-slate-700 rounded-lg p-3 pr-14 text-white placeholder-slate-500 focus:ring-2 focus:ring-[var(--gradient-end)] focus:border-[var(--gradient-end)] transition"
                   />
                 </div>
                 
@@ -152,18 +153,18 @@ const TextGeneratorLayout: React.FC<TextGeneratorLayoutProps> = (props) => {
             </div>
 
             {/* Output Column */}
+            {/* FIX: Removed `numOutputs` and `setNumOutputs` props as they are not defined in GenerationOutputProps. */}
             <GenerationOutput
                 isLoading={isLoading}
                 generatedContent={generatedContent}
+                contentStats={contentStats}
+                handleCopy={handleCopy}
+                onEditImage={onEditImage}
                 generatedContents={generatedContents}
                 activeVariation={activeVariation}
                 setActiveVariation={setActiveVariation}
-                contentStats={contentStats}
-                handleCopy={handleCopy}
                 selectedTemplate={selectedTemplate}
                 topic={topic}
-                onEditImage={onEditImage}
-                // Pass props for shared component that are not used in this context.
                 originalImageUrl={null}
                 videoStatus=""
                 videoUrl={null}

@@ -4,6 +4,7 @@ import React from 'react';
 import { Template } from '../../types';
 import FileInput from '../FileInput';
 import GenerationOutput from '../GenerationOutput';
+import SpeechToTextInput from '../SpeechToTextInput';
 import SparklesIcon from '../icons/SparklesIcon';
 
 type UploadedFile = { data: string; mimeType: string; name: string; dataUrl: string };
@@ -43,7 +44,7 @@ const ImageEditorLayout: React.FC<ImageEditorLayoutProps> = (props) => {
                 </div>
                 <div className="flex-1 flex flex-col gap-6 overflow-y-auto pr-2 -mr-2">
                     <div className="space-y-2">
-                        <h3 className="text-sm font-semibold text-slate-300">1. Upload Image</h3>
+                        <label className="block text-sm font-semibold text-slate-300">1. Upload Image</label>
                         <FileInput 
                             onFileSelect={handleFileSelect}
                             acceptedTypes="image/png, image/jpeg, image/webp"
@@ -51,15 +52,15 @@ const ImageEditorLayout: React.FC<ImageEditorLayoutProps> = (props) => {
                             value={uploadedImage}
                         />
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-2 flex-grow flex flex-col">
                         <label htmlFor="topic" className="block text-sm font-semibold text-slate-300">2. Describe Your Edit</label>
-                        <textarea
+                        <SpeechToTextInput
                             id="topic"
                             rows={5}
                             value={topic}
-                            onChange={(e) => setTopic(e.target.value)}
+                            onTextChange={setTopic}
                             placeholder={selectedTemplate.placeholder}
-                            className="w-full bg-slate-800/50 border border-slate-700 rounded-lg p-3 text-white placeholder-slate-500 focus:ring-2 focus:ring-[var(--gradient-end)] focus:border-[var(--gradient-end)] transition"
+                            className="w-full h-full flex-grow bg-slate-800/50 border border-slate-700 rounded-lg p-3 pr-14 text-white placeholder-slate-500 focus:ring-2 focus:ring-[var(--gradient-end)] focus:border-[var(--gradient-end)] transition"
                         />
                     </div>
                 </div>
