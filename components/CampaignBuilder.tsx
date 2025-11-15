@@ -407,12 +407,12 @@ const CampaignBuilder: React.FC<CampaignBuilderProps> = ({ template, user, onUpg
 
 
     return (
-        <div className="flex flex-col md:h-full bg-gradient-to-br from-slate-900 to-slate-950 rounded-xl border border-slate-800/80 shadow-2xl shadow-black/30 p-6 sm:p-8 md:overflow-hidden">
+        <div className="flex flex-col bg-gradient-to-br from-slate-900 to-slate-950 rounded-xl border border-slate-800/80 shadow-2xl shadow-black/30 p-6 sm:p-8">
             <div className="mb-12 flex-shrink-0 flex justify-center">
                 <Stepper currentStep={step} />
             </div>
             
-            <div className="flex flex-col md:flex-1 md:overflow-y-auto md:pr-2 md:-mr-2">
+            <div className="flex flex-col">
                 {step === 1 && (
                     isGeneratingStrategy ? (
                         <div className="flex-1 flex flex-col items-center justify-center text-center animate-fade-in-up">
@@ -424,7 +424,7 @@ const CampaignBuilder: React.FC<CampaignBuilderProps> = ({ template, user, onUpg
                             </p>
                         </div>
                     ) : (
-                        <div className="max-w-3xl mx-auto w-full flex flex-col h-full animate-fade-in-up">
+                        <div className="max-w-3xl mx-auto w-full flex flex-col animate-fade-in-up">
                             <div className="text-center w-full relative flex-shrink-0">
                                 <div className="absolute -inset-x-12 -top-4 -bottom-8 bg-slate-800/30 rounded-full blur-3xl opacity-50"></div>
                                 <div className="relative">
@@ -437,16 +437,14 @@ const CampaignBuilder: React.FC<CampaignBuilderProps> = ({ template, user, onUpg
                                 </div>
                             </div>
                             
-                            <div className="mt-6 flex-grow flex flex-col">
-                                <div className="flex-grow">
-                                    <SpeechToTextInput
-                                        rows={5}
-                                        value={campaignGoal}
-                                        onTextChange={setCampaignGoal}
-                                        placeholder="e.g., Launch our new AI-powered mobile app for task management that targets busy professionals."
-                                        className="w-full h-full bg-slate-800/50 border border-slate-700 rounded-lg p-4 pr-14 text-white placeholder-slate-500 focus:ring-2 focus:ring-[var(--gradient-end)] transition"
-                                    />
-                                </div>
+                            <div className="mt-6">
+                                <SpeechToTextInput
+                                    rows={5}
+                                    value={campaignGoal}
+                                    onTextChange={setCampaignGoal}
+                                    placeholder="e.g., Launch our new AI-powered mobile app for task management that targets busy professionals."
+                                    className="w-full min-h-[140px] resize-y bg-slate-800/50 border border-slate-700 rounded-lg p-4 pr-14 text-white placeholder-slate-500 focus:ring-2 focus:ring-[var(--gradient-end)] transition"
+                                />
                             </div>
 
                             <div className="pt-6 flex-shrink-0">
