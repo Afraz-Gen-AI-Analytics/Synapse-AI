@@ -6,6 +6,7 @@ import { useToast } from '../contexts/ToastContext';
 import SocialPostPreview from './previews/SocialPostPreview';
 import EmailPreview from './previews/EmailPreview';
 import SynapseCoreIcon from './icons/SynapseCoreIcon';
+import SpeechToTextInput from './SpeechToTextInput';
 
 import GoalIcon from './icons/GoalIcon';
 import PlanIcon from './icons/PlanIcon';
@@ -423,8 +424,8 @@ const CampaignBuilder: React.FC<CampaignBuilderProps> = ({ template, user, onUpg
                             </p>
                         </div>
                     ) : (
-                        <div className="max-w-3xl mx-auto w-full flex flex-col justify-between flex-grow animate-fade-in-up">
-                            <div className="text-center w-full relative">
+                        <div className="max-w-3xl mx-auto w-full flex flex-col h-full animate-fade-in-up">
+                            <div className="text-center w-full relative flex-shrink-0">
                                 <div className="absolute -inset-x-12 -top-4 -bottom-8 bg-slate-800/30 rounded-full blur-3xl opacity-50"></div>
                                 <div className="relative">
                                     <GoalIcon className="w-16 h-16 text-slate-700 mb-4 mx-auto" />
@@ -436,15 +437,20 @@ const CampaignBuilder: React.FC<CampaignBuilderProps> = ({ template, user, onUpg
                                 </div>
                             </div>
                             
-                            <div>
-                                <textarea
-                                    rows={5}
-                                    value={campaignGoal}
-                                    onChange={(e) => setCampaignGoal(e.target.value)}
-                                    placeholder="e.g., Launch our new AI-powered mobile app for task management that targets busy professionals."
-                                    className="w-full bg-slate-800/50 border border-slate-700 rounded-lg p-4 text-white placeholder-slate-500 focus:ring-2 focus:ring-[var(--gradient-end)] transition"
-                                />
-                                <div className="text-left w-full mt-4">
+                            <div className="mt-6 flex-grow flex flex-col">
+                                <div className="flex-grow">
+                                    <SpeechToTextInput
+                                        rows={5}
+                                        value={campaignGoal}
+                                        onTextChange={setCampaignGoal}
+                                        placeholder="e.g., Launch our new AI-powered mobile app for task management that targets busy professionals."
+                                        className="w-full h-full bg-slate-800/50 border border-slate-700 rounded-lg p-4 pr-14 text-white placeholder-slate-500 focus:ring-2 focus:ring-[var(--gradient-end)] transition"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="pt-6 flex-shrink-0">
+                               <div className="text-left w-full mb-6">
                                     <p className="text-sm text-slate-400 mb-2">Or get inspired by an example:</p>
                                     <div className="flex flex-wrap gap-2">
                                         {["Promote a webinar for developers", "Announce a 25% summer sale", "Drive signups for a new SaaS tool"].map(prompt => (
@@ -454,10 +460,7 @@ const CampaignBuilder: React.FC<CampaignBuilderProps> = ({ template, user, onUpg
                                         ))}
                                     </div>
                                 </div>
-                            </div>
-
-                            <div>
-                                <button onClick={handleGenerateStrategy} disabled={isGeneratingStrategy || !brandProfile || !campaignGoal} className="w-full mt-6 flex items-center justify-center bg-gradient-to-r from-[var(--gradient-start)] to-[var(--gradient-end)] hover:opacity-90 text-white font-semibold py-3 px-6 rounded-lg transition-all text-lg shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
+                                <button onClick={handleGenerateStrategy} disabled={isGeneratingStrategy || !brandProfile || !campaignGoal} className="w-full flex items-center justify-center bg-gradient-to-r from-[var(--gradient-start)] to-[var(--gradient-end)] hover:opacity-90 text-white font-semibold py-3 px-6 rounded-lg transition-all text-lg shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
                                     Generate Strategy
                                 </button>
                                 {error && <p className="text-red-400 text-sm mt-3 text-center">{error}</p>}
