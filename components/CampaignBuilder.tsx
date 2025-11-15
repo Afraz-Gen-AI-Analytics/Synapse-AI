@@ -400,15 +400,7 @@ const CampaignBuilder: React.FC<CampaignBuilderProps> = ({ template, user, onUpg
         setGeneratedAssets(prev => new Map(prev).set(changedAsset.id, changedAsset));
     };
 
-    if (isProfileComplete === null) {
-        return (
-            <div className="flex-1 flex flex-col items-center justify-center h-full">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--gradient-end)]"></div>
-            </div>
-        );
-    }
-    
-    if (!isProfileComplete) {
+    if (isProfileComplete === false) {
         return <CompleteProfilePrompt featureName="Campaign Builder" onNavigate={onNavigateToSettings} />;
     }
 

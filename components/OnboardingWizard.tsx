@@ -2,13 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { User } from '../types';
 import { useToast } from '../contexts/ToastContext';
 import { updateBrandProfile } from '../services/firebaseService';
-import { generateContentStream } from '../services/geminiService';
+import { generateContentStream, generateImage } from '../services/geminiService';
 import SynapseLogo from './icons/SynapseLogo';
 import TrendingUpIcon from './icons/TrendingUpIcon';
 import RocketIcon from './icons/RocketIcon';
-import EmailIcon from './icons/EmailIcon';
 import SparklesIcon from './icons/SparklesIcon';
 import SynapseCoreIcon from './icons/SynapseCoreIcon';
+import ImageIcon from './icons/ImageIcon';
 
 interface OnboardingWizardProps {
     user: User;
@@ -18,7 +18,7 @@ interface OnboardingWizardProps {
 const goals = [
     { name: 'Grow my social media', icon: TrendingUpIcon, tool: 'SocialMediaPost' },
     { name: 'Launch a new product', icon: RocketIcon, tool: 'MarketingEmail' },
-    { name: 'Increase blog engagement', icon: EmailIcon, tool: 'BlogIdea' },
+    { name: 'Create Ad Visuals', icon: ImageIcon, tool: 'AIAdCreative' },
 ];
 
 const loadingMessages = [
@@ -86,14 +86,22 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ user, onComplete })
             
             let generatedPrompt = '';
             switch(selectedGoal?.tool) {
+                case 'AIAdCreative':
+                    generatedPrompt = `
+                        A highly realistic, attractive, and engaging marketing image for our product: "${productDescription}".
+                        This is for our brand, "${brandName}", which targets ${targetAudience}.
+
+                        **Key Visual Requirements:**
+                        - **Style:** Must be photorealistic with cinematic lighting and sharp focus.
+                        - **Environment:** Place the product in a contextually relevant and visually appealing environment that tells a story and resonates with the target audience. Avoid simple, minimalistic studio backgrounds.
+                        - **Vibe:** The overall image should feel premium, dynamic, and suitable for a high-impact advertising campaign.
+                    `;
+                    break;
                 case 'SocialMediaPost':
                     generatedPrompt = `You are an expert social media manager. Generate a concise, impactful, and enthusiastic tweet (under 280 characters) to introduce our brand. The post must be attention-grabbing and include 2-3 highly relevant hashtags.\n\n**CRITICAL RULE:** Provide ONLY the direct post content. Do not include any introductory text or titles.\n\n**Brand Name:** "${brandName}"\n**Product:** "${productDescription}"\n**Target Audience:** "${targetAudience}"`;
                     break;
                 case 'MarketingEmail':
                      generatedPrompt = `You are an expert marketing copywriter. Write a persuasive marketing email announcing our new product. The email's tone must be professional and enthusiastic. It must include 2-3 relevant emojis. Start with a heading for the subject line (e.g., '## Subject: ...').\n\n**CRITICAL RULE:** Provide ONLY the direct email content.\n\n**Product:** "${productDescription}"`;
-                    break;
-                case 'BlogIdea':
-                    generatedPrompt = `You are an expert content strategist. Generate 3 engaging blog post ideas. For each idea, provide an engaging **Title** and a one-sentence **Description** that highlights the benefit to the reader. Format using Markdown.\n\n**CRITICAL RULE:** Provide ONLY the direct blog ideas.\n\n**Core Topic:** "${productDescription}"`;
                     break;
             }
             setPrompt(generatedPrompt);
@@ -109,11 +117,16 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ user, onComplete })
         setIsGenerating(true);
         setGeneratedContent('');
         try {
-            let fullResponse = '';
-            const stream = generateContentStream(prompt);
-            for await (const chunk of stream) {
-                fullResponse += chunk;
-                setGeneratedContent(prev => prev + chunk);
+            if (selectedGoal?.tool === 'AIAdCreative') {
+                const result = await generateImage(prompt, '1:1', 'Photorealistic');
+                setGeneratedContent(result);
+            } else {
+                let fullResponse = '';
+                const stream = generateContentStream(prompt);
+                for await (const chunk of stream) {
+                    fullResponse += chunk;
+                    setGeneratedContent(prev => prev + chunk);
+                }
             }
         } catch (error: any) {
             addToast(error.message || "Content generation failed.", "error");
@@ -134,15 +147,48 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ user, onComplete })
             case 1:
                 return (
                     <div className="text-center animate-fade-in-up w-full">
-                        <h1 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight">Welcome, {user.displayName}!</h1>
+                        <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight"><span className="text-slate-200">Welcome, </span><span className="gradient-text">{user.displayName}</span><span className="text-slate-200">!</span></h1>
                         <p className="text-slate-300 mt-3 text-lg max-w-xl mx-auto">I'm Synapse, your AI co-pilot. To get started, what's your primary objective?</p>
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mt-10">
-                            {goals.map(goal => (
-                                <button key={goal.name} onClick={() => handleGoalSelect(goal)} className="p-6 bg-slate-800/50 hover:bg-slate-800 rounded-xl border border-slate-700 hover:border-[var(--gradient-end)]/50 transition-all text-left flex flex-col items-center justify-center text-center group transform hover:-translate-y-1">
-                                    <goal.icon className="w-12 h-12 mb-4 text-slate-500 group-hover:text-[var(--gradient-start)] transition-colors" />
-                                    <span className="font-semibold text-white text-base">{goal.name}</span>
+                            {goals.map(goal => {
+                                const isSelected = selectedGoal?.name === goal.name; // In this step, nothing is selected, but this pattern is useful for step 2.
+                                return (
+                                <button 
+                                    key={goal.name} 
+                                    onClick={() => handleGoalSelect(goal)} 
+                                    className={`relative group flex flex-col items-center justify-start p-6 text-center transition-all duration-300 rounded-2xl border bg-slate-900 hover:-translate-y-1
+                                        ${isSelected 
+                                            ? 'border-[var(--gradient-start)]/80 shadow-2xl shadow-[color:var(--gradient-start)]/15' 
+                                            : 'border-slate-800 hover:border-slate-700'
+                                        }`}
+                                >
+                                    <div 
+                                        className={`relative mb-4 flex h-14 w-14 items-center justify-center rounded-xl border transition-all duration-300
+                                        ${isSelected 
+                                            ? 'bg-slate-800 border-[var(--gradient-start)]/50' 
+                                            : 'bg-slate-800 border-slate-700 group-hover:bg-gradient-to-br from-[var(--gradient-start)] to-[var(--gradient-end)] group-hover:border-transparent'
+                                        }`}
+                                    >
+                                        <goal.icon 
+                                            className={`w-7 h-7 transition-colors duration-300
+                                            ${isSelected 
+                                                ? 'text-[var(--gradient-start)]' 
+                                                : 'text-slate-500 group-hover:text-white'
+                                            }`} 
+                                        />
+                                    </div>
+                                    <span 
+                                        className={`font-semibold transition-colors duration-300
+                                        ${isSelected 
+                                            ? 'text-white' 
+                                            : 'text-slate-300 group-hover:text-white'
+                                        }`}
+                                    >
+                                        {goal.name}
+                                    </span>
                                 </button>
-                            ))}
+                                );
+                            })}
                         </div>
                     </div>
                 );
@@ -183,7 +229,11 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ user, onComplete })
                             {isGenerating ? (
                                 <GeneratingState />
                             ) : generatedContent ? (
-                                <div dangerouslySetInnerHTML={{ __html: markdownToHtml(generatedContent) }} className="w-full" />
+                                generatedContent.startsWith('data:image') ? (
+                                    <img src={generatedContent} alt="Generated ad creative" className="max-w-full max-h-96 object-contain rounded-md animate-fade-in-up" />
+                                ) : (
+                                    <div dangerouslySetInnerHTML={{ __html: markdownToHtml(generatedContent) }} className="w-full" />
+                                )
                             ) : (
                                 <p className="text-slate-500">Your content will appear here</p>
                             )}
