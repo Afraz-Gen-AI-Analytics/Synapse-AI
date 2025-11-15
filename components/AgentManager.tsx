@@ -13,8 +13,8 @@ import ChevronDownIcon from './icons/ChevronDownIcon';
 import TrashIcon from './icons/TrashIcon';
 import ConfirmationModal from './ConfirmationModal';
 import { useToast } from '../contexts/ToastContext';
-import ProFeatureBadge from './ProFeatureBadge';
 import CompleteProfilePrompt from './CompleteProfilePrompt';
+import ProFeatureBadge from './ProFeatureBadge';
 
 
 interface AgentManagerProps {
@@ -212,9 +212,9 @@ const AgentManager: React.FC<AgentManagerProps> = ({ user, onUpgrade, onNavigate
             <div className="p-6 bg-slate-900 rounded-xl border border-slate-800/80 shadow-2xl shadow-black/30 flex-1 flex flex-col">
                 <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-6 flex-shrink-0 gap-4">
                     <div>
-                        <div className="flex items-center gap-3">
-                           <h1 className="text-2xl font-bold text-white">Agent Command Center</h1>
-                           <ProFeatureBadge />
+                        <div className="flex items-center gap-2">
+                            <h1 className="text-2xl font-bold gradient-text">Agent Command Center</h1>
+                            <ProFeatureBadge />
                         </div>
                         <p className="text-slate-400 mt-1">Deploy your autonomous AI workforce to run entire campaigns. <span className="font-semibold">A Pro feature.</span></p>
                     </div>

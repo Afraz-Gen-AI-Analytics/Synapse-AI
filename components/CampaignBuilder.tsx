@@ -18,6 +18,7 @@ import CopyIcon from './icons/CopyIcon';
 import ExternalLinkIcon from './icons/ExternalLinkIcon';
 import CompleteProfilePrompt from './CompleteProfilePrompt';
 import PlaybookIcon from './icons/PlaybookIcon';
+import ProFeatureBadge from './ProFeatureBadge';
 
 
 interface CampaignBuilderProps {
@@ -435,7 +436,10 @@ const CampaignBuilder: React.FC<CampaignBuilderProps> = ({ template, user, onUpg
                                 <div className="absolute -inset-x-12 -top-4 -bottom-8 bg-slate-800/30 rounded-full blur-3xl opacity-50"></div>
                                 <div className="relative">
                                     <GoalIcon className="w-16 h-16 text-slate-700 mb-4 mx-auto" />
-                                    <h2 className="text-3xl font-bold text-white text-center">What is your campaign's primary goal?</h2>
+                                    <div className="flex items-center justify-center flex-wrap gap-x-4 gap-y-2">
+                                        <h2 className="text-3xl font-bold gradient-text text-center">What is your campaign's primary goal?</h2>
+                                        <ProFeatureBadge />
+                                    </div>
                                     <p className="text-slate-400 mt-2 text-center max-w-xl mx-auto">Be specific for the best results. The AI will build a multi-phase strategy based on your objective and brand profile.</p>
                                 </div>
                             </div>

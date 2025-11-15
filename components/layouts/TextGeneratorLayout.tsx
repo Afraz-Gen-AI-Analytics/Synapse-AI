@@ -1,6 +1,7 @@
 import React from 'react';
 import { Template, ContentType } from '../../types';
 import GenerationOutput from '../GenerationOutput'; // New component for the output panel
+import ProFeatureBadge from '../ProFeatureBadge';
 
 import SparklesIcon from '../icons/SparklesIcon';
 import ChevronDownIcon from '../icons/ChevronDownIcon';
@@ -51,7 +52,10 @@ const TextGeneratorLayout: React.FC<TextGeneratorLayoutProps> = (props) => {
             {/* Input Column */}
             <div className="bg-gradient-to-br from-slate-900 to-slate-950 rounded-xl border border-slate-800/80 shadow-2xl shadow-black/30 flex flex-col p-6">
                 <div className="mb-6 flex-shrink-0">
-                  <h1 className="text-2xl font-bold text-white">{selectedTemplate.name}</h1>
+                  <div className="flex items-center gap-2">
+                    <h1 className={`text-2xl font-bold ${selectedTemplate.isPro ? 'gradient-text' : 'text-white'}`}>{selectedTemplate.name}</h1>
+                    {selectedTemplate.isPro && <ProFeatureBadge />}
+                  </div>
                   <p className="text-slate-400 mt-1">{selectedTemplate.description}</p>
                 </div>
                 <div className="flex-1 flex flex-col gap-6 overflow-y-auto pr-2 -mr-2">

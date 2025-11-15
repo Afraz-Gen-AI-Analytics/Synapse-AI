@@ -40,7 +40,6 @@ import SparklesIcon from './icons/SparklesIcon';
 import HeadsetIcon from './icons/HeadsetIcon';
 import ResonanceIcon from './icons/ResonanceIcon';
 import Tooltip from './Tooltip';
-import ProFeatureBadge from './ProFeatureBadge';
 
 import UpgradeModal from './UpgradeModal';
 import CampaignBuilder from './CampaignBuilder';
@@ -875,10 +874,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
           >
             {selectedTemplate.id === template.id && activeTab === 'tools' && <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-[var(--gradient-start)] to-[var(--gradient-end)] rounded-r-full"></div>}
             <template.icon className="w-5 h-5 mr-3 flex-shrink-0" />
-            <div className="flex items-center justify-between w-full">
-                <span className="font-medium text-sm">{template.name}</span>
-                {template.isPro && <ProFeatureBadge />}
-            </div>
+            <span className={`font-medium text-sm flex-grow truncate pr-2 ${template.isPro ? 'gradient-text font-semibold' : ''}`}>{template.name}</span>
           </button>
         ))}
         </nav>

@@ -1,13 +1,10 @@
-
-
-
 import React from 'react';
 import { Template, User } from '../../types';
 import FileInput from '../FileInput';
 import GenerationOutput from '../GenerationOutput';
 import SparklesIcon from '../icons/SparklesIcon';
-import ProFeatureBadge from '../ProFeatureBadge';
 import ChevronDownIcon from '../icons/ChevronDownIcon';
+import ProFeatureBadge from '../ProFeatureBadge';
 
 type UploadedFile = { data: string; mimeType: string; name: string; dataUrl: string };
 
@@ -44,9 +41,9 @@ const VideoGeneratorLayout: React.FC<VideoGeneratorLayoutProps> = (props) => {
             {/* Input Column */}
             <div className="bg-gradient-to-br from-slate-900 to-slate-950 rounded-xl border border-slate-800/80 shadow-2xl shadow-black/30 flex flex-col p-6">
                 <div className="mb-6">
-                    <div className="flex items-center gap-3">
-                       <h1 className="text-2xl font-bold text-white">{selectedTemplate.name}</h1>
-                       <ProFeatureBadge />
+                    <div className="flex items-center gap-2">
+                        <h1 className={`text-2xl font-bold ${selectedTemplate.isPro ? 'gradient-text' : 'text-white'}`}>{selectedTemplate.name}</h1>
+                        {selectedTemplate.isPro && <ProFeatureBadge />}
                     </div>
                     <p className="text-slate-400 mt-1">{selectedTemplate.description}</p>
                 </div>
