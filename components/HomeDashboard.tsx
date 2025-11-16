@@ -49,7 +49,7 @@ const HomeDashboard: React.FC<HomeDashboardProps> = ({ user, templates, onSelect
     const blogTemplate = templates.find(t => t.id === ContentType.BlogIdea);
     const emailTemplate = templates.find(t => t.id === ContentType.EmailCopy);
     const campaignTemplate = templates.find(t => t.id === ContentType.Campaign);
-    const videoTemplate = templates.find(t => t.id === ContentType.AIVideoGenerator);
+    const marketSignalAnalyzerTemplate = templates.find(t => t.id === ContentType.MarketSignalAnalyzer);
     const aiAdCreativeTemplate = templates.find(t => t.id === ContentType.AIImage);
 
     const quickStartItems = [
@@ -57,7 +57,7 @@ const HomeDashboard: React.FC<HomeDashboardProps> = ({ user, templates, onSelect
         campaignTemplate,
         blogTemplate,
         emailTemplate,
-        videoTemplate,
+        marketSignalAnalyzerTemplate,
         aiAdCreativeTemplate,
     ].filter(Boolean) as Template[];
 

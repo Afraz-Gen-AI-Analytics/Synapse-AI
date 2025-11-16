@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import SynapseLogo from './icons/SynapseLogo';
 import CheckIcon from './icons/CheckIcon';
@@ -346,7 +345,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
               <div className="bg-slate-900 p-8 rounded-xl border-2 border-[var(--gradient-start)]/80 transition-all duration-300 hover:-translate-y-2 shadow-2xl shadow-fuchsia-900/20 group hover:shadow-lg hover:shadow-[color:var(--gradient-start)]/30 h-full">
                   <AgentIcon className="w-12 h-12 text-[var(--gradient-start)] mb-4 transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6" />
                   <h3 className="text-xl font-bold mb-2">Autonomous Pro Suite</h3>
-                  <p className="text-slate-400">Unlock our flagship Pro Suite to plan, execute, and analyze with Campaign Builder, Autonomous Agents, Resonance Engine, and Video Ads.</p>
+                  <p className="text-slate-400">Unlock our flagship Pro Suite to research, plan, and execute with our Market Signal Analyzer, Campaign Builder, Autonomous Agents, and more.</p>
               </div>
             </AnimatedSection>
              <AnimatedSection delay={300}>

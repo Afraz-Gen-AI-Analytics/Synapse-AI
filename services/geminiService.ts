@@ -1,5 +1,5 @@
 import { GoogleGenAI, GenerateContentResponse, Type, Modality } from "@google/genai";
-import { BrandProfile, ToolRoute, ResonanceFeedback } from "../types";
+import { BrandProfile, ToolRoute, ResonanceFeedback, MarketSignalReport } from "../types";
 
 
 // A custom error class to hold a user-friendly message that can be displayed directly in the UI.
@@ -249,6 +249,78 @@ export async function getResonanceFeedback(content: string, brandProfile: BrandP
     };
 
     return await generateStructuredContent(prompt, schema) as ResonanceFeedback;
+}
+
+export async function getMarketSignalAnalysis(topic: string, audience: string, industry: string, analysisGoal: string, brandProfile: BrandProfile): Promise<MarketSignalReport> {
+    const prompt = `
+        You are an expert market research analyst for a leading marketing intelligence firm. Your task is to analyze a given topic and target audience to uncover actionable insights for content creation.
+
+        **Brand Context:**
+        - Brand Name: ${brandProfile.brandName}
+        - Product/Service: ${brandProfile.productDescription}
+
+        **Analysis Request:**
+        - **Topic:** "${topic}"
+        - **Target Audience:** "${audience}"
+        - **Industry/Niche:** "${industry}"
+        - **Primary Goal of this Analysis:** "${analysisGoal}"
+
+        Based on this, generate a structured report. Your analysis and recommendations should be highly relevant to the specified Industry and tailored to achieve the Primary Goal.
+
+        **CRITICAL RULES:**
+        1.  **Trending Sub-Topics:** Identify 3-4 niche sub-topics that are currently gaining traction online. For each topic, provide a 'buzzScore' from 1-10 indicating its current level of online discussion (1=very niche, 10=mainstream buzz). Explain *why* each is relevant now.
+        2.  **Audience Questions:** List 3-4 real, specific questions the target audience is asking on platforms like Google, Reddit, or Quora. These should be "long-tail" questions.
+        3.  **Competitor Angles:** Analyze 2 common angles competitors are taking on this topic. Then, identify 1 unique, "Untapped Angle" that provides a fresh perspective. You MUST provide exactly three angles in total, and one MUST be marked as untapped.
+        4.  **Content Recommendations:** Suggest 3 concrete content ideas (e.g., Blog Post, Short Video, LinkedIn Carousel) with catchy, SEO-friendly titles that directly leverage your findings and align with the primary analysis goal.
+    `;
+
+    const schema = {
+        type: Type.OBJECT,
+        properties: {
+            trendingSubTopics: {
+                type: Type.ARRAY,
+                items: {
+                    type: Type.OBJECT,
+                    properties: {
+                        topic: { type: Type.STRING, description: "The specific trending sub-topic." },
+                        reason: { type: Type.STRING, description: "A brief explanation of why this sub-topic is currently relevant." },
+                        buzzScore: { type: Type.NUMBER, description: "A score from 1-10 representing the current online buzz." }
+                    },
+                    required: ["topic", "reason", "buzzScore"]
+                }
+            },
+            audienceQuestions: {
+                type: Type.ARRAY,
+                items: { type: Type.STRING },
+                description: "A list of questions the target audience is asking online."
+            },
+            competitorAngles: {
+                type: Type.ARRAY,
+                items: {
+                    type: Type.OBJECT,
+                    properties: {
+                        angle: { type: Type.STRING, description: "A common or untapped content angle." },
+                        isUntapped: { type: Type.BOOLEAN, description: "True if this is the unique, untapped angle." }
+                    },
+                    required: ["angle", "isUntapped"]
+                }
+            },
+            contentRecommendations: {
+                type: Type.ARRAY,
+                items: {
+                    type: Type.OBJECT,
+                    properties: {
+                        format: { type: Type.STRING, description: "The recommended content format (e.g., Blog Post, Short Video)." },
+                        title: { type: Type.STRING, description: "A catchy, SEO-friendly title for the content piece." }
+                    },
+                    required: ["format", "title"]
+                }
+            }
+        },
+        required: ["trendingSubTopics", "audienceQuestions", "competitorAngles", "contentRecommendations"]
+    };
+
+    return await generateStructuredContent(prompt, schema) as MarketSignalReport;
 }
 
 export async function generateAgentPlan(goal: string, persona: string, brandProfile: BrandProfile): Promise<any> {
@@ -517,16 +589,16 @@ export async function getVideosOperation(operation: any): Promise<any> {
 export async function routeUserIntent(command: string): Promise<ToolRoute> {
   const prompt = `
     You are an intelligent routing system for an AI platform. Analyze the user's command and determine the best tool and pre-fill information.
-    Available Tool IDs: 'CampaignBuilder', 'ResonanceEngine', 'AIAdCreative', 'AIImageEditor', 'MarketingVideoAd', 'SocialMediaPost', 'VideoScriptHook', 'BlogPostIdeas', 'MarketingEmail', 'AdCopy'.
+    Available Tool IDs: 'CampaignBuilder', 'ResonanceEngine', 'MarketSignalAnalyzer', 'AIAdCreative', 'AIImageEditor', 'MarketingVideoAd', 'SocialMediaPost', 'BlogPostIdeas', 'MarketingEmail', 'AdCopy'.
     
     **Tool Descriptions & Routing Logic:**
     - 'CampaignBuilder': For planning multi-step marketing campaigns. Keywords: "plan", "campaign", "strategy".
     - 'ResonanceEngine': For analyzing or getting feedback on existing content. Keywords: "analyze", "test", "feedback", "review this".
+    - 'MarketSignalAnalyzer': For market research, finding trends, and audience questions. Keywords: "market research", "analyze topic", "trending topics", "what should I write about".
     - 'AIAdCreative': For generating a new image from a description. Keywords: "image", "photo", "picture", "graphic", "generate an image".
     - 'AIImageEditor': For modifying an existing image. Keywords: "edit this image", "change the background", "add text to photo".
     - 'MarketingVideoAd': For creating a short video ad. Keywords: "video", "ad", "commercial".
     - 'SocialMediaPost': For specific social media content. Keywords: "tweet", "LinkedIn post", "Facebook update".
-    - 'VideoScriptHook': For short video intros. Keywords: "hook", "intro", "script for TikTok".
     - 'BlogPostIdeas': For brainstorming blog titles. Keywords: "blog ideas", "article topics".
     - 'MarketingEmail': For writing email copy. Keywords: "email", "newsletter".
     - 'AdCopy': For text-based ads (e.g., Google Ads). Keywords: "ad copy", "headline", "google ad".
@@ -537,7 +609,7 @@ export async function routeUserIntent(command: string): Promise<ToolRoute> {
   const schema = {
     type: Type.OBJECT,
     properties: {
-      toolId: { type: Type.STRING, description: "The ID of the best tool for the user's command.", enum: ['CampaignBuilder', 'ResonanceEngine', 'AIAdCreative', 'AIImageEditor', 'MarketingVideoAd', 'SocialMediaPost', 'VideoScriptHook', 'BlogPostIdeas', 'MarketingEmail', 'AdCopy'] },
+      toolId: { type: Type.STRING, description: "The ID of the best tool for the user's command.", enum: ['CampaignBuilder', 'ResonanceEngine', 'MarketSignalAnalyzer', 'AIAdCreative', 'AIImageEditor', 'MarketingVideoAd', 'SocialMediaPost', 'BlogPostIdeas', 'MarketingEmail', 'AdCopy'] },
       prefill: {
         type: Type.OBJECT, properties: {
           topic: { type: Type.STRING, description: "The main subject extracted from the command." },

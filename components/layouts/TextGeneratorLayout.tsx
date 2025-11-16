@@ -1,12 +1,12 @@
 import React from 'react';
-import { Template, ContentType } from '../../types';
+import { Template, ContentType, ContentRecommendation } from '../../types';
 import GenerationOutput from '../GenerationOutput'; // New component for the output panel
 import ProFeatureBadge from '../ProFeatureBadge';
 import SpeechToTextInput from '../SpeechToTextInput'; // Import the new component
 
 import SparklesIcon from '../icons/SparklesIcon';
 import ChevronDownIcon from '../icons/ChevronDownIcon';
-import ResonanceIcon from '../icons/ResonanceIcon';
+
 
 interface TextGeneratorLayoutProps {
     selectedTemplate: Template;
@@ -39,12 +39,11 @@ const TextGeneratorLayout: React.FC<TextGeneratorLayoutProps> = (props) => {
         selectedTemplate, topic, setTopic, tone, setTone, tones,
         extraFields, handleFieldChange, isLoading, handleGenerate,
         generatedContent, contentStats, handleCopy, onEditImage,
-        numOutputs, setNumOutputs, generatedContents, activeVariation, setActiveVariation
+        numOutputs, setNumOutputs, generatedContents, activeVariation, setActiveVariation,
     } = props;
     
     const isImageTool = selectedTemplate.id === ContentType.AIImage;
     const isBlogTool = selectedTemplate.id === ContentType.BlogIdea;
-    const isResonanceTool = selectedTemplate.id === ContentType.ResonanceEngine;
 
     const showFineTune = !isImageTool || (selectedTemplate.fields && selectedTemplate.fields.length > 0);
 
@@ -63,13 +62,12 @@ const TextGeneratorLayout: React.FC<TextGeneratorLayoutProps> = (props) => {
                  <div className="flex-grow flex flex-col">
                   <label htmlFor="topic" className="block text-sm font-semibold text-slate-300 mb-2">
                     { isImageTool ? '1. Describe the image you want to create' : 
-                      isResonanceTool ? '1. Content to Analyze' :
                       selectedTemplate.name === 'Blog Post Ideas' ? '1. Topic' : '1. Describe your product, service, or goal'
                     }
                   </label>
                   <SpeechToTextInput
                     id="topic"
-                    rows={isImageTool ? 4 : isResonanceTool ? 8 : 6}
+                    rows={isImageTool ? 4 : 6}
                     value={topic}
                     onTextChange={setTopic}
                     placeholder={selectedTemplate.placeholder}
@@ -81,7 +79,7 @@ const TextGeneratorLayout: React.FC<TextGeneratorLayoutProps> = (props) => {
                     <>
                         <hr className="border-slate-700/60" />
                         <div>
-                            <h3 className="text-base font-semibold text-slate-200 mb-4">{isResonanceTool ? '2. Define Analysis Context' : '2. Fine-tune (Optional)'}</h3>
+                            <h3 className="text-base font-semibold text-slate-200 mb-4">2. Fine-tune (Optional)</h3>
                             <div className="space-y-6">
                                 {selectedTemplate.supportsVariations && (
                                     <div>
@@ -98,7 +96,7 @@ const TextGeneratorLayout: React.FC<TextGeneratorLayoutProps> = (props) => {
                                         </div>
                                     </div>
                                 )}
-                                {!isImageTool && !isResonanceTool && (
+                                {!isImageTool && (
                                     <div>
                                         <label htmlFor="tone" className="block text-sm font-medium text-slate-300 mb-2">Tone of Voice</label>
                                         <div className="relative">
@@ -144,8 +142,8 @@ const TextGeneratorLayout: React.FC<TextGeneratorLayoutProps> = (props) => {
                     <button onClick={handleGenerate} disabled={isLoading} className="w-full flex items-center justify-center bg-gradient-to-r from-[var(--gradient-start)] to-[var(--gradient-end)] hover:opacity-90 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-fuchsia-500/20">
                     {isLoading ? <LoadingSpinner/> : (
                         <span className="flex items-center">
-                            {isResonanceTool ? <ResonanceIcon className="w-5 h-5 mr-2" /> : <SparklesIcon className="w-5 h-5 mr-2" />}
-                            {isResonanceTool ? 'Test Resonance' : 'Generate'}
+                            <SparklesIcon className="w-5 h-5 mr-2" />
+                            Generate
                         </span>
                     )}
                     </button>
@@ -153,7 +151,6 @@ const TextGeneratorLayout: React.FC<TextGeneratorLayoutProps> = (props) => {
             </div>
 
             {/* Output Column */}
-            {/* FIX: Removed `numOutputs` and `setNumOutputs` props as they are not defined in GenerationOutputProps. */}
             <GenerationOutput
                 isLoading={isLoading}
                 generatedContent={generatedContent}

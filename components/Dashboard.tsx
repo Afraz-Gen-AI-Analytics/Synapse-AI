@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useMemo, useEffect, useContext } from 'react';
-import { ContentType, Template, HistoryItem, User, ToolRoute, BrandProfile } from '../types';
+import { ContentType, Template, HistoryItem, User, ToolRoute, BrandProfile, ContentRecommendation } from '../types';
 import { 
     generateContentStream, 
     generateImage, 
@@ -7,7 +7,8 @@ import {
     generateVideo, 
     getVideosOperation,
     routeUserIntent,
-    getResonanceFeedback
+    getResonanceFeedback,
+    getMarketSignalAnalysis
 } from '../services/geminiService';
 import { 
     updateUserDoc,
@@ -39,6 +40,7 @@ import FilmIcon from './icons/FilmIcon';
 import SparklesIcon from './icons/SparklesIcon';
 import HeadsetIcon from './icons/HeadsetIcon';
 import ResonanceIcon from './icons/ResonanceIcon';
+import SignalIcon from './icons/SignalIcon';
 import Tooltip from './Tooltip';
 
 import UpgradeModal from './UpgradeModal';
@@ -54,6 +56,7 @@ import HistoryView from './HistoryView';
 import TextGeneratorLayout from './layouts/TextGeneratorLayout';
 import ImageEditorLayout from './layouts/ImageEditorLayout';
 import VideoGeneratorLayout from './layouts/VideoGeneratorLayout';
+import AnalyzerLayout from './layouts/AnalyzerLayout';
 import UsageUpgradeCard from './UsageUpgradeCard';
 import BottomNavBar from './BottomNavBar';
 import CommandBar from './CommandBar';
@@ -171,7 +174,7 @@ const templates: Template[] = [
   {
     id: ContentType.ResonanceEngine,
     name: "Resonance Engine",
-    description: "Simulate your audience's reaction and get predictive feedback before you publish.",
+    description: "Simulate audience reactions and get predictive feedback before publishing.",
     icon: ResonanceIcon,
     isPro: true,
     placeholder: "Paste your social media post, email, or ad copy here to test its resonance with your target audience...",
@@ -179,6 +182,19 @@ const templates: Template[] = [
       { name: "contentGoal", label: "Content Goal", options: ["Raise Awareness", "Drive Engagement", "Generate Leads", "Drive Sales", "Educate or Inform"], defaultValue: "Raise Awareness" },
       { name: "platform", label: "Platform / Format", options: ["Social Media (General)", "X / Twitter Post", "LinkedIn Post", "Email Subject Line", "Email Body", "Ad Headline", "Ad Body", "Landing Page Headline"], defaultValue: "Social Media (General)" },
       { name: "emotion", label: "Key Emotion to Evoke", options: ["Urgency", "Curiosity", "Trust", "Excitement", "FOMO", "Inspiration", "Joy"], defaultValue: "Curiosity" }
+    ],
+  },
+   {
+    id: ContentType.MarketSignalAnalyzer,
+    name: "Market Signal Analyzer",
+    description: "Research trends, audience questions, and competitor angles for any topic.",
+    icon: SignalIcon,
+    isPro: true,
+    placeholder: "e.g., The future of AI in content marketing",
+    fields: [
+      { name: "audience", label: "Target Audience", placeholder: "e.g., B2B SaaS founders" },
+      { name: "industry", label: "Industry / Niche", options: ["General", "Technology / SaaS", "E-commerce / Retail", "Health & Wellness", "Finance & Fintech", "Education", "Marketing & Advertising"], defaultValue: "General" },
+      { name: "analysisGoal", label: "Primary Goal for this Analysis", options: ["Find content ideas", "Understand competitors", "Identify customer pain points", "Explore new market opportunities"], defaultValue: "Find content ideas" },
     ],
   },
   {
@@ -251,42 +267,6 @@ ${numOutputs > 1 ? `IMPORTANT: Generate ${numOutputs} distinct post variations, 
     }
   },
   {
-    id: ContentType.VideoScriptHook,
-    name: "Video Script Hook",
-    description: "Create irresistible video hooks that stop the scroll and boost watch time.",
-    icon: VideoIcon,
-    placeholder: "e.g., A productivity hack that saves me 2 hours a day",
-    fields: [
-      { 
-        name: "hookStyle", 
-        label: "Hook Style", 
-        options: ["General", "Question", "Bold Statement", "Storytelling", "Problem/Solution", "Statistic/Fact"], 
-        defaultValue: "General" 
-      }
-    ],
-    prompt: ({ topic, tone, fields }) => {
-        const hookStyle = fields.hookStyle || 'General';
-        let styleInstruction = '';
-        if (hookStyle && hookStyle !== 'General') {
-            styleInstruction = `**Hook Style:** The hooks MUST follow the **${hookStyle}** framework.`;
-        } else {
-            styleInstruction = '**Proven Frameworks:** Use different psychological triggers for each hook (e.g., ask a provocative question, state a surprising fact, challenge a common belief, promise a quick solution).';
-        }
-
-        return `You are a viral video scriptwriter specializing in creating high-retention short-form content. Your task is to generate 3 powerful video hooks for a TikTok or YouTube Short.
-
-**CRITICAL RULES:**
-1.  **Tone of Voice:** The hooks MUST strictly reflect the chosen tone: **${tone}**.
-2.  **Value First:** Each hook must grab immediate attention by promising clear, tangible value or sparking intense curiosity.
-3.  ${styleInstruction}
-4.  **Brevity:** Each hook must be under 15 words.
-
-Format the output as a Markdown numbered list.
-
-**Topic:** "${topic}"`;
-    }
-  },
-  {
     id: ContentType.BlogIdea,
     name: "Blog Post Ideas",
     description: "Discover viral blog ideas that attract readers and rank higher.",
@@ -303,7 +283,7 @@ Format the output as a Markdown numbered list.
     - An engaging **Title**.
     - A one-sentence **Description** that highlights the core benefit for the reader (e.g., "This post will teach you how to...", "Learn the framework for avoiding this common mistake...").
 
-${numOutputs > 1 ? 'IMPORTANT: Use "[---VARIATION_SEPARATOR---]" on a new line with nothing else on it to separate each distinct blog idea.' : ''}
+${numOutputs > 1 ? `IMPORTANT: Use "[---VARIATION_SEPARATOR---]" on a new line with nothing else on it to separate each distinct blog idea.'` : ''}
 
 Format each idea using Markdown. Make the title **bold**.
 
@@ -330,7 +310,7 @@ Write ${numOutputs} persuasive marketing email${numOutputs > 1 ? 's' : ''} for t
     - Start with a heading for the subject line (e.g., '## Subject: ...').
     - Use **bold text** for the primary call-to-action.
 
-${numOutputs > 1 ? 'IMPORTANT: Use "[---VARIATION_SEPARATOR---]" on a new line with nothing else on it to separate each distinct email variation.' : ''}
+${numOutputs > 1 ? `IMPORTANT: Use "[---VARIATION_SEPARATOR---]" on a new line with nothing else on it to separate each distinct email variation.'` : ''}
 
 **Purpose:** "${topic}"`
   },
@@ -352,7 +332,7 @@ Each version MUST contain:
 1.  **A Headline:** Grabs attention by addressing a core user pain point or a powerful desired outcome.
 2.  **A Body:** Clearly explains the main benefit and how the product/service improves the user's life.
 
-${numOutputs > 1 ? 'IMPORTANT: Use "[---VARIATION_SEPARATOR---]" on a new line with nothing else on it to separate each distinct ad copy variation.' : ''}
+${numOutputs > 1 ? `IMPORTANT: Use "[---VARIATION_SEPARATOR---]" on a new line with nothing else on it to separate each distinct ad copy variation.'` : ''}
 
 Format each version using Markdown, with '## Headline' and '## Body' sections.
 
@@ -592,17 +572,6 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
     try {
       let fullResponse = "";
       switch (selectedTemplate.id) {
-        case ContentType.ResonanceEngine:
-            if (!brandProfile) throw new Error("Brand profile not loaded.");
-            const feedback = await getResonanceFeedback(topic, brandProfile, {
-                contentGoal: extraFields.contentGoal || 'Raise Awareness',
-                platform: extraFields.platform || 'Social Media (General)',
-                emotion: extraFields.emotion || 'Curiosity'
-            });
-            fullResponse = JSON.stringify(feedback);
-            setGeneratedContents([fullResponse]);
-            await handleGenerationResult(fullResponse, topic, selectedTemplate.name);
-            break;
         case ContentType.AIImage:
             fullResponse = await generateImage(topic, (extraFields.aspectRatio || '1:1') as any, extraFields.style || 'Photorealistic');
             setGeneratedContents([fullResponse]);
@@ -660,7 +629,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
       setIsLoading(false);
       setVideoStatus('');
     }
-  }, [topic, tone, selectedTemplate, extraFields, user, brandProfile, handleGenerationResult, uploadedImage, numOutputs, addToast]);
+  }, [topic, tone, selectedTemplate, extraFields, user, handleGenerationResult, uploadedImage, numOutputs, addToast]);
 
   const generatedContent = useMemo(() => generatedContents[activeVariation] || '', [generatedContents, activeVariation]);
 
@@ -675,19 +644,13 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
             addToast('Prompt copied to clipboard!');
         }
     } else if (content) {
-      if (templateName === "Resonance Engine") {
+      if (templateName === "Resonance Engine" || templateName === "Market Signal Analyzer") {
           try {
               const feedback = JSON.parse(content);
-              const reportText = `Resonance Feedback Report:\n\n` +
-                  `First Impression: "${feedback.firstImpression}"\n\n` +
-                  `Clarity Score: ${feedback.clarityScore}/10\n${feedback.clarityReasoning}\n\n` +
-                  `Persuasion Score: ${feedback.persuasionScore}/10\n${feedback.persuasionReasoning}\n\n` +
-                  `Key Questions & Doubts:\n${feedback.keyQuestions.map((q: string) => `- ${q}`).join('\n')}\n\n` +
-                  `Suggested Improvement:\n${feedback.suggestedImprovement}\n\n` +
-                  `Goal Alignment:\n${feedback.goalAlignment}\n\n` +
-                  `Emotional Resonance:\n${feedback.emotionAnalysis}`;
+              // Simple stringify for now, a more complex report can be built
+              const reportText = JSON.stringify(feedback, null, 2);
               navigator.clipboard.writeText(reportText);
-              addToast('Feedback report copied to clipboard!');
+              addToast('Report data copied to clipboard!');
           } catch(e) {
               navigator.clipboard.writeText(content);
               addToast('Content copied to clipboard!');
@@ -743,7 +706,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
             setGeneratedContents([item.content]);
         }
     } else {
-        const isTextTemplate = template.prompt !== undefined || template.id === ContentType.ResonanceEngine;
+        const isTextTemplate = template.prompt !== undefined || template.id === ContentType.ResonanceEngine || template.id === ContentType.MarketSignalAnalyzer;
         const variations = item.content.split('[---VARIATION_SEPARATOR---]').map(v => v.trim()).filter(Boolean);
         
         if (isTextTemplate && variations.length > 1) {
@@ -810,7 +773,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
 
 
   const contentStats = useMemo(() => {
-    if (!generatedContent || selectedTemplate.id === ContentType.AIImage || selectedTemplate.id === ContentType.AIImageEditor || selectedTemplate.id === ContentType.AIVideoGenerator || selectedTemplate.id === ContentType.ResonanceEngine) return { words: 0, chars: 0 };
+    if (!generatedContent || selectedTemplate.id === ContentType.AIImage || selectedTemplate.id === ContentType.AIImageEditor || selectedTemplate.id === ContentType.AIVideoGenerator || selectedTemplate.id === ContentType.ResonanceEngine || selectedTemplate.id === ContentType.MarketSignalAnalyzer) return { words: 0, chars: 0 };
     const tempDiv = document.createElement('div');
     tempDiv.innerHTML = markdownToHtml(generatedContent).replace(/<br\s*\/?>/gi, ' ');
     const plainText = tempDiv.textContent || tempDiv.innerText || '';
@@ -859,6 +822,42 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
         setCommandLoading(false);
     }
   };
+
+  const handlePrefillFromReport = (recommendation: ContentRecommendation) => {
+    let targetTemplate: Template | undefined;
+    const format = recommendation.format.toLowerCase();
+
+    // Reordered to prioritize more specific keywords over general ones
+    if (format.includes('video')) {
+        targetTemplate = templates.find(t => t.id === ContentType.AIVideoGenerator);
+    } else if (format.includes('social') || format.includes('linkedin') || format.includes('tweet') || format.includes('facebook') || format.includes('carousel')) {
+        targetTemplate = templates.find(t => t.id === ContentType.SocialMediaPost);
+    } else if (format.includes('blog')) {
+        targetTemplate = templates.find(t => t.id === ContentType.BlogIdea);
+    } else if (format.includes('email')) {
+        targetTemplate = templates.find(t => t.id === ContentType.EmailCopy);
+    } else if (format.includes('ad')) {
+         targetTemplate = templates.find(t => t.id === ContentType.AdCopy);
+    }
+
+    if (targetTemplate) {
+        handleTemplateSelect(targetTemplate);
+        // Use timeout to ensure state update after template selection re-render
+        setTimeout(() => {
+            setTopic(recommendation.title);
+            if (targetTemplate?.id === ContentType.SocialMediaPost) {
+                if (format.includes('linkedin')) {
+                    setExtraFields(prev => ({ ...prev, platform: 'LinkedIn' }));
+                } else if (format.includes('facebook')) {
+                    setExtraFields(prev => ({ ...prev, platform: 'Facebook' }));
+                }
+            }
+        }, 50);
+        addToast(`Switched to ${targetTemplate.name} and pre-filled topic!`, "info");
+    } else {
+        addToast(`Could not find a matching tool for "${recommendation.format}".`, "error");
+    }
+};
   
   const ToolsPanel = ({ isMobile = false }) => (
     <aside className={`p-6 flex flex-col flex-shrink-0 bg-slate-900/80 backdrop-blur-sm ${isMobile ? 'w-64' : 'w-64'} h-full`}>
@@ -888,18 +887,27 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
 
   const renderToolLayout = () => {
     if (!user) return null;
-    if (selectedTemplate.id === ContentType.Campaign && isProfileComplete === false) {
+    if ((selectedTemplate.id === ContentType.Campaign || selectedTemplate.id === ContentType.MarketSignalAnalyzer || selectedTemplate.id === ContentType.ResonanceEngine) && isProfileComplete === false) {
         return <CompleteProfilePrompt featureName={selectedTemplate.name} onNavigate={() => handleNavigateToSettings('tools')} />;
     }
       
     switch (selectedTemplate.id) {
+        case ContentType.ResonanceEngine:
+        case ContentType.MarketSignalAnalyzer:
+             return <AnalyzerLayout 
+                key={selectedTemplate.id} // Force re-mount on template change
+                selectedTemplate={selectedTemplate} 
+                brandProfile={brandProfile!} 
+                onPrefill={handlePrefillFromReport}
+                onGenerate={handleGenerationResult}
+                onUpgrade={() => setShowUpgradeModal(true)}
+                user={user}
+            />;
         case ContentType.AIImage:
         case ContentType.SocialMediaPost:
-        case ContentType.VideoScriptHook:
         case ContentType.BlogIdea:
         case ContentType.EmailCopy:
         case ContentType.AdCopy:
-        case ContentType.ResonanceEngine:
             return <TextGeneratorLayout 
                 selectedTemplate={selectedTemplate}
                 topic={topic} setTopic={setTopic}

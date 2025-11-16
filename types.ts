@@ -16,7 +16,7 @@ export enum ContentType {
   BlogIdea,
   EmailCopy,
   AdCopy,
-  VideoScriptHook,
+  MarketSignalAnalyzer,
   Campaign,
   AIImage,
   AIImageEditor,
@@ -180,6 +180,30 @@ export interface ResonanceFeedback {
     emotionAnalysis: string;
 }
 
+// --- Market Signal Analyzer Types ---
+export interface TrendingTopic {
+    topic: string;
+    reason: string;
+    buzzScore: number;
+}
+
+export interface CompetitorAngle {
+    angle: string;
+    isUntapped: boolean;
+}
+
+export interface ContentRecommendation {
+    format: string;
+    title: string;
+}
+
+export interface MarketSignalReport {
+    trendingSubTopics: TrendingTopic[];
+    audienceQuestions: string[];
+    competitorAngles: CompetitorAngle[];
+    contentRecommendations: ContentRecommendation[];
+}
+
 
 // --- Brand & Analytics ---
 
@@ -220,6 +244,7 @@ export interface ChartData {
 export interface AgentStats {
     active: number;
     needsReview: number;
+
     completed: number;
     total: number;
 }

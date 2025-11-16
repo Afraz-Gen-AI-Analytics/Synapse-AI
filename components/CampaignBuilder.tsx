@@ -294,12 +294,10 @@ const CampaignBuilder: React.FC<CampaignBuilderProps> = ({ template, user, onUpg
             const result = await generateCampaignStrategy(campaignGoal, brandProfile);
             const strategyWithAssetIds: Strategy = {
                 ...result,
-                phases: result.phases.map((phase: any) => ({
+                phases: result.phases.map((phase: Omit<CampaignPhase, 'assets'> & { assets: Omit<CampaignAsset, 'id' | 'status'>[] }) => ({
                     ...phase,
-// FIX: Correctly type CampaignAsset by using a type assertion on contentType.
-                    assets: phase.assets.map((asset: { contentType: string; description: string }): CampaignAsset => ({
-                        contentType: asset.contentType as CampaignAsset['contentType'],
-                        description: asset.description,
+                    assets: phase.assets.map((asset): CampaignAsset => ({
+                        ...asset,
                         id: crypto.randomUUID(),
                         status: 'pending',
                     }))
@@ -366,7 +364,6 @@ const CampaignBuilder: React.FC<CampaignBuilderProps> = ({ template, user, onUpg
 
     // Save campaign to history after generation finishes
     useEffect(() => {
-// FIX: Added explicit type `CampaignAsset` to the parameter `a` to resolve 'property does not exist on type unknown' error.
         const allAssetsFinished = strategy && !Array.from(generatedAssets.values()).some((a: CampaignAsset) => a.status === 'pending' || a.status === 'generating');
         
         if (step === 3 && !isGeneratingAssets && allAssetsFinished && !hasSaved) {
@@ -439,11 +436,11 @@ const CampaignBuilder: React.FC<CampaignBuilderProps> = ({ template, user, onUpg
                             
                             <div className="mt-6">
                                 <SpeechToTextInput
-                                    rows={5}
+                                    rows={4}
                                     value={campaignGoal}
                                     onTextChange={setCampaignGoal}
                                     placeholder="e.g., Launch our new AI-powered mobile app for task management that targets busy professionals."
-                                    className="w-full min-h-[140px] resize-y bg-slate-800/50 border border-slate-700 rounded-lg p-4 pr-14 text-white placeholder-slate-500 focus:ring-2 focus:ring-[var(--gradient-end)] transition"
+                                    className="w-full min-h-[100px] resize-y bg-slate-800/50 border border-slate-700 rounded-lg p-4 pr-14 text-white placeholder-slate-500 focus:ring-2 focus:ring-[var(--gradient-end)] transition"
                                 />
                             </div>
 
