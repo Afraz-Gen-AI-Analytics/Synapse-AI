@@ -100,7 +100,7 @@ const HomeDashboard: React.FC<HomeDashboardProps> = ({ user, templates, onSelect
                 />
                 
                 {/* Welcome Text */}
-                <div className="relative z-20 text-center md:text-left mb-6 md:mb-0 flex-1 w-full min-w-0">
+                <div className="relative z-20 text-center md:text-left mb-6 md:mb-0 flex-1 w-full min-w-0 max-w-full">
                     <div
                       aria-hidden="true"
                       className="absolute -inset-x-8 md:-inset-x-16 -inset-y-4 rounded-full pointer-events-none animate-text-glow-pulse z-[-1]"
@@ -110,7 +110,7 @@ const HomeDashboard: React.FC<HomeDashboardProps> = ({ user, templates, onSelect
                       }}
                     />
                     <div className="relative">
-                        <h1 className="text-3xl md:text-4xl font-bold text-white leading-tight break-words">
+                        <h1 className="text-3xl md:text-4xl font-bold text-white leading-tight break-words whitespace-normal">
                             <span className="block md:inline">Welcome back,</span>
                             <span className="block md:inline md:ml-2 gradient-text">{user.displayName}</span>
                         </h1>
@@ -128,16 +128,18 @@ const HomeDashboard: React.FC<HomeDashboardProps> = ({ user, templates, onSelect
                 {/* Left Column: Quick Start */}
                 <div className="lg:col-span-2 flex flex-col bg-gradient-to-br from-slate-900 to-slate-950 rounded-xl border border-slate-800/80 shadow-2xl shadow-black/30 p-6">
                     <h2 className="text-xl font-bold text-white mb-4">Quick Start</h2>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         {quickStartItems.map(item => (
                              <button
                                 key={item.id}
                                 onClick={() => onSelectTemplate(item)}
-                                className="flex flex-col items-start p-4 rounded-lg text-left transition-all bg-slate-800/50 hover:bg-slate-800 border border-slate-700/70 hover:border-[var(--gradient-end)]/50"
+                                className="flex flex-col items-start p-4 rounded-lg text-left transition-all bg-slate-800/50 hover:bg-slate-800 border border-slate-700/70 hover:border-[var(--gradient-end)]/50 w-full group"
                             >
-                                <item.icon className="w-7 h-7 mb-3 text-[var(--gradient-start)]" />
-                                <span className="font-semibold text-white">{item.name}</span>
-                                <span className="text-sm text-slate-400 mt-1">{item.description}</span>
+                                <div className="flex flex-row md:flex-col items-center md:items-start w-full mb-2 md:mb-0">
+                                    <item.icon className="w-6 h-6 md:w-7 md:h-7 mr-3 md:mr-0 md:mb-3 text-[var(--gradient-start)] flex-shrink-0 transition-transform duration-300 group-hover:scale-110" />
+                                    <span className="font-semibold text-white text-base md:text-lg">{item.name}</span>
+                                </div>
+                                <span className="text-sm text-slate-400 md:mt-1 leading-snug line-clamp-2">{item.description}</span>
                             </button>
                         ))}
                     </div>
