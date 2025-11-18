@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useMemo, useEffect, useContext } from 'react';
-import { ContentType, Template, HistoryItem, User, ToolRoute, BrandProfile, ContentRecommendation, ViralVideoBlueprint } from '../types';
+import { ContentType, Template, HistoryItem, User, ToolRoute, BrandProfile, ContentRecommendation } from '../types';
 import { 
     generateContentStream, 
     generateImage, 
@@ -41,7 +41,7 @@ import SparklesIcon from './icons/SparklesIcon';
 import HeadsetIcon from './icons/HeadsetIcon';
 import ResonanceIcon from './icons/ResonanceIcon';
 import SignalIcon from './icons/SignalIcon';
-import ViralVideoIdeaIcon from './icons/ViralVideoIdeaIcon';
+import VideoScriptHookIcon from './icons/VideoScriptHookIcon';
 import BrainCircuitIcon from './icons/BrainCircuitIcon';
 import Tooltip from './Tooltip';
 
@@ -96,7 +96,7 @@ export const markdownToHtml = (text: string) => {
   // Process ordered lists
   html = html.replace(/^( *\d+\. .*(?:\n|$))+/gm, (match) => {
     const items = match.trim().split('\n').map(item => `<li>${item.replace(/^\d+\. /, '').trim()}</li>`).join('');
-    return `<ol>${items}</ol>`;
+    return `<ol>${items}</ul>`;
   });
   
   // Convert remaining newlines to <br>
@@ -296,16 +296,27 @@ ${numOutputs > 1 ? `IMPORTANT: Generate ${numOutputs} distinct post variations, 
   },
   {
     id: ContentType.VideoScriptHook,
-    name: "Viral Video Blueprint",
-    description: "Generate a complete strategic blueprint for a viral short-form video, including hook, script, visuals, and audio.",
-    icon: ViralVideoIdeaIcon,
+    name: "Video Script Hook",
+    description: "Generate viral hooks for short-form videos to stop the scroll.",
+    icon: VideoScriptHookIcon,
     placeholder: "e.g., How to save money on groceries",
+    supportsVariations: true,
     fields: [
-      { name: "platform", label: "Target Platform", options: ["TikTok", "Instagram Reels", "YouTube Shorts"], defaultValue: "TikTok" },
-      { name: "hookStyle", label: "Hook Style", options: ["Controversial", "Question", "Storytelling", "Problem/Agitator", "Secret/Hack"], defaultValue: "Controversial" },
-      { name: "tone", label: "Tone of Voice", options: tones, defaultValue: "Casual" },
+      { name: "hookStyle", label: "Hook Style", options: ["Controversial", "Question", "Storytelling", "Problem/Agitator", "Secret/Hack"], defaultValue: "Controversial" }
     ],
-    isPro: false,
+    prompt: ({ topic, tone, fields, numOutputs = 1 }) => `
+      You are an expert viral content strategist specializing in short-form video platforms like TikTok, Reels, and YouTube Shorts. Your sole task is to generate ${numOutputs} powerful, scroll-stopping video hooks.
+
+      **CRITICAL RULES:**
+      1.  **Brevity and Impact:** Each hook MUST be a single, concise sentence designed to grab attention within the first 3 seconds.
+      2.  **Style Adherence:** Strictly generate a hook that matches the requested **Hook Style**: "${fields.hookStyle}".
+      3.  **Tone of Voice:** The hook MUST reflect the chosen tone: **${tone}**.
+      4.  **Direct Output Only:** Provide ONLY the direct hook's text. Do not include titles, introductory phrases (e.g., "Here is your hook:"), explanations, or bullet points.
+      
+      ${numOutputs > 1 ? `IMPORTANT: Use "[---VARIATION_SEPARATOR---]" on a new line with nothing else on it to separate each distinct hook.'` : ''}
+
+      **Video Topic:** "${topic}"
+    `
   },
   {
     id: ContentType.EmailCopy,
@@ -406,9 +417,15 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
         getBrandProfile(user.uid).then(profile => {
             setBrandProfile(profile);
             setIsProfileComplete(isBrandProfileComplete(profile));
+        }).catch(err => {
+            console.error("Failed to load brand profile:", err);
+            addToast("Could not load your brand profile. Please check your connection and try again.", "error");
+            // Ensure we move out of the loading state even on error
+            setBrandProfile(null);
+            setIsProfileComplete(false);
         });
     }
-  }, [user]);
+  }, [user, addToast]);
 
   const handleOnboardingComplete = useCallback(async () => {
     if (!user || !setUser) return;
@@ -563,7 +580,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
             }
         }
 
-        const isAnalyzer = ["Resonance Engine", "Market Signal Analyzer", "SEO Content Strategist", "AI Ad Creative Studio", "Viral Video Blueprint"].includes(templateName);
+        const isAnalyzer = ["Resonance Engine", "Market Signal Analyzer", "SEO Content Strategist", "AI Ad Creative Studio"].includes(templateName);
         const historyItem: Omit<HistoryItem, 'id'> = {
             userId: user.uid,
             templateName: templateName,
@@ -702,7 +719,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
             addToast('Prompt copied to clipboard!');
         }
     } else if (content) {
-      if (["Resonance Engine", "Market Signal Analyzer", "SEO Content Strategist", "AI Ad Creative Studio", "Viral Video Blueprint"].includes(templateName)) {
+      if (["Resonance Engine", "Market Signal Analyzer", "SEO Content Strategist", "AI Ad Creative Studio"].includes(templateName)) {
           try {
               const data = JSON.parse(content);
               // Simple stringify for now, a more complex report can be built
@@ -733,7 +750,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
         return;
     }
 
-    const isAnalyzer = ["Resonance Engine", "Market Signal Analyzer", "SEO Content Strategist", "AI Ad Creative Studio", "Viral Video Blueprint"].includes(template.name);
+    const isAnalyzer = ["Resonance Engine", "Market Signal Analyzer", "SEO Content Strategist", "AI Ad Creative Studio"].includes(template.name);
 
     if (isAnalyzer) {
         setActiveTab('tools');
@@ -871,38 +888,6 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
     window.scrollTo(0, 0);
 }, [templates, addToast, handleTemplateSelect]);
 
- const handleGenerateVideoFromBlueprint = useCallback((blueprint: ViralVideoBlueprint, videoTopic: string) => {
-    if (user && user.plan === 'freemium') {
-      setShowUpgradeModal(true);
-      return;
-    }
-    
-    const videoTemplate = templates.find(t => t.id === ContentType.AIVideoGenerator);
-    if (!videoTemplate) {
-      addToast("Marketing Video Ad tool not found.", "error");
-      return;
-    }
-
-    const masterPrompt = `
-      Create a short, dynamic video ad based on this blueprint.
-      Topic: ${videoTopic}
-      Hook: "${blueprint.hookText}"
-      Script:
-      ${blueprint.scriptOutline.map(step => `- ${step}`).join('\n')}
-      Visual Style: ${blueprint.visualConcept}. ${blueprint.pacingAndStyle}
-      End with a call to action: "${blueprint.callToAction}"
-    `;
-    
-    handleTemplateSelect(videoTemplate);
-    setTimeout(() => {
-      setTopic(masterPrompt.trim());
-    }, 50);
-
-    addToast("Switched to Marketing Video Ad and pre-filled blueprint!", "info");
-    window.scrollTo(0, 0);
-
-  }, [user, templates, addToast, handleTemplateSelect]);
-
 
   const contentStats = useMemo(() => {
     if (!generatedContent || selectedTemplate.id === ContentType.AIImage || selectedTemplate.id === ContentType.AIImageEditor || selectedTemplate.id === ContentType.AIVideoGenerator || selectedTemplate.id === ContentType.ResonanceEngine || selectedTemplate.id === ContentType.MarketSignalAnalyzer) return { words: 0, chars: 0 };
@@ -1029,8 +1014,29 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
 
   const renderToolLayout = () => {
     if (!user) return null;
-    if ((selectedTemplate.id === ContentType.Campaign || selectedTemplate.id === ContentType.MarketSignalAnalyzer || selectedTemplate.id === ContentType.ResonanceEngine || selectedTemplate.id === ContentType.BlogIdea || selectedTemplate.id === ContentType.AIAdCreativeStudio) && isProfileComplete === false) {
-        return <CompleteProfilePrompt featureName={selectedTemplate.name} onNavigate={() => handleNavigateToSettings('tools')} />;
+
+    const needsProfile = [
+        ContentType.Campaign,
+        ContentType.MarketSignalAnalyzer,
+        ContentType.ResonanceEngine,
+        ContentType.BlogIdea,
+        ContentType.AIAdCreativeStudio,
+    ].includes(selectedTemplate.id);
+
+    if (needsProfile) {
+        // First, check for the loading state.
+        if (isProfileComplete === null) {
+            return (
+                <div className="flex-1 flex h-full items-center justify-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--gradient-end)]"></div>
+                </div>
+            );
+        }
+        // Then, check for an incomplete profile *after* loading is done.
+        // This also handles the case where the profile doesn't exist at all.
+        if (!isProfileComplete || !brandProfile) {
+            return <CompleteProfilePrompt featureName={selectedTemplate.name} onNavigate={() => handleNavigateToSettings('tools')} />;
+        }
     }
       
     switch (selectedTemplate.id) {
@@ -1038,14 +1044,12 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
         case ContentType.MarketSignalAnalyzer:
         case ContentType.BlogIdea:
         case ContentType.AIAdCreativeStudio:
-        case ContentType.VideoScriptHook:
              return <AnalyzerLayout 
                 key={selectedTemplate.id} // Force re-mount on template change
                 selectedTemplate={selectedTemplate} 
                 brandProfile={brandProfile!} 
                 onPrefill={handlePrefillFromReport}
                 onGenerateImage={handleGenerateImageFromPrompt}
-                onGenerateVideoFromBlueprint={handleGenerateVideoFromBlueprint}
                 onGenerate={handleGenerationResult}
                 onUpgrade={() => setShowUpgradeModal(true)}
                 user={user}
@@ -1058,6 +1062,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
             />;
         case ContentType.AIImage:
         case ContentType.SocialMediaPost:
+        case ContentType.VideoScriptHook:
         case ContentType.EmailCopy:
             return <TextGeneratorLayout 
                 selectedTemplate={selectedTemplate}
