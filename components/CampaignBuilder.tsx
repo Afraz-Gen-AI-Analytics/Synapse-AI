@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Template, User, BrandProfile, GeneratedContent, SocialPostContent, EmailContent, AdContent, BlogContent, Strategy, CampaignPhase, CampaignAsset } from '../types';
 import { generateCampaignStrategy, generateCampaignAsset } from '../services/geminiService';
@@ -445,19 +446,21 @@ const CampaignBuilder: React.FC<CampaignBuilderProps> = ({ template, user, spend
                         </div>
                     ) : (
                         <div className="max-w-3xl mx-auto w-full flex flex-col flex-1 justify-center animate-fade-in-up">
-                            <div className="text-center w-full relative flex-shrink-0">
+                            <div className="text-center w-full relative flex-shrink-0 px-4">
                                 <div className="absolute -inset-x-12 -top-4 -bottom-8 bg-slate-800/30 rounded-full blur-3xl opacity-50"></div>
                                 <div className="relative">
                                     <GoalIcon className="w-16 h-16 text-[var(--gradient-start)] mb-4 mx-auto" />
-                                    <div className="flex items-center justify-center flex-wrap gap-x-4 gap-y-2">
-                                        <h2 className="text-3xl font-bold gradient-text text-center">What is your campaign's primary goal?</h2>
+                                    <div className="flex flex-col items-center justify-center gap-3">
+                                        <h2 className="text-2xl sm:text-3xl font-bold text-center leading-tight">
+                                            <span className="gradient-text">What is your campaign's primary goal?</span>
+                                        </h2>
                                         <ProFeatureBadge />
                                     </div>
-                                    <p className="text-slate-400 mt-2 text-center max-w-xl mx-auto">Be specific for the best results. The AI will build a multi-phase strategy based on your objective and brand profile.</p>
+                                    <p className="text-slate-400 mt-3 text-center max-w-xl mx-auto text-sm sm:text-base">Be specific for the best results. The AI will build a multi-phase strategy based on your objective and brand profile.</p>
                                 </div>
                             </div>
                             
-                            <div className="mt-6">
+                            <div className="mt-8 px-2 sm:px-0">
                                 <SpeechToTextInput
                                     rows={4}
                                     value={campaignGoal}
@@ -467,7 +470,7 @@ const CampaignBuilder: React.FC<CampaignBuilderProps> = ({ template, user, spend
                                 />
                             </div>
 
-                            <div className="pt-6 flex-shrink-0">
+                            <div className="pt-6 flex-shrink-0 px-2 sm:px-0">
                                <div className="text-left w-full mb-6">
                                     <p className="text-sm text-slate-400 mb-2">Or get inspired by an example:</p>
                                     <div className="flex flex-wrap gap-2">
