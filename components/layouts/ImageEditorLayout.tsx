@@ -20,9 +20,9 @@ interface ImageEditorLayoutProps {
     handleFileSelect: (file: UploadedFile | null) => void;
     originalImageUrl: string | null;
     onEditImage: (imageDataUrl: string) => void;
-    // Fix: Add missing properties for GenerationOutput
     onGenerateImage: (prompt: string) => void;
     onAnalyzeResonance: (text: string) => void;
+    onUpgrade?: () => void;
 }
 
 const LoadingSpinner: React.FC = () => (
@@ -34,9 +34,9 @@ const ImageEditorLayout: React.FC<ImageEditorLayoutProps> = (props) => {
         selectedTemplate, topic, setTopic, isLoading, handleGenerate,
         generatedContent, handleCopy, uploadedImage, handleFileSelect, originalImageUrl,
         onEditImage,
-        // Fix: Destructure added properties
         onGenerateImage,
         onAnalyzeResonance,
+        onUpgrade
     } = props;
     const cost = selectedTemplate.creditCost || 5;
 
@@ -83,7 +83,6 @@ const ImageEditorLayout: React.FC<ImageEditorLayoutProps> = (props) => {
             </div>
 
             {/* Output Column */}
-            {/* Fix: Pass missing properties to GenerationOutput */}
             <GenerationOutput
                 isLoading={isLoading}
                 generatedContent={generatedContent}
@@ -100,6 +99,7 @@ const ImageEditorLayout: React.FC<ImageEditorLayoutProps> = (props) => {
                 onEditImage={onEditImage}
                 onGenerateImage={onGenerateImage}
                 onAnalyzeResonance={onAnalyzeResonance}
+                onUpgrade={onUpgrade}
             />
         </div>
     );

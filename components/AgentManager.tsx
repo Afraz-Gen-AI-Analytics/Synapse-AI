@@ -87,7 +87,8 @@ const AgentManager: React.FC<AgentManagerProps> = ({ user, onUpgrade, onNavigate
             onNavigateToSettings();
             return;
         }
-        if (user.plan === 'freemium') {
+        // Allow ONE free agent deployment to solve the "Black Box" problem
+        if (user.plan === 'freemium' && agents.length > 0) {
             onUpgrade();
         } else {
             setIsConfiguring(true);
@@ -182,12 +183,14 @@ const AgentManager: React.FC<AgentManagerProps> = ({ user, onUpgrade, onNavigate
                     <div className="text-center py-16 border-2 border-dashed border-slate-800 rounded-lg">
                         <AgentIcon className="w-16 h-16 mx-auto text-slate-700" />
                         <h3 className="mt-4 font-semibold text-slate-400">No Agents Deployed</h3>
-                        <p className="text-slate-500">Click "Deploy New Agent" to launch your first AI assistant.</p>
+                        <p className="text-slate-500">Click below to launch your first AI assistant.</p>
                     </div>
                 )}
             </div>
         );
     }
+
+    const canDeployFree = user.plan === 'freemium' && agents.length === 0;
 
     return (
         <div className="flex-1 flex flex-col">
@@ -217,11 +220,11 @@ const AgentManager: React.FC<AgentManagerProps> = ({ user, onUpgrade, onNavigate
                             <h1 className="text-2xl font-bold gradient-text">Agent Command Center</h1>
                             <ProFeatureBadge />
                         </div>
-                        <p className="text-slate-400 mt-1">Deploy your autonomous AI workforce to run entire campaigns. <span className="font-semibold">A Pro feature.</span></p>
+                        <p className="text-slate-400 mt-1">Deploy your autonomous AI workforce to run entire campaigns.</p>
                     </div>
                     <button onClick={handleDeployAgent} className="flex-shrink-0 flex items-center justify-center bg-gradient-to-r from-[var(--gradient-start)] to-[var(--gradient-end)] hover:opacity-90 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-300 ease-in-out shadow-lg shadow-fuchsia-500/20">
                         <AgentIcon className="w-5 h-5 mr-2" />
-                        Deploy New Agent
+                        {canDeployFree ? "Deploy First Agent (Free)" : "Deploy New Agent"}
                     </button>
                 </div>
                 {renderContent()}

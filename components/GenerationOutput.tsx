@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useContext } from 'react';
 import { Template, ContentType, ResonanceFeedback, MarketSignalReport as MarketSignalReportData, ContentRecommendation, SocialPostContent } from '../types';
 import { markdownToHtml } from './Dashboard';
 import SynapseCoreIcon from './icons/SynapseCoreIcon'; 
@@ -15,6 +15,7 @@ import EditIcon from './icons/EditIcon';
 import { useToast } from '../contexts/ToastContext';
 import ExternalLinkIcon from './icons/ExternalLinkIcon';
 import SocialPostOutput from './SocialPostOutput';
+import { AuthContext } from '../App';
 
 
 interface GenerationOutputProps {
@@ -33,6 +34,7 @@ interface GenerationOutputProps {
     onEditImage: (imageDataUrl: string) => void;
     onGenerateImage: (prompt: string) => void;
     onAnalyzeResonance: (text: string) => void;
+    onUpgrade?: () => void;
 }
 
 const textLoadingMessages = [
@@ -112,10 +114,11 @@ const GenerationOutput: React.FC<GenerationOutputProps> = (props) => {
     const {
         isLoading, generatedContent, generatedContents, activeVariation, setActiveVariation,
         contentStats, handleCopy, selectedTemplate, topic,
-        originalImageUrl, videoStatus, videoUrl, onEditImage, onGenerateImage, onAnalyzeResonance
+        originalImageUrl, videoStatus, videoUrl, onEditImage, onGenerateImage, onAnalyzeResonance, onUpgrade
     } = props;
     
     const { addToast } = useToast();
+    const { user } = useContext(AuthContext);
     
     const isImageTool = selectedTemplate.id === ContentType.AIImage;
     const isImageEditTool = selectedTemplate.id === ContentType.AIImageEditor;
@@ -173,6 +176,7 @@ const GenerationOutput: React.FC<GenerationOutputProps> = (props) => {
                                 content={postContent}
                                 onGenerateImage={onGenerateImage}
                                 onAnalyzeResonance={onAnalyzeResonance}
+                                onUpgrade={onUpgrade}
                             />;
                 } catch (e) {
                     // Fallback for old, non-JSON history items
@@ -227,45 +231,56 @@ const GenerationOutput: React.FC<GenerationOutputProps> = (props) => {
     return (
         <div className="bg-slate-900 rounded-xl border border-slate-800/80 shadow-2xl shadow-black/30 flex flex-col p-0 lg:h-full">
             <div className="flex justify-between items-center p-4 border-b border-slate-800 flex-shrink-0">
-                <h2 className="font-semibold text-white">Creation Canvas</h2>
-                <div className="flex items-center">
+                <h2 className="font-semibold text-white truncate mr-2">Creation Canvas</h2>
+                <div className="flex items-center gap-2 flex-shrink-0">
                     {generatedContent && !isLoading && !isImageTool && !isImageEditTool && !isVideoTool && selectedTemplate.id !== ContentType.SocialMediaPost && (
-                        <div className="text-xs text-slate-400 flex justify-end gap-4 mr-4">
+                        <div className="text-xs text-slate-400 flex justify-end gap-4 mr-2 hidden md:flex">
                             <span>{contentStats.words} words</span>
-                            <span>{contentStats.chars} characters</span>
+                            <span>{contentStats.chars} chars</span>
                         </div>
                     )}
-                    <div className="flex items-center gap-2 md:gap-3 text-sm text-slate-300">
+                    
+                     {/* CONTEXTUAL UPSELL: Animate Image to Video */}
+                     {isImageTool && generatedContent && !isLoading && onUpgrade && user?.plan === 'freemium' && (
+                         <button onClick={onUpgrade} className="flex items-center text-xs bg-gradient-to-r from-[var(--gradient-start)] to-[var(--gradient-end)] text-white font-semibold py-1.5 px-3 rounded-md hover:opacity-90 transition-all shadow-lg shadow-fuchsia-500/20">
+                            <FilmIcon className="w-3 h-3 mr-1.5" />
+                            <span className="hidden sm:inline">Animate (Pro)</span>
+                            <span className="sm:hidden">Pro</span>
+                         </button>
+                     )}
+
+                    <div className="flex items-center gap-1">
                         {isImageTool && generatedContent && !isLoading && onEditImage && (
-                            <button onClick={() => onEditImage(generatedContent)} className="flex items-center p-2 rounded-md hover:bg-slate-700 hover:text-white transition-colors" title="Edit Image">
-                                <EditIcon className="w-4 h-4 md:mr-1.5"/>
-                                <span className="hidden md:inline">Edit</span>
+                            <button onClick={() => onEditImage(generatedContent)} className="p-2 text-slate-400 hover:text-white transition-colors rounded-md hover:bg-slate-800" title="Edit Image">
+                                <EditIcon className="w-4 h-4"/>
                             </button>
                         )}
 
                         {((isImageTool || isImageEditTool) && generatedContent && !isLoading) && (
-                            <a href={generatedContent} download={`synapse-ai-${topic.substring(0, 20)}.png`} className="flex items-center p-2 rounded-md hover:bg-slate-700 hover:text-white transition-colors" title="Download">
-                                <DownloadIcon className="w-4 h-4 md:mr-1.5"/>
-                                <span className="hidden md:inline">Download</span>
+                            <a href={generatedContent} download={`synapse-ai-${topic.substring(0, 20)}.png`} className="p-2 text-slate-400 hover:text-white transition-colors rounded-md hover:bg-slate-800" title="Download">
+                                <DownloadIcon className="w-4 h-4"/>
                             </a>
                         )}
                         {isVideoTool && videoUrl && !isLoading && (
-                            <a href={videoUrl} download={`synapse-ai-video.mp4`} className="flex items-center p-2 rounded-md hover:bg-slate-700 hover:text-white transition-colors" title="Download">
-                               <DownloadIcon className="w-4 h-4 md:mr-1.5"/>
-                               <span className="hidden md:inline">Download</span>
+                            <a href={videoUrl} download={`synapse-ai-video.mp4`} className="p-2 text-slate-400 hover:text-white transition-colors rounded-md hover:bg-slate-800" title="Download">
+                               <DownloadIcon className="w-4 h-4"/>
                             </a>
                         )}
                         
                         {selectedTemplate.id === ContentType.EmailCopy && generatedContent && !isLoading && (
-                             <button onClick={handleOpenInGmail} className="flex items-center p-2 rounded-md hover:bg-slate-700 hover:text-white transition-colors" title="Open in Gmail">
-                                <ExternalLinkIcon className="w-4 h-4 md:mr-1.5" />
-                                <span className="hidden md:inline">Email</span>
+                             <button onClick={handleOpenInGmail} className="p-2 text-slate-400 hover:text-white transition-colors rounded-md hover:bg-slate-800" title="Open in Gmail">
+                                <ExternalLinkIcon className="w-4 h-4" />
                             </button>
                         )}
 
-                        <button onClick={() => handleCopy(generatedContent, selectedTemplate.name, topic)} disabled={(!generatedContent && !topic) || isLoading} className="flex items-center p-2 rounded-md hover:bg-slate-700 hover:text-white disabled:text-slate-500 disabled:cursor-not-allowed transition-colors" title={copyButtonText}>
-                            <CopyIcon className="w-4 h-4 md:mr-1.5" />
-                            <span className="hidden md:inline">{copyButtonText}</span>
+                        <button 
+                            onClick={() => handleCopy(generatedContent, selectedTemplate.name, topic)} 
+                            disabled={(!generatedContent && !topic) || isLoading} 
+                            className="flex items-center gap-2 p-2 sm:px-3 sm:py-1.5 text-sm font-medium text-slate-300 bg-slate-800 hover:bg-slate-700 hover:text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed" 
+                            title={copyButtonText}
+                        >
+                            <CopyIcon className="w-4 h-4" />
+                            <span className="hidden sm:inline">{copyButtonText}</span>
                         </button>
                     </div>
                 </div>

@@ -31,6 +31,7 @@ interface TextGeneratorLayoutProps {
     generatedContents: string[];
     activeVariation: number;
     setActiveVariation: (value: number) => void;
+    onUpgrade?: () => void;
 }
 
 const LoadingSpinner: React.FC = () => (
@@ -42,7 +43,7 @@ const TextGeneratorLayout: React.FC<TextGeneratorLayoutProps> = (props) => {
         selectedTemplate, topic, setTopic, tone, setTone, tones,
         extraFields, handleFieldChange, isLoading, handleGenerate,
         generatedContent, contentStats, handleCopy, onEditImage, onGenerateImage, onAnalyzeResonance,
-        numOutputs, setNumOutputs, generatedContents, activeVariation, setActiveVariation,
+        numOutputs, setNumOutputs, generatedContents, activeVariation, setActiveVariation, onUpgrade
     } = props;
     
     const isImageTool = selectedTemplate.id === ContentType.AIImage;
@@ -172,6 +173,7 @@ const TextGeneratorLayout: React.FC<TextGeneratorLayoutProps> = (props) => {
                 originalImageUrl={null}
                 videoStatus=""
                 videoUrl={null}
+                onUpgrade={onUpgrade}
             />
         </div>
     );

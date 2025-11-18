@@ -25,9 +25,9 @@ interface VideoGeneratorLayoutProps {
     uploadedImage: UploadedFile | null;
     handleFileSelect: (file: UploadedFile | null) => void;
     onEditImage: (imageDataUrl: string) => void;
-    // Fix: Add missing properties for GenerationOutput
     onGenerateImage: (prompt: string) => void;
     onAnalyzeResonance: (text: string) => void;
+    onUpgrade?: () => void;
 }
 
 const LoadingSpinner: React.FC = () => (
@@ -39,9 +39,9 @@ const VideoGeneratorLayout: React.FC<VideoGeneratorLayoutProps> = (props) => {
         selectedTemplate, user, topic, setTopic, extraFields, handleFieldChange,
         isLoading, handleGenerate, videoStatus, videoUrl,
         handleCopy, uploadedImage, handleFileSelect, onEditImage,
-        // Fix: Destructure added properties
         onGenerateImage,
         onAnalyzeResonance,
+        onUpgrade
     } = props;
     const cost = selectedTemplate.creditCost || 50;
 
@@ -112,7 +112,6 @@ const VideoGeneratorLayout: React.FC<VideoGeneratorLayoutProps> = (props) => {
             </div>
 
             {/* Output Column */}
-            {/* Fix: Pass missing properties to GenerationOutput */}
             <GenerationOutput
                 isLoading={isLoading}
                 generatedContent={""} // Not used for video, url is used instead
@@ -129,6 +128,7 @@ const VideoGeneratorLayout: React.FC<VideoGeneratorLayoutProps> = (props) => {
                 onEditImage={onEditImage}
                 onGenerateImage={onGenerateImage}
                 onAnalyzeResonance={onAnalyzeResonance}
+                onUpgrade={onUpgrade}
             />
         </div>
     );

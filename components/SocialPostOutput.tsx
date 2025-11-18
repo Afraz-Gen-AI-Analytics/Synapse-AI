@@ -6,12 +6,14 @@ import FacebookIcon from './icons/FacebookIcon';
 import SparklesIcon from './icons/SparklesIcon';
 import ResonanceIcon from './icons/ResonanceIcon';
 import ImageIcon from './icons/ImageIcon';
+import AgentIcon from './icons/AgentIcon';
 import { useToast } from '../contexts/ToastContext';
 
 interface SocialPostOutputProps {
     content: SocialPostContent;
     onGenerateImage: (prompt: string) => void;
     onAnalyzeResonance: (text: string) => void;
+    onUpgrade?: () => void;
 }
 
 const platformConfig = {
@@ -20,7 +22,7 @@ const platformConfig = {
     Facebook: { icon: FacebookIcon, name: 'Facebook', url: 'https://www.facebook.com/' },
 };
 
-const SocialPostOutput: React.FC<SocialPostOutputProps> = ({ content, onGenerateImage, onAnalyzeResonance }) => {
+const SocialPostOutput: React.FC<SocialPostOutputProps> = ({ content, onGenerateImage, onAnalyzeResonance, onUpgrade }) => {
     const { addToast } = useToast();
     const config = platformConfig[content.platform];
     const Icon = config.icon;
@@ -86,6 +88,17 @@ const SocialPostOutput: React.FC<SocialPostOutputProps> = ({ content, onGenerate
                         <ResonanceIcon className="w-5 h-5 mr-2" />
                         Analyze Resonance
                     </button>
+                    
+                    {/* CONTEXTUAL UPSELL */}
+                    {onUpgrade && (
+                         <button
+                            onClick={onUpgrade}
+                            className="flex-1 flex items-center justify-center bg-slate-800 border border-slate-700 hover:border-[var(--gradient-start)] text-slate-300 font-semibold py-3 rounded-lg transition-all group"
+                        >
+                            <AgentIcon className="w-5 h-5 mr-2 text-slate-500 group-hover:text-[var(--gradient-start)] transition-colors" />
+                            Schedule with Agent (Pro)
+                        </button>
+                    )}
                  </div>
             </div>
         </div>

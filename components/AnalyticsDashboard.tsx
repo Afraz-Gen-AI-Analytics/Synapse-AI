@@ -5,12 +5,42 @@ import AgentIcon from './icons/AgentIcon';
 import SparklesIcon from './icons/SparklesIcon';
 import TrendingUpIcon from './icons/TrendingUpIcon';
 import LineChart from './LineChart';
+import InfoIcon from './icons/InfoIcon';
 
 interface AnalyticsDashboardProps {
     user: User;
 }
 
 const kpiIcons = [SparklesIcon, AgentIcon, TrendingUpIcon, TrendingUpIcon];
+
+// Demo data to prevent "Empty Dashboard Syndrome"
+const demoAnalyticsData: AnalyticsData = {
+    kpis: [
+        { label: 'Total Generations', value: '1,248', change: '+12% this week', changeType: 'increase' },
+        { label: 'Agents Deployed', value: '3', change: 'Active', changeType: 'increase' },
+        { label: 'Generations (7d)', value: '156', change: '+8 vs last week', changeType: 'increase' },
+        { label: 'Avg. Gens/Day', value: '12.5', change: '', changeType: 'increase' },
+    ],
+    performanceByType: {
+        labels: ['Social', 'Email', 'Video', 'Ad Copy', 'Blog'],
+        values: [450, 320, 80, 210, 188]
+    },
+    engagementOverTime: {
+        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+        values: [12, 19, 15, 22, 30, 18, 10, 15, 25, 28, 35, 42, 20, 15]
+    },
+    mostUsedTools: {
+        labels: ['Social Media Post', 'Marketing Email', 'AI Image Generator', 'Campaign Builder', 'Ad Copy'],
+        values: [350, 280, 210, 150, 120]
+    },
+    agentStats: {
+        active: 2,
+        needsReview: 5,
+        completed: 12,
+        total: 19
+    }
+};
+
 
 const KpiCard: React.FC<Kpi & { icon: React.FC<{className?: string}>, delay: number }> = ({ label, value, change, changeType, icon: Icon, delay }) => (
     <div 
@@ -309,6 +339,7 @@ const AnalyticsSkeleton: React.FC = () => (
 const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ user }) => {
     const [data, setData] = useState<AnalyticsData | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [isDemoData, setIsDemoData] = useState(false);
 
     useEffect(() => {
         const loadAnalytics = async () => {
@@ -318,6 +349,14 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ user }) => {
                     getHistoryCollection(user.uid),
                     getAgentsCollection(user.uid)
                 ]);
+
+                // Check if we should use demo data
+                if (historyItems.length === 0 && agents.length === 0) {
+                    setData(demoAnalyticsData);
+                    setIsDemoData(true);
+                    setIsLoading(false);
+                    return;
+                }
 
                 const sortedHistory = historyItems.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
@@ -438,6 +477,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ user }) => {
                     }
                 };
                 setData(analyticsData);
+                setIsDemoData(false);
             } catch (err) {
                 console.error("Failed to load analytics data:", err);
             } finally {
@@ -469,6 +509,15 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ user }) => {
 
     return (
         <div className="flex-1 flex flex-col p-1">
+            {isDemoData && (
+                <div className="mb-6 bg-slate-800/60 border border-slate-700 rounded-lg p-4 flex items-center animate-fade-in-up">
+                    <InfoIcon className="w-5 h-5 text-blue-400 mr-3 flex-shrink-0" />
+                    <p className="text-slate-300 text-sm">
+                        <span className="font-bold text-white">Viewing Sample Data.</span> Start creating content and deploying agents to see your own insights here.
+                    </p>
+                </div>
+            )}
+
             {/* KPI Banner */}
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 mb-6">
                 {data.kpis.map((kpi, index) => (

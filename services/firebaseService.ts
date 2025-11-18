@@ -1,4 +1,3 @@
-
 // This service is now configured to use the REAL Firebase SDK.
 // To connect to your project, replace the placeholder firebaseConfig object below with the one from your Firebase project console.
 
