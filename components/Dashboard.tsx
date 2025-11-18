@@ -427,9 +427,6 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
                 brandProfileBonusClaimed: true 
             });
             
-            // We can just fetch the updated user or optimistically update here, 
-            // but the auth listener might not pick up custom field changes instantly.
-            // Let's just optimistically update for now.
              setUser(prev => prev ? ({ 
                 ...prev, 
                 onboardingCompleted: true,
@@ -452,7 +449,6 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
   const handleTabChange = (tab: Tab) => {
     setActiveTab(tab);
     if (tab === 'history') {
-        // When user clicks the main history tab, always default to 'tools'
         setInitialHistoryTab('tools');
     }
     setGeneratedContents([]);
@@ -471,8 +467,6 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
 
   const handleSettingsSaveSuccess = async () => {
       if (!user) return;
-      
-      // Re-fetch brand profile to get the latest data
       try {
           const updatedProfile = await getBrandProfile(user.uid);
           if (updatedProfile) {
@@ -489,7 +483,6 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
           setActiveTab(navigationSource);
           setNavigationSource(null);
       } else {
-          // If user came to settings directly, redirect to home page.
           addToast('Profile saved successfully!', 'success');
           setActiveTab('home');
       }
@@ -519,17 +512,12 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
         }, {} as { [key: string]: string });
     }
 
-    // Pre-fill audience for SEO Content Strategist if brand profile exists
     if (template.id === ContentType.BlogIdea && brandProfile) {
         initialFields['targetAudience'] = brandProfile.targetAudience;
     }
-
-    // Pre-fill audience for Market Signal Analyzer if brand profile exists
     if (template.id === ContentType.MarketSignalAnalyzer && brandProfile) {
         initialFields['targetAudience'] = brandProfile.targetAudience;
     }
-
-    // Pre-fill audience for Ad Creative Studio if brand profile exists
     if (template.id === ContentType.AIAdCreativeStudio && brandProfile) {
         initialFields['targetAudience'] = brandProfile.targetAudience;
     }
@@ -632,7 +620,6 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
     
     const cost = (selectedTemplate.creditCost || 1) * (selectedTemplate.supportsVariations ? numOutputs : 1);
     
-    // Check credits without spending them yet.
     if (user.credits < cost) {
         addToast(`Not enough credits. This action costs ${cost} credits.`, "error");
         setShowUpgradeModal(true);
@@ -714,16 +701,15 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
 
             for await (const chunk of stream) {
                 const textChunk = typeof chunk === 'string' ? chunk : chunk.text;
-                // Spend credits on the first successful chunk with text.
                 if (!creditsSpentThisTurn && textChunk && textChunk.trim()) {
                     if (!await spendCredits(cost)) {
                         addToast("Credit deduction failed. Stopping generation.", "error");
-                        break; // Stop processing stream if credit spend fails
+                        break;
                     }
                     creditsSpentThisTurn = true;
                 }
                 
-                if (textChunk) { // Only process if there's text
+                if (textChunk) {
                     fullResponse += textChunk;
                     setGeneratedContents(prev => {
                         const newContents = [...prev];
@@ -733,13 +719,11 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
                 }
             }
 
-            // Only process and save if credits were successfully spent
             if (creditsSpentThisTurn) {
                 const finalVariations = fullResponse.split('[---VARIATION_SEPARATOR---]').map(v => v.trim()).filter(Boolean);
                 setGeneratedContents(finalVariations.length > 0 ? finalVariations : [fullResponse]);
                 await handleGenerationResult(fullResponse, topic, selectedTemplate.name);
             } else if (fullResponse.trim() === '') {
-                 // If stream completed with no text and credits were not spent
                 throw new Error("The AI returned an empty response. Your credits have not been charged.");
             }
           } else {
@@ -747,7 +731,6 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
           }
       }
     } catch (e: any) {
-        // No refund logic needed, as credits are only spent after a successful step.
         const errorMessage = e.message || "An unknown error occurred during generation.";
         addToast(errorMessage, 'error');
     } finally {
@@ -772,7 +755,6 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
       if (["Resonance Engine", "Market Signal Analyzer", "SEO Content Strategist", "AI Ad Creative Studio", "Viral Video Blueprint"].includes(templateName)) {
           try {
               const data = JSON.parse(content);
-              // Simple stringify for now, a more complex report can be built
               const reportText = JSON.stringify(data, null, 2);
               navigator.clipboard.writeText(reportText);
               addToast('Report data copied to clipboard!');
@@ -794,7 +776,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
     const template = templates.find(t => t.name === item.templateName);
     if (!template) return;
     
-    setReusedReportData(null); // Reset by default
+    setReusedReportData(null);
 
     if (template.id === ContentType.Campaign || template.id === ContentType.AIVideoGenerator) {
         return;
@@ -822,10 +804,9 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
         }
 
         window.scrollTo(0, 0);
-        return; // Early return for analyzer tools
+        return;
     }
 
-    // Existing logic for other tools
     setActiveTab('tools');
     setTopic(item.topic);
     setSelectedTemplate(template);
@@ -1020,7 +1001,6 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
             const CREDITS_TO_ADD = 100;
             await addCredits(user.uid, CREDITS_TO_ADD, undefined, user.planCreditLimit + CREDITS_TO_ADD);
             
-            // Optimistic update
             setUser({ 
                 ...user, 
                 credits: user.credits + CREDITS_TO_ADD, 
@@ -1051,6 +1031,10 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
                     setExtraFields(prev => ({ ...prev, platform: result.prefill.platform || 'Twitter' }));
                 }
             }, 50);
+             // If we are not already on the tools tab, switch to it
+             if (activeTab !== 'tools') {
+                setActiveTab('tools');
+             }
 
         } else {
             throw new Error(`Could not find a tool matching the ID: ${result.toolId}`);
@@ -1066,7 +1050,6 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
     let targetTemplate: Template | undefined;
     const format = recommendation.format.toLowerCase();
 
-    // Reordered to prioritize more specific keywords over general ones
     if (format.includes('video')) {
         targetTemplate = templates.find(t => t.id === ContentType.AIVideoGenerator);
     } else if (format.includes('social') || format.includes('linkedin') || format.includes('tweet') || format.includes('facebook') || format.includes('carousel')) {
@@ -1081,7 +1064,6 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
 
     if (targetTemplate) {
         handleTemplateSelect(targetTemplate);
-        // Use timeout to ensure state update after template selection re-render
         setTimeout(() => {
             setTopic(recommendation.title);
             if (targetTemplate?.id === ContentType.SocialMediaPost) {
@@ -1092,7 +1074,6 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
                 }
             }
             
-            // "Professionally prefill" the SEO Content Strategist
             if (targetTemplate?.id === ContentType.BlogIdea && context?.audience) {
                 setExtraFields(prev => ({
                     ...prev,
@@ -1147,7 +1128,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
         case ContentType.AIAdCreativeStudio:
         case ContentType.VideoScriptHook:
              return <AnalyzerLayout 
-                key={selectedTemplate.id} // Force re-mount on template change
+                key={selectedTemplate.id}
                 selectedTemplate={selectedTemplate} 
                 brandProfile={brandProfile!} 
                 onPrefill={handlePrefillFromReport}
@@ -1199,7 +1180,6 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
                 handleFileSelect={handleFileSelect}
                 originalImageUrl={originalImageUrl}
                 onEditImage={handleEditGeneratedImage}
-                // Fix: Pass missing properties
                 onGenerateImage={handleGenerateImageFromPrompt}
                 onAnalyzeResonance={handleAnalyzeResonance}
             />;
@@ -1216,7 +1196,6 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
                 uploadedImage={uploadedImage}
                 handleFileSelect={handleFileSelect}
                 onEditImage={handleEditGeneratedImage}
-                // Fix: Pass missing properties
                 onGenerateImage={handleGenerateImageFromPrompt}
                 onAnalyzeResonance={handleAnalyzeResonance}
             />;
@@ -1236,42 +1215,59 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
 
   const renderContent = () => {
     if (!user) return null;
-    switch (activeTab) {
-      case 'home':
-        return <HomeDashboard 
-                    user={user} 
-                    onSelectTemplate={handleTemplateSelect} 
-                    templates={templates} 
-                    onUpgrade={() => setShowUpgradeModal(true)}
-                    onTabChange={handleTabChange}
-                />;
-      case 'tools':
-        return (
-            <div className="flex flex-col gap-6 md:flex-1 md:h-full">
-                <CommandBar onCommand={handleCommand} isLoading={commandLoading} error={commandError} />
-                <div className="md:flex-1 md:min-h-0">
+    
+    // Logic to determine if command bar should be shown based on active tab
+    const showCommandBar = ['home', 'tools', 'agents', 'analytics'].includes(activeTab);
+
+    const content = (() => {
+        switch (activeTab) {
+          case 'home':
+            return <HomeDashboard 
+                        user={user} 
+                        onSelectTemplate={handleTemplateSelect} 
+                        templates={templates} 
+                        onUpgrade={() => setShowUpgradeModal(true)}
+                        onTabChange={handleTabChange}
+                    />;
+          case 'tools':
+            // Remove the command bar from inside 'tools' and let it persist at top level
+            return (
+                <div className="md:flex-1 md:h-full">
                     {renderToolLayout()}
                 </div>
-            </div>
-        );
-      case 'live-agent':
-        return <LiveAgentView user={user} />;
-      case 'agents':
-        return <AgentManager 
-                    user={user} 
-                    onUpgrade={() => setShowUpgradeModal(true)} 
-                    onNavigateToSettings={() => handleNavigateToSettings('agents')} 
-                    spendCredits={spendCredits}
-                />;
-      case 'analytics':
-        return <AnalyticsDashboard user={user} />;
-      case 'settings':
-        return <SettingsView user={user} onUserUpdate={(updatedUser) => setUser(updatedUser)} onSaveSuccess={handleSettingsSaveSuccess} />;
-      case 'history':
-        return <HistoryView user={user} onReuse={handleReuse} onCopy={handleCopy} onEdit={handleEdit} initialTab={initialHistoryTab} />;
-      default:
-        return null;
-    }
+            );
+          case 'live-agent':
+            return <LiveAgentView user={user} />;
+          case 'agents':
+            return <AgentManager 
+                        user={user} 
+                        onUpgrade={() => setShowUpgradeModal(true)} 
+                        onNavigateToSettings={() => handleNavigateToSettings('agents')} 
+                        spendCredits={spendCredits}
+                    />;
+          case 'analytics':
+            return <AnalyticsDashboard user={user} />;
+          case 'settings':
+            return <SettingsView user={user} onUserUpdate={(updatedUser) => setUser(updatedUser)} onSaveSuccess={handleSettingsSaveSuccess} />;
+          case 'history':
+            return <HistoryView user={user} onReuse={handleReuse} onCopy={handleCopy} onEdit={handleEdit} initialTab={initialHistoryTab} />;
+          default:
+            return null;
+        }
+    })();
+
+    return (
+        <div className="flex flex-col gap-6 h-full">
+             {showCommandBar && (
+                <div className="flex-shrink-0 z-10">
+                     <CommandBar onCommand={handleCommand} isLoading={commandLoading} error={commandError} />
+                </div>
+             )}
+             <div className="flex-1 min-h-0">
+                {content}
+             </div>
+        </div>
+    )
   };
 
   if (!user) {
@@ -1292,7 +1288,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
       {showUpgradeModal && <UpgradeModal user={user} onClose={() => setShowUpgradeModal(false)} onUpgrade={handleUpgrade} onBuyCredits={handleBuyCredits} />}
       
       <aside className="hidden md:flex w-20 bg-slate-900/80 backdrop-blur-sm p-2 border-r border-slate-800/50 flex-col items-center flex-shrink-0 z-20">
-          <div className="my-2">
+          <div className="my-2 cursor-pointer" onClick={() => setActiveTab('home')}>
             <SynapseLogo className="w-9 h-9" />
           </div>
           <nav className="flex-1 flex flex-col items-center gap-4 mt-8">
@@ -1344,7 +1340,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
         </div>
       )}
 
-      <main className="flex-1 p-4 sm:p-6 lg:p-8 flex flex-col overflow-y-auto pb-24 md:pb-8">
+      <main className="flex-1 p-4 sm:p-6 lg:p-8 flex flex-col overflow-y-auto pb-24 md:pb-8 relative">
         {renderContent()}
       </main>
 

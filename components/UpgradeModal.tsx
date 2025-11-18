@@ -4,6 +4,7 @@ import { User } from '../types';
 import SynapseLogo from './icons/SynapseLogo';
 import CheckIcon from './icons/CheckIcon';
 import DiamondIcon from './icons/DiamondIcon';
+import SparklesIcon from './icons/SparklesIcon';
 
 interface UpgradeModalProps {
   user: User;
@@ -54,6 +55,10 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({ user, onClose, onUpgrade, o
                 )}
                 </button>
             </div>
+             <div className="mt-4 flex justify-center items-center text-[10px] text-slate-500 gap-2">
+                <svg className="w-3 h-3 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" /></svg>
+                Secure Payment
+            </div>
 
             <div className="text-center">
                 <button onClick={onClose} className="mt-4 text-slate-400 hover:text-white text-xs font-medium uppercase tracking-wide">
@@ -100,7 +105,10 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({ user, onClose, onUpgrade, o
         <div className="text-left bg-slate-800/40 p-3.5 rounded-lg mb-3 space-y-2 text-sm border border-slate-700/70 relative overflow-hidden group">
              <div className="absolute top-0 right-0 w-16 h-16 opacity-10 pointer-events-none bg-gradient-to-bl from-[var(--gradient-start)] to-transparent rounded-bl-full transition-opacity group-hover:opacity-20"></div>
             <div className="flex justify-between items-center">
-                <h3 className="font-bold text-base gradient-text">Pro Plan</h3>
+                <div className="flex items-center gap-2">
+                    <h3 className="font-bold text-base gradient-text">Pro Plan</h3>
+                    <span className="bg-[var(--gradient-start)] text-white text-[9px] px-1.5 py-0.5 rounded uppercase font-bold">Best Value</span>
+                </div>
                 <span className="text-white font-bold">{billingCycle === 'annually' ? '$39' : '$49'}<span className="text-slate-400 font-normal text-xs">/mo</span></span>
             </div>
             <div className="space-y-1.5">
@@ -112,9 +120,11 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({ user, onClose, onUpgrade, o
             <button 
             onClick={handleUpgradeClick}
             disabled={isUpgrading || isBuyingCredits}
-            className="w-full !mt-3 bg-gradient-to-r from-[var(--gradient-start)] to-[var(--gradient-end)] hover:opacity-90 text-white font-semibold py-2.5 px-4 rounded-lg transition-all duration-300 ease-in-out shadow-lg shadow-fuchsia-500/20 disabled:opacity-50 text-sm"
+            className="w-full !mt-3 bg-gradient-to-r from-[var(--gradient-start)] to-[var(--gradient-end)] hover:opacity-90 text-white font-semibold py-2.5 px-4 rounded-lg transition-all duration-300 ease-in-out shadow-lg shadow-fuchsia-500/20 disabled:opacity-50 text-sm flex items-center justify-center"
             >
-            {isUpgrading ? 'Processing...' : 'Upgrade to Pro'}
+            {isUpgrading ? 'Processing...' : (
+                <><SparklesIcon className="w-4 h-4 mr-2"/> Upgrade to Pro</>
+            )}
             </button>
         </div>
 
@@ -144,9 +154,14 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({ user, onClose, onUpgrade, o
                 )}
                 </button>
             </div>
-            <p className="text-red-400/80 text-[9px] italic mt-1 flex items-center">
-                * Does not unlock Pro features (Agents, Video, etc.)
+            <p className="text-red-400/80 text-[10px] font-medium italic mt-1 flex items-center">
+                * Note: Credits alone do not unlock Pro features (Agents, Video, etc.)
             </p>
+        </div>
+
+        <div className="mt-4 flex justify-center items-center text-[10px] text-slate-500 gap-2">
+            <svg className="w-3 h-3 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" /></svg>
+            SSL Secured Payment
         </div>
 
         <div className="text-center">

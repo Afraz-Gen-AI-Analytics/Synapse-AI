@@ -23,6 +23,7 @@ import Tooltip from './Tooltip';
 import SparklesIcon from './icons/SparklesIcon';
 import TrendingUpIcon from './icons/TrendingUpIcon';
 import ImageIcon from './icons/ImageIcon';
+import GlobeIcon from './icons/GlobeIcon';
 
 
 interface LandingPageProps {
@@ -153,23 +154,24 @@ const AnimatedSection: React.FC<{ children: React.ReactNode; className?: string;
 
 const Header: React.FC<LandingPageProps> = ({ onNavigate }) => {
   return (
-  <header className="absolute top-0 left-0 right-0 z-20 py-4 px-4 sm:px-6 lg:px-8">
+  <header className="absolute top-0 left-0 right-0 z-20 py-6 px-4 sm:px-6 lg:px-8">
     <div className="container mx-auto flex justify-between items-center">
-      <div className="flex items-center space-x-3 cursor-pointer">
-        <SynapseLogo className="w-9 h-9" />
-        <span className="text-2xl font-bold text-white">Synapse AI</span>
+      <div className="flex items-center space-x-3 cursor-pointer group">
+        <div className="p-2 bg-slate-800/50 rounded-xl group-hover:bg-slate-800 transition-colors border border-slate-700/50 backdrop-blur-sm">
+            <SynapseLogo className="w-8 h-8" />
+        </div>
+        <span className="text-xl font-bold text-white tracking-tight">Synapse AI</span>
       </div>
-      <nav className="hidden md:flex items-center space-x-8">
-        <a href="#features" className="text-slate-300 hover:text-white transition-colors">Features</a>
-        <a href="#how-it-works" className="text-slate-300 hover:text-white transition-colors">How It Works</a>
-        <a href="#pricing" className="text-slate-300 hover:text-white transition-colors">Pricing</a>
-        <a href="#faq" className="text-slate-300 hover:text-white transition-colors">FAQ</a>
+      <nav className="hidden md:flex items-center space-x-8 bg-slate-900/50 backdrop-blur-md px-8 py-3 rounded-full border border-slate-800/50">
+        <a href="#features" className="text-sm font-medium text-slate-300 hover:text-white transition-colors">Features</a>
+        <a href="#how-it-works" className="text-sm font-medium text-slate-300 hover:text-white transition-colors">How It Works</a>
+        <a href="#pricing" className="text-sm font-medium text-slate-300 hover:text-white transition-colors">Pricing</a>
       </nav>
-      <div className="flex items-center space-x-2">
-        <button onClick={() => onNavigate('login')} className="text-slate-300 hover:text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-300">
+      <div className="flex items-center space-x-3">
+        <button onClick={() => onNavigate('login')} className="text-slate-300 hover:text-white font-semibold text-sm py-2 px-4 rounded-lg transition-colors duration-300">
             Sign In
         </button>
-        <button onClick={() => onNavigate('signup')} className="bg-gradient-to-r from-[var(--gradient-start)] to-[var(--gradient-end)] hover:opacity-90 text-white font-semibold py-2 px-5 rounded-lg transition-all duration-300 ease-in-out hover:scale-105 shadow-lg shadow-[color:var(--gradient-start)]/20">
+        <button onClick={() => onNavigate('signup')} className="bg-white hover:bg-gray-100 text-slate-900 font-bold text-sm py-2.5 px-5 rounded-full transition-all duration-300 ease-in-out hover:scale-105 shadow-[0_0_20px_rgba(255,255,255,0.3)]">
             Get Started
         </button>
       </div>
@@ -178,20 +180,6 @@ const Header: React.FC<LandingPageProps> = ({ onNavigate }) => {
   );
 };
 
-const FaqItem: React.FC<{ question: string; children: React.ReactNode }> = ({ question, children }) => {
-    const [isOpen, setIsOpen] = useState(false);
-    return (
-        <div className="border-b border-slate-700/50 py-4">
-            <button onClick={() => setIsOpen(!isOpen)} className="w-full flex justify-between items-center text-left">
-                <h3 className="font-semibold text-lg">{question}</h3>
-                <ChevronDownIcon className={`w-6 h-6 transition-transform text-slate-400 ${isOpen ? 'rotate-180' : ''}`} />
-            </button>
-            <div className={`overflow-hidden transition-all duration-300 ${isOpen ? 'max-h-96 mt-2' : 'max-h-0'}`}>
-                <div className="pt-2 text-slate-400">{children}</div>
-            </div>
-        </div>
-    );
-};
 
 const DynamicHeadline: React.FC = () => {
     const [text, setText] = useState('');
@@ -268,43 +256,111 @@ const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
       <Header onNavigate={onNavigate} />
       
       <div className="min-h-screen flex flex-col">
-        <main className="hero-background flex-grow flex items-center justify-center pt-40 pb-20">
-          <div className="relative z-10 container mx-auto px-4 text-center">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight mb-4 opacity-0 animate-fade-in-up" style={{textShadow: '0 2px 10px rgba(0,0,0,0.5)', animationDelay: '0.2s'}}>
-             The AI Command Center for Modern <br className="hidden md:block" /> <DynamicHeadline />
-            </h1>
-             <p className="text-lg md:text-xl text-slate-400 max-w-3xl mx-auto mb-8 opacity-0 animate-fade-in-up" style={{textShadow: '0 2px 8px rgba(0,0,0,0.5)', animationDelay: '0.4s'}}>
-              Automate your entire marketing workflow in minutes. From strategy to execution, let your AI co-pilot do the heavy lifting.
-            </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 opacity-0 animate-fade-in-up" style={{ animationDelay: '0.6s' }}>
-              <button onClick={() => onNavigate('signup')} className="bg-gradient-to-r from-[var(--gradient-start)] to-[var(--gradient-end)] hover:opacity-90 text-white font-bold py-4 px-8 rounded-lg text-lg transition-transform duration-300 ease-in-out hover:scale-105 shadow-lg animate-button-glow w-full sm:w-auto">
-                Get Started Free
-              </button>
-              <button onClick={() => alert('Playing demo!')} className="bg-transparent border-2 gradient-border text-lg font-bold py-4 px-8 rounded-lg transition-all duration-300 w-full sm:w-auto hover:bg-white/5 flex items-center justify-center">
-                <span className="flex items-center gradient-text">
-                  <VideoIcon className="w-5 h-5 mr-2" />
-                  Watch Demo
+        <main className="hero-background flex-grow flex flex-col items-center pt-40 pb-20">
+          <div className="relative z-10 container mx-auto px-4 text-center max-w-5xl">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-800/50 border border-slate-700/50 mb-8 animate-fade-in-up">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
                 </span>
+                <span className="text-xs font-medium text-slate-300">New: Autonomous Marketing Agents</span>
+            </div>
+
+            <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight mb-6 opacity-0 animate-fade-in-up leading-tight" style={{textShadow: '0 2px 20px rgba(0,0,0,0.5)', animationDelay: '0.1s'}}>
+             The AI Command Center for <br className="hidden md:block" /> Modern <DynamicHeadline />
+            </h1>
+             <p className="text-xl text-slate-400 max-w-2xl mx-auto mb-10 opacity-0 animate-fade-in-up leading-relaxed" style={{animationDelay: '0.2s'}}>
+              Stop using scattered tools. Synapse unifies strategy, creation, and analytics into one powerful autonomous workflow.
+            </p>
+            
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 opacity-0 animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
+              <button onClick={() => onNavigate('signup')} className="bg-white text-slate-900 hover:bg-gray-100 font-bold py-4 px-10 rounded-full text-lg transition-all duration-300 ease-in-out hover:scale-105 shadow-[0_0_40px_rgba(255,255,255,0.2)] w-full sm:w-auto">
+                Start for Free
+              </button>
+              <button onClick={() => alert('Playing demo!')} className="group bg-slate-800/50 border border-slate-700 hover:bg-slate-800 text-lg font-medium py-4 px-10 rounded-full transition-all duration-300 w-full sm:w-auto flex items-center justify-center">
+                  <span className="mr-2 text-slate-200 group-hover:text-white transition-colors">View Demo</span>
+                  <div className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors">
+                    <svg className="w-3 h-3 fill-white ml-0.5" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                  </div>
               </button>
             </div>
-             <div className="mt-8 flex justify-center items-center gap-4 text-slate-400 opacity-0 animate-fade-in-up" style={{ animationDelay: '0.8s' }}>
-                <div className="flex -space-x-2">
-                    <img className="w-8 h-8 rounded-full border-2 border-slate-900 object-cover" src="https://randomuser.me/api/portraits/women/68.jpg" alt="User 1" />
-                    <img className="w-8 h-8 rounded-full border-2 border-slate-900 object-cover" src="https://randomuser.me/api/portraits/men/75.jpg" alt="User 2" />
-                    <img className="w-8 h-8 rounded-full border-2 border-slate-900 object-cover" src="https://randomuser.me/api/portraits/women/44.jpg" alt="User 3" />
+
+            {/* 3D Dashboard Mockup */}
+            <div className="mt-20 opacity-0 animate-fade-in-up relative perspective-container" style={{ animationDelay: '0.5s' }}>
+                {/* Glowing backdrop */}
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-gradient-to-br from-[var(--gradient-start)] via-purple-500/20 to-[var(--gradient-end)] opacity-20 blur-[100px] rounded-full pointer-events-none"></div>
+                
+                {/* The Dashboard "Window" */}
+                <div className="relative bg-[#0f172a] rounded-xl border border-slate-700/50 shadow-2xl overflow-hidden transform-gpu rotate-x-12 mx-auto max-w-5xl group hover:scale-[1.01] transition-transform duration-700 ease-out" style={{ transform: 'perspective(1000px) rotateX(5deg)' }}>
+                    {/* Browser Header */}
+                    <div className="h-8 bg-[#1e293b] border-b border-slate-700 flex items-center px-4 gap-2">
+                        <div className="w-3 h-3 rounded-full bg-red-500/80"></div>
+                        <div className="w-3 h-3 rounded-full bg-yellow-500/80"></div>
+                        <div className="w-3 h-3 rounded-full bg-green-500/80"></div>
+                        <div className="mx-auto text-[10px] text-slate-500 font-medium bg-black/20 px-3 py-0.5 rounded-md">synapse.ai/dashboard</div>
+                    </div>
+                    {/* Mock Content - Simplified Dashboard View */}
+                    <div className="grid grid-cols-12 h-[400px] md:h-[500px] bg-[#0D1117] p-4 gap-4 text-left">
+                        {/* Sidebar Mock */}
+                        <div className="hidden md:flex col-span-2 flex-col gap-4 border-r border-slate-800/50 pr-4">
+                            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-[var(--gradient-start)] to-[var(--gradient-end)]"></div>
+                            <div className="space-y-3 mt-4">
+                                <div className="h-2 w-16 bg-slate-800 rounded-full"></div>
+                                <div className="h-2 w-20 bg-slate-800 rounded-full"></div>
+                                <div className="h-2 w-14 bg-slate-800 rounded-full"></div>
+                                <div className="h-2 w-18 bg-slate-800 rounded-full"></div>
+                            </div>
+                        </div>
+                        {/* Main Mock */}
+                        <div className="col-span-12 md:col-span-10 flex flex-col gap-4">
+                            {/* Header Mock */}
+                            <div className="flex justify-between items-center">
+                                <div className="h-6 w-48 bg-slate-800 rounded-md"></div>
+                                <div className="h-8 w-24 bg-[var(--gradient-end)] rounded-md opacity-80"></div>
+                            </div>
+                            {/* Cards Mock */}
+                            <div className="grid grid-cols-3 gap-4">
+                                <div className="bg-slate-900/50 border border-slate-800 rounded-lg p-4 h-32 flex flex-col justify-between">
+                                    <div className="h-8 w-8 rounded bg-slate-800"></div>
+                                    <div className="h-2 w-20 bg-slate-700 rounded-full"></div>
+                                </div>
+                                <div className="bg-slate-900/50 border border-slate-800 rounded-lg p-4 h-32 flex flex-col justify-between">
+                                    <div className="h-8 w-8 rounded bg-slate-800"></div>
+                                    <div className="h-2 w-20 bg-slate-700 rounded-full"></div>
+                                </div>
+                                <div className="bg-slate-900/50 border border-slate-800 rounded-lg p-4 h-32 flex flex-col justify-between">
+                                    <div className="h-8 w-8 rounded bg-slate-800"></div>
+                                    <div className="h-2 w-20 bg-slate-700 rounded-full"></div>
+                                </div>
+                            </div>
+                            {/* Chart Mock */}
+                            <div className="flex-1 bg-slate-900/50 border border-slate-800 rounded-lg p-4 relative overflow-hidden">
+                                 <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[var(--gradient-start)] to-transparent opacity-20"></div>
+                                 <div className="flex items-end justify-between h-full gap-2 px-4 pb-4">
+                                     {[40, 65, 45, 80, 55, 90, 70].map((h, i) => (
+                                         <div key={i} className="w-full bg-slate-800 rounded-t-sm hover:bg-[var(--gradient-end)] transition-colors duration-500" style={{height: `${h}%`}}></div>
+                                     ))}
+                                 </div>
+                            </div>
+                        </div>
+                    </div>
+                     {/* Overlay Fade */}
+                     <div className="absolute inset-0 bg-gradient-to-t from-[#0D1117] via-transparent to-transparent pointer-events-none h-32 bottom-0"></div>
                 </div>
-                <p className="text-sm">Join <span className="font-bold text-white">10,000+</span> happy marketers</p>
+            </div>
+
+             <div className="mt-20 flex justify-center items-center gap-4 text-slate-500 opacity-0 animate-fade-in-up text-sm" style={{ animationDelay: '0.8s' }}>
+                <p>Trusted by forward-thinking teams at</p>
             </div>
           </div>
         </main>
 
-        <section className="py-16 bg-black/10">
-          <div className="container mx-auto px-4 text-center">
-            <h2 className="text-sm font-semibold tracking-widest text-slate-400 uppercase">TRUSTED BY MARKETERS AT</h2>
-            <div className="mt-12 w-full inline-flex flex-nowrap overflow-hidden [mask-image:_linear-gradient(to_right,transparent_0,_black_128px,_black_calc(100%-128px),transparent_100%)]">
+        <section className="pb-16 bg-black/0 border-b border-slate-800/50">
+          <div className="container mx-auto px-4">
+            <div className="w-full inline-flex flex-nowrap overflow-hidden [mask-image:_linear-gradient(to_right,transparent_0,_black_128px,_black_calc(100%-128px),transparent_100%)]">
               <ul className="flex items-center justify-center md:justify-start animate-scroll">
                 {[...companyLogos, ...companyLogos].map(({ name, Svg }, index) => (
-                  <li key={index} className="mx-10 flex items-center space-x-4 text-slate-500 hover:text-slate-200 transition-colors duration-300">
+                  <li key={index} className="mx-12 flex items-center space-x-3 text-slate-600 hover:text-slate-300 transition-colors duration-300 grayscale opacity-70 hover:opacity-100">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       viewBox="0 0 24 24"
@@ -313,11 +369,11 @@ const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
                       strokeWidth="1.5"
                       strokeLinecap="round"
                       strokeLinejoin="round"
-                      className="w-8 h-8 flex-shrink-0"
+                      className="w-6 h-6 flex-shrink-0"
                     >
                       <Svg />
                     </svg>
-                    <span className="text-2xl font-bold tracking-wider uppercase">{name}</span>
+                    <span className="text-xl font-bold tracking-widest uppercase">{name}</span>
                   </li>
                 ))}
               </ul>
@@ -327,34 +383,42 @@ const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
       </div>
       
       
-      <section id="features" className="py-20 bg-black/20">
+      <section id="features" className="py-32 bg-[#0B0E14]">
         <div className="container mx-auto px-4 max-w-6xl">
           <AnimatedSection>
-            <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold">A Command Center for Your Growth Strategy</h2>
-              <p className="text-slate-400 mt-2">Go beyond generation. Deploy, analyze, and dominate with our suite of tools.</p>
+            <div className="text-center mb-20">
+              <span className="text-[var(--gradient-start)] font-semibold tracking-wider uppercase text-xs">Features</span>
+              <h2 className="text-3xl md:text-5xl font-bold mt-3 mb-6">Everything you need to scale.</h2>
+              <p className="text-slate-400 text-lg max-w-2xl mx-auto">Go beyond simple text generation. Deploy comprehensive strategies, analyze market signals, and automate execution.</p>
             </div>
           </AnimatedSection>
           <div className="grid md:grid-cols-3 gap-8">
             <AnimatedSection delay={0}>
-              <div className="bg-slate-900 p-8 rounded-xl border border-slate-800 transition-all duration-300 hover:border-[var(--gradient-end)]/50 hover:-translate-y-2 group hover:shadow-lg hover:shadow-[color:var(--gradient-end)]/20 h-full">
-                  <SparklesIcon className="w-12 h-12 text-[var(--gradient-end)] mb-4 transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6"/>
-                  <h3 className="text-xl font-bold mb-2">Core Content Tools</h3>
-                  <p className="text-slate-400">Access a rich suite of content generators for social media, blogs, emails, and ad copy to kickstart your creative workflow.</p>
+              <div className="bg-slate-900/40 p-8 rounded-2xl border border-slate-800 transition-all duration-300 hover:border-[var(--gradient-end)]/30 hover:-translate-y-2 group h-full backdrop-blur-sm">
+                  <div className="w-14 h-14 rounded-xl bg-slate-800 flex items-center justify-center mb-6 group-hover:bg-[var(--gradient-end)] transition-colors duration-300">
+                    <SparklesIcon className="w-7 h-7 text-[var(--gradient-end)] group-hover:text-white transition-colors"/>
+                  </div>
+                  <h3 className="text-xl font-bold mb-3 text-white">Core Creation Suite</h3>
+                  <p className="text-slate-400 leading-relaxed">Access professional-grade generators for social media, blogs, emails, and ad copy. Tuned for conversion and brand consistency.</p>
               </div>
             </AnimatedSection>
             <AnimatedSection delay={150}>
-              <div className="bg-slate-900 p-8 rounded-xl border-2 border-[var(--gradient-start)]/80 transition-all duration-300 hover:-translate-y-2 shadow-2xl shadow-fuchsia-900/20 group hover:shadow-lg hover:shadow-[color:var(--gradient-start)]/30 h-full">
-                  <AgentIcon className="w-12 h-12 text-[var(--gradient-start)] mb-4 transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6" />
-                  <h3 className="text-xl font-bold mb-2">Autonomous Pro Suite</h3>
-                  <p className="text-slate-400">Unlock our flagship Pro Suite to research, plan, and execute with our Resonance Engine, Market Signal Analyzer, Campaign Builder, Autonomous Agents, and more.</p>
+              <div className="bg-gradient-to-b from-slate-800/40 to-slate-900/40 p-8 rounded-2xl border border-[var(--gradient-start)]/40 transition-all duration-300 hover:-translate-y-2 shadow-xl shadow-purple-900/5 group h-full relative overflow-hidden">
+                  <div className="absolute top-0 right-0 bg-[var(--gradient-start)] text-white text-[10px] font-bold px-3 py-1 rounded-bl-lg">PRO</div>
+                  <div className="w-14 h-14 rounded-xl bg-slate-800 flex items-center justify-center mb-6 group-hover:bg-[var(--gradient-start)] transition-colors duration-300">
+                    <AgentIcon className="w-7 h-7 text-[var(--gradient-start)] group-hover:text-white transition-colors" />
+                  </div>
+                  <h3 className="text-xl font-bold mb-3 text-white">Autonomous Agents</h3>
+                  <p className="text-slate-400 leading-relaxed">Deploy AI employees. From "Social Media Manager" to "Growth Hacker", they plan, execute, and iterate on campaigns autonomously.</p>
               </div>
             </AnimatedSection>
              <AnimatedSection delay={300}>
-               <div className="bg-slate-900 p-8 rounded-xl border border-slate-800 transition-all duration-300 hover:border-[var(--gradient-end)]/50 hover:-translate-y-2 group hover:shadow-lg hover:shadow-[color:var(--gradient-end)]/20 h-full">
-                  <TrendingUpIcon className="w-12 h-12 text-[var(--gradient-end)] mb-4 transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6"/>
-                  <h3 className="text-xl font-bold mb-2">Analytics & Live Guidance</h3>
-                  <p className="text-slate-400">Measure campaign performance with actionable analytics and get real-time strategic advice from your AI co-pilot via voice.</p>
+               <div className="bg-slate-900/40 p-8 rounded-2xl border border-slate-800 transition-all duration-300 hover:border-[var(--gradient-end)]/30 hover:-translate-y-2 group h-full backdrop-blur-sm">
+                  <div className="w-14 h-14 rounded-xl bg-slate-800 flex items-center justify-center mb-6 group-hover:bg-[var(--gradient-end)] transition-colors duration-300">
+                     <TrendingUpIcon className="w-7 h-7 text-[var(--gradient-end)] group-hover:text-white transition-colors"/>
+                  </div>
+                  <h3 className="text-xl font-bold mb-3 text-white">Market Intelligence</h3>
+                  <p className="text-slate-400 leading-relaxed">Don't guess. Our Market Signal Analyzer scans trends and competitor angles to tell you exactly what content to create next.</p>
               </div>
             </AnimatedSection>
           </div>
@@ -363,49 +427,70 @@ const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
       
       
       <AnimatedSection>
-      <section id="how-it-works" className="py-20 bg-[#0D1117]">
-        <div className="container mx-auto px-4">
-           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold">Witness Your Campaign Come to Life</h2>
-            <p className="text-slate-400 mt-3 max-w-3xl mx-auto">Select a marketing goal below. Our AI agents will instantly generate a complete, multi-channel campaign, showcasing the strategic content you'll create in seconds.</p>
+      <section id="how-it-works" className="py-24 bg-[#0D1117] relative overflow-hidden">
+        {/* Background Decoration */}
+        <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+            <div className="absolute top-1/4 -left-64 w-96 h-96 bg-[var(--gradient-start)] opacity-10 rounded-full blur-3xl"></div>
+            <div className="absolute bottom-1/4 -right-64 w-96 h-96 bg-[var(--gradient-end)] opacity-10 rounded-full blur-3xl"></div>
+        </div>
+
+        <div className="container mx-auto px-4 relative z-10">
+           <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-5xl font-bold mb-4">Witness Your Campaign Come to Life</h2>
+            <p className="text-slate-400 text-lg max-w-3xl mx-auto">Select a marketing goal below. Our AI agents will instantly generate a complete, multi-channel campaign.</p>
           </div>
           
-          <div className="max-w-4xl mx-auto">
-            <div className="flex justify-center gap-2 md:gap-4 mb-8">
-                <button onClick={() => setActiveDemo('productLaunch')} className={`px-4 py-2 text-sm md:text-base font-semibold rounded-lg transition-all duration-300 w-full ${activeDemo === 'productLaunch' ? 'bg-white/10 text-white shadow-inner shadow-white/5' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200'}`}>Launch New Product</button>
-                <button onClick={() => setActiveDemo('webinar')} className={`px-4 py-2 text-sm md:text-base font-semibold rounded-lg transition-all duration-300 w-full ${activeDemo === 'webinar' ? 'bg-white/10 text-white shadow-inner shadow-white/5' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200'}`}>Promote Webinar</button>
-                <button onClick={() => setActiveDemo('sale')} className={`px-4 py-2 text-sm md:text-base font-semibold rounded-lg transition-all duration-300 w-full ${activeDemo === 'sale' ? 'bg-white/10 text-white shadow-inner shadow-white/5' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200'}`}>Announce Sale</button>
+          <div className="max-w-5xl mx-auto">
+            <div className="flex flex-wrap justify-center gap-3 mb-10">
+                <button onClick={() => setActiveDemo('productLaunch')} className={`px-6 py-3 text-sm font-semibold rounded-full transition-all duration-300 border ${activeDemo === 'productLaunch' ? 'bg-white text-slate-900 border-white' : 'bg-transparent text-slate-400 border-slate-700 hover:border-slate-500 hover:text-white'}`}>Launch Product</button>
+                <button onClick={() => setActiveDemo('webinar')} className={`px-6 py-3 text-sm font-semibold rounded-full transition-all duration-300 border ${activeDemo === 'webinar' ? 'bg-white text-slate-900 border-white' : 'bg-transparent text-slate-400 border-slate-700 hover:border-slate-500 hover:text-white'}`}>Promote Webinar</button>
+                <button onClick={() => setActiveDemo('sale')} className={`px-6 py-3 text-sm font-semibold rounded-full transition-all duration-300 border ${activeDemo === 'sale' ? 'bg-white text-slate-900 border-white' : 'bg-transparent text-slate-400 border-slate-700 hover:border-slate-500 hover:text-white'}`}>Announce Sale</button>
             </div>
             
-            <div ref={demoRef} className="p-px bg-gradient-to-br from-white/20 to-transparent rounded-xl shadow-2xl shadow-black/30">
-                <div className="bg-slate-900 rounded-[11px] overflow-hidden">
-                    <div className="p-3 bg-slate-800/50 border-b border-slate-700/50 flex items-center">
-                        <div className="flex gap-2">
-                            <div className={`w-3 h-3 rounded-full bg-red-500 ${isDemoVisible ? 'animate-dot-pulse' : 'opacity-30'}`} style={{ animationDelay: '0s' }}></div>
-                            <div className={`w-3 h-3 rounded-full bg-yellow-500 ${isDemoVisible ? 'animate-dot-pulse' : 'opacity-30'}`} style={{ animationDelay: '0.2s' }}></div>
-                            <div className={`w-3 h-3 rounded-full bg-green-500 ${isDemoVisible ? 'animate-dot-pulse' : 'opacity-30'}`} style={{ animationDelay: '0.4s' }}></div>
+            <div ref={demoRef} className="relative rounded-2xl bg-slate-900 border border-slate-800 shadow-2xl overflow-hidden">
+                <div className="grid md:grid-cols-12 min-h-[450px]">
+                    {/* Sidebar for demo */}
+                    <div className="hidden md:block col-span-3 bg-slate-950 border-r border-slate-800 p-6">
+                        <div className="space-y-6">
+                             <div className="h-2 w-24 bg-slate-800 rounded-full mb-8"></div>
+                             <div className="space-y-3">
+                                <div className="flex items-center gap-3 text-white font-medium"><div className="w-2 h-2 rounded-full bg-[var(--gradient-start)]"></div> Strategy</div>
+                                <div className="flex items-center gap-3 text-slate-500"><div className="w-2 h-2 rounded-full bg-slate-800"></div> Assets</div>
+                                <div className="flex items-center gap-3 text-slate-500"><div className="w-2 h-2 rounded-full bg-slate-800"></div> Analytics</div>
+                             </div>
                         </div>
-                        <p className="text-sm text-slate-400 mx-auto font-mono">Generated_Campaign_Assets.md</p>
                     </div>
-                    <div className="p-8 h-96 overflow-y-auto demo-scrollbar relative">
-                      <h4 className="font-bold text-xl mb-6 text-white gradient-text">{currentDemo.title}</h4>
-                      <div key={activeDemo} className="space-y-8">
-                        {currentDemo.assets.map((asset, index) => (
-                          <div key={`${activeDemo}-${index}`} className="border-b border-slate-800 pb-8 last:border-b-0 last:pb-0 opacity-0 animate-fade-in-up" style={{ animationDelay: `${index * 150}ms`}}>
-                            <div className="flex items-center mb-3">
-                              <asset.icon className={`w-5 h-5 mr-3 flex-shrink-0 ${asset.iconClass}`} />
-                              <h5 className="font-semibold text-slate-200">{asset.title}</h5>
-                            </div>
-                            <div className="text-sm text-slate-400 pl-8">{asset.content}</div>
-                          </div>
-                        ))}
-                      </div>
+
+                    {/* Main Content */}
+                    <div className="col-span-12 md:col-span-9 p-8 bg-slate-900">
+                         <div className="flex items-center gap-2 mb-8">
+                            <div className={`w-2 h-2 rounded-full bg-green-500 ${isDemoVisible ? 'animate-pulse' : ''}`}></div>
+                            <span className="text-xs font-mono text-green-500 uppercase tracking-widest">Live Generation</span>
+                        </div>
+                        
+                        <h4 className="font-bold text-2xl mb-6 text-white">{currentDemo.title}</h4>
+                        
+                        <div key={activeDemo} className="space-y-4">
+                            {currentDemo.assets.map((asset, index) => (
+                                <div key={`${activeDemo}-${index}`} className="bg-slate-800/50 rounded-xl p-5 border border-slate-700/50 opacity-0 animate-fade-in-up" style={{ animationDelay: `${index * 150}ms`}}>
+                                    <div className="flex items-start gap-4">
+                                        <div className={`p-2 rounded-lg bg-slate-800 shrink-0`}>
+                                            <asset.icon className={`w-5 h-5 ${asset.iconClass}`} />
+                                        </div>
+                                        <div>
+                                            <h5 className="font-semibold text-white text-sm mb-1">{asset.title}</h5>
+                                            <div className="text-sm text-slate-400 leading-relaxed">{asset.content}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 </div>
             </div>
             
-            <div className="text-center mt-12">
-               <button onClick={() => onNavigate('signup')} className="bg-gradient-to-r from-[var(--gradient-start)] to-[var(--gradient-end)] hover:opacity-90 text-white font-semibold py-3 px-6 rounded-lg transition-transform duration-300 ease-in-out hover:scale-105 shadow-lg shadow-[color:var(--gradient-start)]/30">
+            <div className="text-center mt-16">
+               <button onClick={() => onNavigate('signup')} className="bg-gradient-to-r from-[var(--gradient-start)] to-[var(--gradient-end)] hover:opacity-90 text-white font-bold py-4 px-8 rounded-full transition-transform duration-300 ease-in-out hover:scale-105 shadow-[0_0_30px_rgba(var(--gradient-start-rgb),0.4)]">
                 Deploy Your Own Campaign
               </button>
             </div>
@@ -415,161 +500,92 @@ const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
       </AnimatedSection>
 
       <AnimatedSection>
-      <section id="pricing" className="py-20">
+      <section id="pricing" className="py-32 bg-[#0B0E14] border-t border-slate-800/50">
         <div className="container mx-auto px-4">
-            <div className="text-center mb-12">
-                <h2 className="text-3xl md:text-4xl font-bold">Flexible Plans for Every Ambition</h2>
-                <p className="text-slate-400 mt-2">Start for free, then scale as you grow. The more you create, the more value you get.</p>
+            <div className="text-center mb-16">
+                <h2 className="text-3xl md:text-5xl font-bold mb-6">Flexible Plans for Every Ambition</h2>
+                <p className="text-slate-400 text-lg">Start for free, then scale as you grow.</p>
             </div>
-             <div className="flex justify-center items-center gap-4 mb-10">
-                <span className={`font-medium transition-colors ${billingCycle === 'monthly' ? 'text-white' : 'text-slate-400'}`}>Monthly</span>
+            
+             <div className="flex justify-center items-center gap-4 mb-12">
+                <span className={`text-sm font-medium transition-colors ${billingCycle === 'monthly' ? 'text-white' : 'text-slate-400'}`}>Monthly</span>
                 <button
                     onClick={() => setBillingCycle(billingCycle === 'monthly' ? 'annually' : 'monthly')}
                     aria-label={`Switch to ${billingCycle === 'monthly' ? 'annual' : 'monthly'} billing`}
-                    className={`w-12 h-6 flex items-center rounded-full p-1 cursor-pointer transition-colors duration-300 ${billingCycle === 'annually' ? 'bg-[var(--gradient-start)]' : 'bg-slate-700'}`}
+                    className={`w-14 h-8 flex items-center rounded-full p-1 cursor-pointer transition-colors duration-300 ${billingCycle === 'annually' ? 'bg-[var(--gradient-start)]' : 'bg-slate-800 border border-slate-700'}`}
                 >
                     <div
-                        className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform duration-300 ${billingCycle === 'annually' ? 'translate-x-6' : ''}`}
+                        className={`bg-white w-6 h-6 rounded-full shadow-md transform transition-transform duration-300 ${billingCycle === 'annually' ? 'translate-x-6' : ''}`}
                     />
                 </button>
-                <span className={`font-medium flex items-center transition-colors ${billingCycle === 'annually' ? 'text-white' : 'text-slate-400'}`}>
+                <span className={`text-sm font-medium flex items-center transition-colors ${billingCycle === 'annually' ? 'text-white' : 'text-slate-400'}`}>
                     Annually
-                    <span className="ml-2 text-xs font-bold bg-green-500/20 text-green-300 px-2 py-0.5 rounded-full">SAVE 20%</span>
+                    <span className="ml-2 text-[10px] font-bold bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full border border-green-500/20">SAVE 20%</span>
                 </span>
             </div>
-            <div className="grid lg:grid-cols-3 gap-8 max-w-5xl mx-auto items-stretch">
-                <div className="bg-slate-900 p-8 rounded-xl border border-slate-800 flex flex-col">
-                    <h3 className="text-2xl font-bold mb-2">Freemium</h3>
-                    <p className="text-5xl font-extrabold mb-4">$0<span className="text-lg font-medium text-slate-400">/mo</span></p>
-                    <p className="text-slate-400 mb-6 flex-grow">For individuals and teams testing the waters of AI-powered creation.</p>
-                    <ul className="space-y-4 mb-8">
-                        <li className="flex items-center"><CheckIcon className="w-5 h-5 text-green-400 mr-3" /> 50 Credits / month</li>
-                        <li className="flex items-center"><CheckIcon className="w-5 h-5 text-green-400 mr-3" /> Access to Core tools</li>
-                        <li className="flex items-center"><CheckIcon className="w-5 h-5 text-green-400 mr-3" /> Generation History</li>
-                        <li className="flex items-center text-slate-500 line-through decoration-slate-500"><span className="w-5 h-5 mr-3 inline-block"></span> Autonomous Agents</li>
-                        <li className="flex items-center text-slate-500 line-through decoration-slate-500"><span className="w-5 h-5 mr-3 inline-block"></span> Video & Analysis Tools</li>
-                    </ul>
-                    <button onClick={() => onNavigate('signup')} className="mt-auto w-full bg-slate-800 hover:bg-slate-700 text-white font-semibold py-3 rounded-lg transition-colors">Get Started</button>
-                </div>
-                <div className="bg-slate-900 p-8 rounded-xl border-2 border-[var(--gradient-start)] flex flex-col relative overflow-hidden lg:scale-105 shadow-2xl shadow-[color:var(--gradient-start)]/20">
-                    <div className="absolute top-0 right-0 w-28 h-28">
-                        <div className="absolute transform rotate-45 bg-gradient-to-r from-[var(--gradient-start)] to-[var(--gradient-end)] text-center text-white font-semibold py-1 right-[-45px] top-[22px] w-[150px]">
-                            POPULAR
-                        </div>
-                    </div>
-                    <h3 className="text-2xl font-bold mb-2 gradient-text">Pro</h3>
-                    <p className="text-5xl font-extrabold mb-4">
-                       {billingCycle === 'monthly' ? '$49' : '$39'}
-                       <span className="text-lg font-medium text-slate-400">/mo</span>
-                    </p>
-                    {billingCycle === 'annually' && <p className="text-sm text-slate-500 -mt-4 mb-4">Billed as $468 per year</p>}
-                    <p className="text-slate-400 mb-6 flex-grow">For professionals and teams executing campaigns with autonomous agents and analytics.</p>
-                    <ul className="space-y-4 mb-8">
-                        <li className="flex items-center"><CheckIcon className="w-5 h-5 text-green-400 mr-3" /> 2,500 Credits / month</li>
-                        <li className="flex items-center">
-                            <CheckIcon className="w-5 h-5 text-green-400 mr-3" />
-                            Autonomous AI Agents
-                        </li>
-                        <li className="flex items-center"><CheckIcon className="w-5 h-5 text-green-400 mr-3" /> Performance Analytics</li>
-                         <li className="flex items-center"><CheckIcon className="w-5 h-5 text-green-400 mr-3" /> Pro Templates (Video, Campaign)</li>
-                    </ul>
-                    <button onClick={() => onNavigate('signup')} className="mt-auto w-full bg-gradient-to-r from-[var(--gradient-start)] to-[var(--gradient-end)] hover:opacity-90 text-white font-semibold py-3 rounded-lg transition-colors">Go Pro</button>
-                </div>
-                <div className="bg-slate-900 p-8 rounded-xl border border-slate-800 flex flex-col">
-                    <h3 className="text-2xl font-bold mb-2">Enterprise</h3>
-                    <p className="text-5xl font-extrabold mb-4">Custom</p>
-                    <p className="text-slate-400 mb-6 flex-grow">For organizations requiring bespoke solutions, integrations, and unparalleled support.</p>
-                    <ul className="space-y-4 mb-8">
-                        <li className="flex items-center"><CheckIcon className="w-5 h-5 text-green-400 mr-3" /> Everything in Pro</li>
-                        <li className="flex items-center"><CheckIcon className="w-5 h-5 text-green-400 mr-3" /> Custom integrations & SSO</li>
-                        <li className="flex items-center"><CheckIcon className="w-5 h-5 text-green-400 mr-3" /> Dedicated account manager</li>
-                        <li className="flex items-center"><CheckIcon className="w-5 h-5 text-green-400 mr-3" /> Team collaboration tools</li>
-                    </ul>
-                    <button onClick={() => alert('Contacting sales!')} className="mt-auto w-full bg-slate-800 hover:bg-slate-700 text-white font-semibold py-3 rounded-lg transition-colors">Contact Sales</button>
-                </div>
-            </div>
 
-        </div>
-      </section>
-      </AnimatedSection>
-      
-      <section className="py-20 bg-black/10">
-        <div className="container mx-auto px-4 max-w-6xl">
-           <AnimatedSection>
-             <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold">Don't Just Take Our Word For It</h2>
-              <p className="text-slate-400 mt-2">See how Synapse is transforming marketing for teams like yours.</p>
+            <div className="grid lg:grid-cols-3 gap-8 max-w-6xl mx-auto items-stretch">
+                {/* Freemium */}
+                <div className="bg-slate-900 p-8 rounded-3xl border border-slate-800 flex flex-col hover:border-slate-700 transition-colors">
+                    <h3 className="text-xl font-bold mb-2 text-white">Freemium</h3>
+                    <p className="text-slate-400 mb-6 text-sm">For individuals testing the waters.</p>
+                    <p className="text-4xl font-bold mb-8 text-white">$0<span className="text-lg font-medium text-slate-500">/mo</span></p>
+                    <button onClick={() => onNavigate('signup')} className="w-full py-3 rounded-xl border border-slate-700 text-white font-semibold hover:bg-slate-800 transition-colors mb-8">Get Started</button>
+                    <ul className="space-y-4 flex-grow">
+                        <li className="flex items-center text-slate-300 text-sm"><CheckIcon className="w-5 h-5 text-slate-500 mr-3" /> 50 Credits / month</li>
+                        <li className="flex items-center text-slate-300 text-sm"><CheckIcon className="w-5 h-5 text-slate-500 mr-3" /> Basic Generators</li>
+                        <li className="flex items-center text-slate-300 text-sm"><CheckIcon className="w-5 h-5 text-slate-500 mr-3" /> Limited History</li>
+                    </ul>
+                </div>
+
+                {/* Pro */}
+                <div className="bg-slate-900 p-8 rounded-3xl border-2 border-[var(--gradient-start)] flex flex-col relative shadow-2xl shadow-purple-900/20 scale-105 z-10">
+                    <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[var(--gradient-start)] text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">Most Popular</div>
+                    <h3 className="text-xl font-bold mb-2 text-white">Pro</h3>
+                    <p className="text-slate-400 mb-6 text-sm">For creators and small teams.</p>
+                    <p className="text-4xl font-bold mb-8 text-white">{billingCycle === 'annually' ? '$39' : '$49'}<span className="text-lg font-medium text-slate-500">/mo</span></p>
+                    <button onClick={() => onNavigate('signup')} className="w-full py-3 rounded-xl bg-gradient-to-r from-[var(--gradient-start)] to-[var(--gradient-end)] text-white font-bold hover:opacity-90 transition-opacity mb-8 shadow-lg">Start Pro Trial</button>
+                    <ul className="space-y-4 flex-grow">
+                        <li className="flex items-center text-white text-sm"><CheckIcon className="w-5 h-5 text-green-400 mr-3" /> <strong>2,500 Credits</strong> / month</li>
+                        <li className="flex items-center text-white text-sm"><CheckIcon className="w-5 h-5 text-green-400 mr-3" /> <strong>Autonomous Agents</strong></li>
+                        <li className="flex items-center text-white text-sm"><CheckIcon className="w-5 h-5 text-green-400 mr-3" /> Campaign Builder</li>
+                        <li className="flex items-center text-white text-sm"><CheckIcon className="w-5 h-5 text-green-400 mr-3" /> Advanced Analytics</li>
+                        <li className="flex items-center text-white text-sm"><CheckIcon className="w-5 h-5 text-green-400 mr-3" /> Market Research Tools</li>
+                    </ul>
+                </div>
+
+                {/* Enterprise */}
+                <div className="bg-slate-900 p-8 rounded-3xl border border-slate-800 flex flex-col hover:border-slate-700 transition-colors">
+                    <h3 className="text-xl font-bold mb-2 text-white">Agency</h3>
+                    <p className="text-slate-400 mb-6 text-sm">For marketing agencies & large teams.</p>
+                    <p className="text-4xl font-bold mb-8 text-white">$199<span className="text-lg font-medium text-slate-500">/mo</span></p>
+                    <button className="w-full py-3 rounded-xl border border-slate-700 text-white font-semibold hover:bg-slate-800 transition-colors mb-8">Contact Sales</button>
+                    <ul className="space-y-4 flex-grow">
+                        <li className="flex items-center text-slate-300 text-sm"><CheckIcon className="w-5 h-5 text-slate-500 mr-3" /> Unlimited Credits</li>
+                        <li className="flex items-center text-slate-300 text-sm"><CheckIcon className="w-5 h-5 text-slate-500 mr-3" /> Custom Brand Voices</li>
+                        <li className="flex items-center text-slate-300 text-sm"><CheckIcon className="w-5 h-5 text-slate-500 mr-3" /> API Access</li>
+                        <li className="flex items-center text-slate-300 text-sm"><CheckIcon className="w-5 h-5 text-slate-500 mr-3" /> Dedicated Support</li>
+                    </ul>
+                </div>
             </div>
-          </AnimatedSection>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <AnimatedSection delay={0}>
-              <div className="bg-slate-900 p-8 rounded-xl border border-slate-800 flex flex-col h-full transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-black/30">
-                  <div className="flex items-center mb-4">
-                      <StarIcon className="w-6 h-6 text-yellow-400" /><StarIcon className="w-6 h-6 text-yellow-400" /><StarIcon className="w-6 h-6 text-yellow-400" /><StarIcon className="w-6 h-6 text-yellow-400" /><StarIcon className="w-6 h-6 text-yellow-400" />
-                  </div>
-                  <p className="text-slate-300 mb-6 flex-grow">"The autonomous agent feature is a game-changer. We deployed a campaign for a new product launch and it handled everything from social copy to email drafts. Our productivity has skyrocketed."</p>
-                  <p className="font-bold text-white">- Sarah L., Head of Growth</p>
-              </div>
-            </AnimatedSection>
-            <AnimatedSection delay={150}>
-               <div className="bg-slate-900 p-8 rounded-xl border border-slate-800 flex flex-col h-full transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-black/30">
-                  <div className="flex items-center mb-4">
-                      <StarIcon className="w-6 h-6 text-yellow-400" /><StarIcon className="w-6 h-6 text-yellow-400" /><StarIcon className="w-6 h-6 text-yellow-400" /><StarIcon className="w-6 h-6 text-yellow-400" /><StarIcon className="w-6 h-6 text-yellow-400" />
-                  </div>
-                  <p className="text-slate-300 mb-6 flex-grow">"Synapse AI has become the brain of our content strategy. The quality of the generated content is consistently high and always on-brand, thanks to the Brand Voice feature."</p>
-                  <p className="font-bold text-white">- Mike R., Content Strategist</p>
-              </div>
-            </AnimatedSection>
-            <AnimatedSection delay={300}>
-               <div className="bg-slate-900 p-8 rounded-xl border border-slate-800 flex flex-col h-full transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-black/30">
-                  <div className="flex items-center mb-4">
-                      <StarIcon className="w-6 h-6 text-yellow-400" /><StarIcon className="w-6 h-6 text-yellow-400" /><StarIcon className="w-6 h-6 text-yellow-400" /><StarIcon className="w-6 h-6 text-yellow-400" /><StarIcon className="w-6 h-6 text-yellow-400" />
-                  </div>
-                  <p className="text-slate-300 mb-6 flex-grow">"I was skeptical about AI writers, but Synapse is different. It's a strategic tool, not just a content spinner. The analytics dashboard helps us connect our content efforts directly to ROI."</p>
-                  <p className="font-bold text-white">- Chen W., Digital Marketer</p>
-              </div>
-            </AnimatedSection>
-          </div>
-        </div>
-      </section>
-      
-      <AnimatedSection>
-      <section id="faq" className="py-20">
-        <div className="container mx-auto px-4 max-w-3xl">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold">Frequently Asked Questions</h2>
-          </div>
-          <div className="space-y-2">
-            <FaqItem question="What makes Synapse different from other AI writers?">
-                <p>
-                    While most AI writers focus only on generating text, Synapse AI is a complete marketing command center designed to deliver measurable results. We go beyond simple content creation by providing a suite of powerful strategic tools. 
-                </p>
-                 <p className="mt-4">
-                    With our <strong className="font-semibold text-slate-200">Campaign Builder</strong>, you can plan an entire multi-channel strategy from a single goal. The <strong className="font-semibold text-slate-200">Resonance Engine</strong> predicts how your audience will react to copy *before* you publish it, and our <strong className="font-semibold text-slate-200">Market Signal Analyzer</strong> uncovers the trending topics your customers are actively searching for. This strategic foundation empowers our <strong className="font-semibold text-slate-200">Autonomous AI Agents</strong> to execute entire campaigns for you, turning your goals into reality. We're not just a tool; we're your strategic partner for growth.
-                </p>
-            </FaqItem>
-            <FaqItem question="Is my data secure?">
-                Absolutely. We prioritize user privacy and data security. All your generated content, brand profile, and account information are encrypted and securely stored.
-            </FaqItem>
-            <FaqItem question="Can I cancel my subscription anytime?">
-                Yes, you can cancel your Pro subscription at any time. You will retain access to Pro features until the end of your current billing period. No questions asked.
-            </FaqItem>
-          </div>
         </div>
       </section>
       </AnimatedSection>
 
-      <footer className="border-t border-slate-800 py-8">
-        <div className="container mx-auto px-4 text-center text-slate-400 text-sm">
-           <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
-              <span>&copy; {new Date().getFullYear()} Synapse AI. All rights reserved.</span>
-              <span className="hidden sm:inline">|</span>
-              <div className="flex gap-4">
-                <button onClick={() => onNavigate('terms')} className="hover:text-white transition-colors">Terms of Service</button>
-                <button onClick={() => onNavigate('privacy')} className="hover:text-white transition-colors">Privacy Policy</button>
+      <footer className="bg-[#0A0C12] border-t border-slate-800 py-12 text-sm">
+          <div className="container mx-auto px-4 flex flex-col md:flex-row justify-between items-center">
+              <div className="flex items-center gap-2 mb-4 md:mb-0">
+                  <SynapseLogo className="w-6 h-6" />
+                  <span className="text-slate-300 font-semibold">Synapse AI</span>
               </div>
+              <div className="flex gap-8 text-slate-500">
+                  <button onClick={() => onNavigate('terms')} className="hover:text-white transition-colors">Terms</button>
+                  <button onClick={() => onNavigate('privacy')} className="hover:text-white transition-colors">Privacy</button>
+                  <a href="#" className="hover:text-white transition-colors">Twitter</a>
+                  <a href="#" className="hover:text-white transition-colors">LinkedIn</a>
+              </div>
+              <p className="text-slate-600 mt-4 md:mt-0">© 2024 Synapse AI Inc.</p>
           </div>
-        </div>
       </footer>
     </div>
   );
