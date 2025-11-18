@@ -1,3 +1,4 @@
+
 // This service is now configured to use the REAL Firebase SDK.
 // To connect to your project, replace the placeholder firebaseConfig object below with the one from your Firebase project console.
 
@@ -28,7 +29,9 @@ import {
     onSnapshot,
     Unsubscribe,
     enableIndexedDbPersistence,
-    writeBatch
+    writeBatch,
+    runTransaction,
+    increment
 } from "firebase/firestore";
 import { User, BrandProfile, HistoryItem, Agent, AgentTask, AgentLog, CampaignHistoryItem } from '../types';
 
@@ -232,6 +235,58 @@ export const updateUserDoc = async (userId: string, data: Partial<Omit<User, 'ui
     const userDocRef = doc(db, 'users', userId);
     await firestoreUpdateDoc(userDocRef, data);
 };
+
+// --- Atomic Credit Operations ---
+
+/**
+ * Atomically deducts credits from a user's account.
+ * Uses a Firestore Transaction to ensure the balance doesn't go below zero.
+ * @param userId The ID of the user.
+ * @param amount The amount of credits to deduct.
+ * @returns The new credit balance.
+ * @throws Error if user doesn't exist or has insufficient credits.
+ */
+export const deductCredits = async (userId: string, amount: number): Promise<number> => {
+    const userRef = doc(db, 'users', userId);
+
+    return await runTransaction(db, async (transaction) => {
+        const userDoc = await transaction.get(userRef);
+        if (!userDoc.exists()) {
+            throw new Error("User does not exist!");
+        }
+
+        const userData = userDoc.data();
+        const currentCredits = userData.credits || 0;
+
+        if (currentCredits < amount) {
+            throw new Error("Insufficient credits");
+        }
+
+        const newCredits = currentCredits - amount;
+        transaction.update(userRef, { credits: newCredits });
+        return newCredits;
+    });
+};
+
+/**
+ * Atomically adds credits to a user's account.
+ * @param userId The ID of the user.
+ * @param amount The amount of credits to add.
+ * @param newPlan (Optional) If provided, updates the user's plan field as well.
+ * @param newLimit (Optional) If provided, updates the planCreditLimit.
+ */
+export const addCredits = async (userId: string, amount: number, newPlan?: 'freemium' | 'pro', newLimit?: number): Promise<void> => {
+    const userRef = doc(db, 'users', userId);
+    const updateData: any = {
+        credits: increment(amount)
+    };
+    
+    if (newPlan) updateData.plan = newPlan;
+    if (newLimit !== undefined) updateData.planCreditLimit = newLimit;
+
+    await firestoreUpdateDoc(userRef, updateData);
+};
+
 
 // --- Brand Profile ---
 export const getBrandProfile = async (userId: string): Promise<BrandProfile | null> => {

@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useMemo, useEffect, useContext } from 'react';
 import { ContentType, Template, HistoryItem, User, ToolRoute, BrandProfile, ContentRecommendation, ViralVideoBlueprint } from '../types';
 import { 
@@ -17,7 +18,9 @@ import {
     PRO_CREDIT_LIMIT,
     addHistoryDoc,
     getBrandProfile,
-    isBrandProfileComplete
+    isBrandProfileComplete,
+    deductCredits,
+    addCredits
 } from '../services/firebaseService';
 import { useToast } from '../contexts/ToastContext';
 import { AuthContext } from '../App';
@@ -364,19 +367,37 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
 
   const spendCredits = useCallback(async (amount: number): Promise<boolean> => {
       if (!user || !setUser) return false;
+      
+      // 1. Immediate client-side check
       if (user.credits < amount) {
           setShowUpgradeModal(true);
           return false;
       }
+      
+      // 2. Optimistic UI update to make the app feel fast
+      const previousCredits = user.credits;
+      const optimisticNewCredits = user.credits - amount;
+      setUser({ ...user, credits: optimisticNewCredits });
+
       try {
-          const newCredits = user.credits - amount;
-          const updatedUser = { ...user, credits: newCredits };
-          setUser(updatedUser); // Optimistic update
-          await updateUserDoc(user.uid, { credits: newCredits });
+          // 3. Perform atomic transaction on server
+          const newBalance = await deductCredits(user.uid, amount);
+          
+          // 4. Sync with authoritative server balance
+          setUser(prev => prev ? ({ ...prev, credits: newBalance }) : null);
           return true;
-      } catch (error) {
-          addToast("Failed to update credits. Please try again.", "error");
-          setUser(user); // Revert on failure
+      } catch (error: any) {
+          console.error("Credit deduction failed:", error);
+          
+          // 5. Revert UI on failure
+          setUser(prev => prev ? ({ ...prev, credits: previousCredits }) : null);
+          
+          if (error.message === 'Insufficient credits') {
+             setShowUpgradeModal(true);
+             addToast("Not enough credits. Please top up.", "error");
+          } else {
+             addToast("Transaction failed. Please try again.", "error");
+          }
           return false;
       }
   }, [user, setUser, addToast]);
@@ -399,22 +420,24 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
 
         if (profileIsComplete && !user.brandProfileBonusClaimed) {
             const BONUS_CREDITS = 10;
-            const newCreditCount = user.credits + BONUS_CREDITS;
-            const newPlanCreditLimit = user.planCreditLimit + BONUS_CREDITS;
             
+            await addCredits(user.uid, BONUS_CREDITS);
             await updateUserDoc(user.uid, { 
                 onboardingCompleted: true,
-                credits: newCreditCount,
-                planCreditLimit: newPlanCreditLimit,
                 brandProfileBonusClaimed: true 
             });
-            setUser({ 
-                ...user, 
+            
+            // We can just fetch the updated user or optimistically update here, 
+            // but the auth listener might not pick up custom field changes instantly.
+            // Let's just optimistically update for now.
+             setUser(prev => prev ? ({ 
+                ...prev, 
                 onboardingCompleted: true,
-                credits: newCreditCount, 
-                planCreditLimit: newPlanCreditLimit,
+                credits: prev.credits + BONUS_CREDITS,
+                planCreditLimit: prev.planCreditLimit + BONUS_CREDITS,
                 brandProfileBonusClaimed: true, 
-            });
+            }) : null);
+
             addToast(`Setup complete! We've added ${BONUS_CREDITS} bonus credits for finishing your profile. ✨`, "success");
         } else {
             await updateUserDoc(user.uid, { onboardingCompleted: true });
@@ -975,11 +998,11 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
   const handleUpgrade = async () => {
     if (!user || !setUser) return;
     try {
+        await addCredits(user.uid, PRO_CREDIT_LIMIT - user.credits, 'pro', PRO_CREDIT_LIMIT);
+        
+        // Optimistic update
         const newCredits = PRO_CREDIT_LIMIT;
         const newPlanCreditLimit = PRO_CREDIT_LIMIT;
-        
-        await updateUserDoc(user.uid, { plan: 'pro', credits: newCredits, planCreditLimit: newPlanCreditLimit });
-        
         setUser({ ...user, plan: 'pro' as const, credits: newCredits, planCreditLimit: newPlanCreditLimit });
         
         setShowUpgradeModal(false);
@@ -995,10 +1018,15 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
         if (!user || !setUser) return;
         try {
             const CREDITS_TO_ADD = 100;
-            const newCredits = user.credits + CREDITS_TO_ADD;
-            const newPlanCreditLimit = user.planCreditLimit + CREDITS_TO_ADD;
-            await updateUserDoc(user.uid, { credits: newCredits, planCreditLimit: newPlanCreditLimit });
-            setUser({ ...user, credits: newCredits, planCreditLimit: newPlanCreditLimit });
+            await addCredits(user.uid, CREDITS_TO_ADD, undefined, user.planCreditLimit + CREDITS_TO_ADD);
+            
+            // Optimistic update
+            setUser({ 
+                ...user, 
+                credits: user.credits + CREDITS_TO_ADD, 
+                planCreditLimit: user.planCreditLimit + CREDITS_TO_ADD 
+            });
+            
             setShowUpgradeModal(false);
             addToast(`Success! ${CREDITS_TO_ADD} credits have been added to your account.`, "success");
         } catch (error) {
