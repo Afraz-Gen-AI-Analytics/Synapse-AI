@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+
+import React, { useEffect, useState, useRef } from 'react';
 import { Template, ContentType, ResonanceFeedback, MarketSignalReport as MarketSignalReportData, ContentRecommendation, SocialPostContent } from '../types';
 import { markdownToHtml } from './Dashboard';
 import SynapseCoreIcon from './icons/SynapseCoreIcon'; 
@@ -107,7 +108,6 @@ const LoadingState: React.FC<{ template: Template }> = ({ template }) => {
     );
 };
 
-
 const GenerationOutput: React.FC<GenerationOutputProps> = (props) => {
     const {
         isLoading, generatedContent, generatedContents, activeVariation, setActiveVariation,
@@ -178,22 +178,19 @@ const GenerationOutput: React.FC<GenerationOutputProps> = (props) => {
                     // Fallback for old, non-JSON history items
                     console.warn("Could not parse Social Post content as JSON, falling back to text display.");
                     return (
-                        <div className="w-full">
-                            <div
-                                className="prose prose-invert prose-sm max-w-none text-slate-300"
-                                dangerouslySetInnerHTML={{ __html: markdownToHtml(generatedContent) }}
-                            />
-                        </div>
+                        <div
+                            className="prose prose-invert prose-sm max-w-none text-slate-300 w-full animate-fade-in-up"
+                            dangerouslySetInnerHTML={{ __html: markdownToHtml(generatedContent) }}
+                        />
                     );
                 }
             }
+            // Standard text rendering (Instant)
             return (
-                <div className="w-full">
-                    <div
-                        className="prose prose-invert prose-sm max-w-none text-slate-300"
-                        dangerouslySetInnerHTML={{ __html: markdownToHtml(generatedContent) }}
-                    />
-                </div>
+                <div
+                    className="prose prose-invert prose-sm max-w-none text-slate-300 w-full animate-fade-in-up"
+                    dangerouslySetInnerHTML={{ __html: markdownToHtml(generatedContent) }}
+                />
             );
         }
 

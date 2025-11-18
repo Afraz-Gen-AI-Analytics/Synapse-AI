@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Template, BrandProfile, ResonanceFeedback, MarketSignalReport as MarketSignalReportData, SeoContentBlueprint, ContentRecommendation, User, ContentType, AdCreativeBlueprint, ViralVideoBlueprint } from '../../types';
 import { getResonanceFeedback, getMarketSignalAnalysis, generateSeoContentBlueprint, generateAdCreativeBlueprint, generateViralVideoBlueprint } from '../../services/geminiService';
@@ -16,6 +17,7 @@ import AdCreativeBlueprintReport from '../AdCreativeBlueprintReport';
 import ViralVideoBlueprintReport from '../ViralVideoBlueprintReport';
 import CopyIcon from '../icons/CopyIcon';
 import DiamondIcon from '../icons/DiamondIcon';
+import EyeIcon from '../icons/EyeIcon';
 
 interface AnalyzerLayoutProps {
     selectedTemplate: Template;
@@ -83,6 +85,50 @@ const AnalyzerLayout: React.FC<AnalyzerLayoutProps> = ({ selectedTemplate, brand
             onClearReusedData(); // Consume it so it doesn't re-trigger
         }
     }, [reusedReportData, onClearReusedData]);
+
+    // --- SAMPLE DATA FOR PREVIEWS ---
+    const loadSampleData = () => {
+        let sampleResult;
+        if (selectedTemplate.id === ContentType.ResonanceEngine) {
+            sampleResult = {
+                firstImpression: "It feels incredibly polished but a bit impersonal.",
+                clarityScore: 9,
+                clarityReasoning: "The value proposition is crystal clear. I know exactly what you sell.",
+                persuasionScore: 6,
+                persuasionReasoning: "It sounds like every other SaaS tool. It needs more soul to make me click.",
+                keyQuestions: ["Is this just a wrapper around ChatGPT?", "How long does it take to set up?", "Does it integrate with HubSpot?"],
+                suggestedImprovement: "Add a specific case study or a human testimonial in the second paragraph.",
+                goalAlignment: "Aligns well with clarity, but misses the mark on emotional connection.",
+                emotionAnalysis: "Evokes a sense of professionalism but lacks excitement."
+            };
+        } else if (selectedTemplate.id === ContentType.MarketSignalAnalyzer) {
+            sampleResult = {
+                trendingSubTopics: [
+                    { topic: "AI Agents for SMBs", buzzScore: 9, reason: "Small businesses are actively looking for automation to replace expensive agencies." },
+                    { topic: "Privacy-First AI", buzzScore: 7, reason: "Concerns about data training are spiking." }
+                ],
+                audienceQuestions: ["How to automate lead gen without looking like spam?", "Best AI tools for non-technical founders?"],
+                competitorAngles: [
+                    { angle: "Save Time", isUntapped: false },
+                    { angle: "Save Money", isUntapped: false },
+                    { angle: "Turn your solo business into an empire", isUntapped: true }
+                ],
+                contentRecommendations: [
+                    { format: "Blog Post", title: "Why 'Saving Time' is a Trap: Build an Empire Instead" },
+                    { format: "LinkedIn Carousel", title: "5 AI Agents You Can Hire Today for $0" }
+                ]
+            };
+        }
+         // Fallback for other tools or generic
+         if (!sampleResult) {
+             addToast("No sample available for this tool yet.", "info");
+             return;
+         }
+         
+         setReportData(sampleResult);
+         setView('report');
+         addToast("Showing sample report. Upgrade to generate your own!", "info");
+    }
 
     const handleGenerate = async () => {
         if (!topic) {
@@ -404,10 +450,17 @@ const AnalyzerLayout: React.FC<AnalyzerLayoutProps> = ({ selectedTemplate, brand
                     )}
                 </div>
 
-                <button onClick={handleGenerate} disabled={isGenerating} className="w-full mt-8 flex items-center justify-center bg-gradient-to-r from-[var(--gradient-start)] to-[var(--gradient-end)] hover:opacity-90 text-white font-semibold py-3 px-6 rounded-lg transition-all text-lg disabled:opacity-50 shadow-lg shadow-[color:var(--gradient-start)]/30">
-                    <ButtonIcon className="w-5 h-5 mr-2" />
-                    {buttonText} ({cost} <DiamondIcon className="w-4 h-4 ml-1 inline-block" />)
-                </button>
+                <div className="flex flex-col sm:flex-row gap-4 mt-8">
+                    <button onClick={handleGenerate} disabled={isGenerating} className="flex-1 flex items-center justify-center bg-gradient-to-r from-[var(--gradient-start)] to-[var(--gradient-end)] hover:opacity-90 text-white font-semibold py-3 px-6 rounded-lg transition-all text-lg disabled:opacity-50 shadow-lg shadow-[color:var(--gradient-start)]/30">
+                        <ButtonIcon className="w-5 h-5 mr-2" />
+                        {buttonText} ({cost} <DiamondIcon className="w-4 h-4 ml-1 inline-block" />)
+                    </button>
+                     {(selectedTemplate.id === ContentType.ResonanceEngine || selectedTemplate.id === ContentType.MarketSignalAnalyzer) && (
+                        <button onClick={loadSampleData} className="flex items-center justify-center bg-slate-700 hover:bg-slate-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors">
+                           <EyeIcon className="w-5 h-5 mr-2" /> View Sample
+                        </button>
+                    )}
+                </div>
             </div>
         </div>
     );
