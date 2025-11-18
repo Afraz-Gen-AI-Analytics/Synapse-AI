@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { User, Agent, HistoryItem, Template, ContentType } from '../types';
 import { getAgentsCollection, getHistoryCollection } from '../services/firebaseService';
@@ -88,7 +89,7 @@ const HomeDashboard: React.FC<HomeDashboardProps> = ({ user, templates, onSelect
 
     return (
         <div className="flex-1 flex flex-col space-y-6">
-            <div className="relative flex flex-col md:flex-row items-center justify-between p-8 rounded-xl overflow-hidden bg-[#0A0C12] border border-slate-800/80 shadow-2xl shadow-black/30">
+            <div className="relative flex flex-col md:flex-row items-center justify-between p-6 md:p-8 rounded-xl overflow-hidden bg-[#0A0C12] border border-slate-800/80 shadow-2xl shadow-black/30">
                 {/* Contained background glow */}
                 <div 
                     className="absolute top-1/2 right-0 -translate-y-1/2 w-96 h-96 rounded-full opacity-15 pointer-events-none"
@@ -99,23 +100,26 @@ const HomeDashboard: React.FC<HomeDashboardProps> = ({ user, templates, onSelect
                 />
                 
                 {/* Welcome Text */}
-                <div className="relative z-10 text-center md:text-left mb-6 md:mb-0 flex-1">
+                <div className="relative z-20 text-center md:text-left mb-6 md:mb-0 flex-1 w-full min-w-0">
                     <div
                       aria-hidden="true"
-                      className="absolute -inset-x-8 md:-inset-x-16 -inset-y-4 rounded-full pointer-events-none animate-text-glow-pulse"
+                      className="absolute -inset-x-8 md:-inset-x-16 -inset-y-4 rounded-full pointer-events-none animate-text-glow-pulse z-[-1]"
                       style={{
                         background: 'radial-gradient(ellipse at center, var(--gradient-start) 0%, transparent 70%)',
                         filter: 'blur(40px)',
                       }}
                     />
                     <div className="relative">
-                        <h1 className="text-4xl font-bold text-white">Welcome back, <span className="gradient-text">{user.displayName}</span></h1>
-                        <p className="text-slate-400 mt-2 text-lg">I'm Synapse, ready for your command.</p>
+                        <h1 className="text-3xl md:text-4xl font-bold text-white leading-tight break-words">
+                            <span className="block md:inline">Welcome back,</span>
+                            <span className="block md:inline md:ml-2 gradient-text">{user.displayName}</span>
+                        </h1>
+                        <p className="text-slate-400 mt-2 text-base md:text-lg">I'm Synapse, ready for your command.</p>
                     </div>
                 </div>
                 
                 {/* Visualizer */}
-                <div className="relative z-10">
+                <div className="relative z-10 flex-shrink-0">
                     <SynapseVisualizer />
                 </div>
             </div>
