@@ -450,7 +450,7 @@ const CampaignBuilder: React.FC<CampaignBuilderProps> = ({ template, user, spend
                                 <div className="absolute -inset-x-12 -top-4 -bottom-8 bg-slate-800/30 rounded-full blur-3xl opacity-50"></div>
                                 <div className="relative">
                                     <GoalIcon className="w-16 h-16 text-[var(--gradient-start)] mb-4 mx-auto" />
-                                    <div className="flex flex-col items-center justify-center gap-3">
+                                    <div className="flex flex-col md:flex-row items-center justify-center gap-3">
                                         <h2 className="text-2xl sm:text-3xl font-bold text-center leading-tight">
                                             <span className="gradient-text">What is your campaign's primary goal?</span>
                                         </h2>
