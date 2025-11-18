@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useEffect, createContext } from 'react';
 import LandingPage from './components/LandingPage';
 import Dashboard from './components/Dashboard';
@@ -88,7 +89,7 @@ const App: React.FC = () => {
     <AuthContext.Provider value={{ user, setUser }}>
       <ThemeProvider>
         <ToastProvider>
-          <div className="bg-[#0D1117] text-white min-h-screen">
+          <div className="bg-slate-950 text-white min-h-screen">
             {renderView()}
           </div>
         </ToastProvider>

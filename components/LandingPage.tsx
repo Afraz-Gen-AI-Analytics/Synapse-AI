@@ -276,7 +276,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
   };
 
   return (
-    <div className="bg-[#0D1117] text-white overflow-x-hidden">
+    <div className="bg-slate-950 text-white overflow-x-hidden">
       <Header onNavigate={onNavigate} />
       
       <div className="min-h-screen flex flex-col">
@@ -390,7 +390,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
       
       
       <AnimatedSection>
-      <section id="how-it-works" className="py-16 md:py-20 bg-[#0D1117]">
+      <section id="how-it-works" className="py-16 md:py-20 bg-slate-950">
         <div className="container mx-auto px-4">
            <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold">Witness Your Campaign Come to Life</h2>
