@@ -1,0 +1,7 @@
+{
+  "name": "Synapse AI",
+  "description": "An AI-powered content co-pilot to supercharge your marketing. Generate high-quality social media posts, blog ideas, and email copy in seconds, designed to solve modern content creation challenges and scale your business.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
