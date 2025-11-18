@@ -9,6 +9,7 @@ import RocketIcon from './icons/RocketIcon';
 import SparklesIcon from './icons/SparklesIcon';
 import SynapseCoreIcon from './icons/SynapseCoreIcon';
 import ImageIcon from './icons/ImageIcon';
+import ChevronDownIcon from './icons/ChevronDownIcon';
 
 interface OnboardingWizardProps {
     user: User;
@@ -61,6 +62,7 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ user, onComplete })
     const [brandName, setBrandName] = useState('');
     const [productDescription, setProductDescription] = useState('');
     const [targetAudience, setTargetAudience] = useState('');
+    const [toneOfVoice, setToneOfVoice] = useState('Professional');
     const [isSaving, setIsSaving] = useState(false);
 
     // Generation state
@@ -69,6 +71,7 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ user, onComplete })
     const [isGenerating, setIsGenerating] = useState(false);
 
     const { addToast } = useToast();
+    const toneOptions = ["Professional", "Encouraging", "Slightly witty", "Casual", "Bold"];
     
     const handleGoalSelect = (goal: (typeof goals)[0]) => {
         setSelectedGoal(goal);
@@ -82,7 +85,7 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ user, onComplete })
         }
         setIsSaving(true);
         try {
-            await updateBrandProfile(user.uid, { brandName, productDescription, targetAudience });
+            await updateBrandProfile(user.uid, { brandName, productDescription, targetAudience, toneOfVoice });
             
             let generatedPrompt = '';
             switch(selectedGoal?.tool) {
@@ -124,8 +127,11 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ user, onComplete })
                 let fullResponse = '';
                 const stream = generateContentStream(prompt);
                 for await (const chunk of stream) {
-                    fullResponse += chunk;
-                    setGeneratedContent(prev => prev + chunk);
+                    const textChunk = typeof chunk === 'string' ? chunk : chunk.text;
+                    if (textChunk) {
+                        fullResponse += textChunk;
+                        setGeneratedContent(prev => prev + textChunk);
+                    }
                 }
             }
         } catch (error: any) {
@@ -209,6 +215,17 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ user, onComplete })
                              <div>
                                 <label className="block text-sm font-semibold text-slate-300 mb-2">Target Audience</label>
                                 <textarea rows={3} value={targetAudience} onChange={e => setTargetAudience(e.target.value)} placeholder="e.g., 'Early-stage startup founders and product managers in the SaaS industry who are struggling with tool overload.'" className="w-full bg-slate-800/50 border border-slate-700 rounded-lg p-4 text-white placeholder-slate-500 focus:ring-2 focus:ring-[var(--gradient-end)] transition"/>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-semibold text-slate-300 mb-2">Primary Tone of Voice</label>
+                                <div className="relative">
+                                    <select value={toneOfVoice} onChange={e => setToneOfVoice(e.target.value)} className="w-full bg-slate-900 border border-slate-700 rounded-lg p-4 text-white focus:ring-2 focus:ring-[var(--gradient-end)] transition appearance-none">
+                                        {toneOptions.map(t => <option key={t} value={t}>{t}</option>)}
+                                    </select>
+                                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-400">
+                                        <ChevronDownIcon className="w-5 h-5" />
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         <button onClick={handleBrandInfoSubmit} disabled={isSaving} className="w-full mt-10 bg-gradient-to-r from-[var(--gradient-start)] to-[var(--gradient-end)] hover:opacity-90 text-white font-semibold py-4 rounded-lg disabled:opacity-50 transition-opacity text-lg">

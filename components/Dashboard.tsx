@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useMemo, useEffect, useContext } from 'react';
-import { ContentType, Template, HistoryItem, User, ToolRoute, BrandProfile, ContentRecommendation } from '../types';
+import { ContentType, Template, HistoryItem, User, ToolRoute, BrandProfile, ContentRecommendation, ViralVideoBlueprint } from '../types';
 import { 
     generateContentStream, 
     generateImage, 
@@ -8,11 +8,13 @@ import {
     getVideosOperation,
     routeUserIntent,
     getResonanceFeedback,
-    getMarketSignalAnalysis
+    getMarketSignalAnalysis,
+    generateSocialPost
 } from '../services/geminiService';
 import { 
     updateUserDoc,
-    FREEMIUM_GENERATION_LIMIT,
+    FREEMIUM_CREDIT_LIMIT,
+    PRO_CREDIT_LIMIT,
     addHistoryDoc,
     getBrandProfile,
     isBrandProfileComplete
@@ -41,7 +43,7 @@ import SparklesIcon from './icons/SparklesIcon';
 import HeadsetIcon from './icons/HeadsetIcon';
 import ResonanceIcon from './icons/ResonanceIcon';
 import SignalIcon from './icons/SignalIcon';
-import VideoScriptHookIcon from './icons/VideoScriptHookIcon';
+import ViralVideoIdeaIcon from './icons/ViralVideoIdeaIcon';
 import BrainCircuitIcon from './icons/BrainCircuitIcon';
 import Tooltip from './Tooltip';
 
@@ -96,7 +98,7 @@ export const markdownToHtml = (text: string) => {
   // Process ordered lists
   html = html.replace(/^( *\d+\. .*(?:\n|$))+/gm, (match) => {
     const items = match.trim().split('\n').map(item => `<li>${item.replace(/^\d+\. /, '').trim()}</li>`).join('');
-    return `<ol>${items}</ul>`;
+    return `<ol>${items}</ol>`;
   });
   
   // Convert remaining newlines to <br>
@@ -174,6 +176,7 @@ const templates: Template[] = [
     description: "Deploy a complete, multi-channel marketing strategy from a single goal.",
     icon: CampaignIcon,
     isPro: true,
+    creditCost: 25,
   },
   {
     id: ContentType.ResonanceEngine,
@@ -187,6 +190,7 @@ const templates: Template[] = [
       { name: "platform", label: "Platform / Format", options: ["Social Media (General)", "X / Twitter Post", "LinkedIn Post", "Email Subject Line", "Email Body", "Ad Headline", "Ad Body", "Landing Page Headline"], defaultValue: "Social Media (General)" },
       { name: "emotion", label: "Key Emotion to Evoke", options: ["Urgency", "Curiosity", "Trust", "Excitement", "FOMO", "Inspiration", "Joy"], defaultValue: "Curiosity" }
     ],
+    creditCost: 20,
   },
    {
     id: ContentType.MarketSignalAnalyzer,
@@ -200,6 +204,7 @@ const templates: Template[] = [
       { name: "industry", label: "Industry / Niche", options: ["General", "Technology / SaaS", "E-commerce / Retail", "Health & Wellness", "Finance & Fintech", "Education", "Marketing & Advertising"], defaultValue: "General" },
       { name: "analysisGoal", label: "Primary Goal for this Analysis", options: ["Find content ideas", "Understand competitors", "Identify customer pain points", "Explore new market opportunities"], defaultValue: "Find content ideas" },
     ],
+    creditCost: 20,
   },
   {
     id: ContentType.BlogIdea,
@@ -212,6 +217,7 @@ const templates: Template[] = [
       { name: "contentGoal", label: "Content Goal", options: ["Rank on Google (SEO)", "Drive Social Shares", "Convert Readers (Lead Gen)", "Build Thought Leadership"], defaultValue: "Rank on Google (SEO)" },
       { name: "tone", label: "Tone of Voice", options: tones, defaultValue: "Professional" }
     ],
+    creditCost: 15,
   },
   {
     id: ContentType.AIAdCreativeStudio,
@@ -224,6 +230,8 @@ const templates: Template[] = [
       { name: "targetAudience", label: "Target Audience", placeholder: "e.g., 'Millennial urban commuters'" },
       { name: "tone", label: "Tone of Voice", options: tones, defaultValue: "Professional" },
     ],
+    isPro: false,
+    creditCost: 15,
   },
   {
     id: ContentType.AIImage,
@@ -235,6 +243,7 @@ const templates: Template[] = [
       { name: "aspectRatio", label: "Aspect Ratio", options: ["1:1", "16:9", "9:16", "4:3", "3:4"], defaultValue: "1:1" },
       { name: "style", label: "Image Style", options: ["Photorealistic", "Studio Level", "3D Render", "Graphic Illustration", "Minimalist"], defaultValue: "Photorealistic" }
     ],
+    creditCost: 10,
   },
    {
     id: ContentType.AIImageEditor,
@@ -242,6 +251,7 @@ const templates: Template[] = [
     description: "Edit and transform your images with simple text commands.",
     icon: EditImageIcon,
     placeholder: "e.g., Add the text '50% OFF' in a bold, modern font to the top left corner",
+    creditCost: 5,
   },
   {
     id: ContentType.AIVideoGenerator,
@@ -254,6 +264,7 @@ const templates: Template[] = [
       { name: "resolution", label: "Resolution", options: ["720p"], defaultValue: "720p" }
     ],
     isPro: true,
+    creditCost: 50,
   },
   {
     id: ContentType.SocialMediaPost,
@@ -265,58 +276,21 @@ const templates: Template[] = [
       { name: "platform", label: "Platform", options: ["Twitter", "LinkedIn", "Facebook"], defaultValue: "Twitter" }
     ],
     supportsVariations: true,
-    prompt: ({ topic, tone, fields, numOutputs = 1 }) => {
-        const platform = fields.platform || "Twitter";
-        let platformInstruction = '';
-        switch (platform) {
-            case 'LinkedIn':
-                platformInstruction = `Generate a professional, insightful, and ${tone} LinkedIn post of approximately 4-6 sentences. It should be suitable for a professional audience, encourage discussion, and use strategic hashtags.`;
-                break;
-            case 'Facebook':
-                platformInstruction = `Generate an engaging, conversational, and ${tone} Facebook post of 2-3 short paragraphs. It should be designed to spark conversation, include 1-2 relevant emojis, and use popular hashtags.`;
-                break;
-            case 'Twitter':
-            default:
-                platformInstruction = `Generate a concise, impactful, and ${tone} tweet (under 280 characters). It must be attention-grabbing and include 2-3 highly relevant hashtags.`;
-                break;
-        }
-
-        return `You are an expert social media manager. Your sole task is to generate social media content.
-${platformInstruction}
-
-**CRITICAL RULES:**
-1.  **Direct Output Only:** Provide ONLY the direct post content. Do not include any introductory text, titles, conversational phrases like "Here is your post", or explanations.
-2.  **Tone:** The post must strictly adhere to a ${tone} tone.
-3.  **Formatting:** Use Markdown for emphasis (e.g., **bold text**).
-
-${numOutputs > 1 ? `IMPORTANT: Generate ${numOutputs} distinct post variations, separated by "[---VARIATION_SEPARATOR---]" on a new line with nothing else on it.` : ''}
-
-**Topic:** "${topic}"`
-    }
+    creditCost: 2,
   },
   {
     id: ContentType.VideoScriptHook,
-    name: "Video Script Hook",
-    description: "Generate viral hooks for short-form videos to stop the scroll.",
-    icon: VideoScriptHookIcon,
+    name: "Viral Video Blueprint",
+    description: "Generate a complete strategic blueprint for a viral short-form video, including hook, script, visuals, and audio.",
+    icon: ViralVideoIdeaIcon,
     placeholder: "e.g., How to save money on groceries",
-    supportsVariations: true,
     fields: [
-      { name: "hookStyle", label: "Hook Style", options: ["Controversial", "Question", "Storytelling", "Problem/Agitator", "Secret/Hack"], defaultValue: "Controversial" }
+      { name: "platform", label: "Target Platform", options: ["TikTok", "Instagram Reels", "YouTube Shorts"], defaultValue: "TikTok" },
+      { name: "hookStyle", label: "Hook Style", options: ["Controversial", "Question", "Storytelling", "Problem/Agitator", "Secret/Hack"], defaultValue: "Controversial" },
+      { name: "tone", label: "Tone of Voice", options: tones, defaultValue: "Casual" },
     ],
-    prompt: ({ topic, tone, fields, numOutputs = 1 }) => `
-      You are an expert viral content strategist specializing in short-form video platforms like TikTok, Reels, and YouTube Shorts. Your sole task is to generate ${numOutputs} powerful, scroll-stopping video hooks.
-
-      **CRITICAL RULES:**
-      1.  **Brevity and Impact:** Each hook MUST be a single, concise sentence designed to grab attention within the first 3 seconds.
-      2.  **Style Adherence:** Strictly generate a hook that matches the requested **Hook Style**: "${fields.hookStyle}".
-      3.  **Tone of Voice:** The hook MUST reflect the chosen tone: **${tone}**.
-      4.  **Direct Output Only:** Provide ONLY the direct hook's text. Do not include titles, introductory phrases (e.g., "Here is your hook:"), explanations, or bullet points.
-      
-      ${numOutputs > 1 ? `IMPORTANT: Use "[---VARIATION_SEPARATOR---]" on a new line with nothing else on it to separate each distinct hook.'` : ''}
-
-      **Video Topic:** "${topic}"
-    `
+    isPro: false,
+    creditCost: 15,
   },
   {
     id: ContentType.EmailCopy,
@@ -341,32 +315,9 @@ Write ${numOutputs} persuasive marketing email${numOutputs > 1 ? 's' : ''} for t
 
 ${numOutputs > 1 ? `IMPORTANT: Use "[---VARIATION_SEPARATOR---]" on a new line with nothing else on it to separate each distinct email variation.'` : ''}
 
-**Purpose:** "${topic}"`
+**Purpose:** "${topic}"`,
+    creditCost: 2,
   },
-  {
-    id: ContentType.AdCopy,
-    name: "Ad Copy",
-    description: "Create compelling ad copy that drives clicks and boosts your ROI.",
-    icon: PaintBrushIcon, // Using new icon, but keeping logic for agents
-    placeholder: "e.g., High-performance running shoes for trail running enthusiasts",
-    supportsVariations: true,
-    prompt: ({ topic, tone, numOutputs = 1 }) => `You are an expert direct-response copywriter focused exclusively on generating high-converting ad copy that drives action. For the topic below, generate ${numOutputs} ad copy version${numOutputs > 1 ? 's' : ''}.
-
-**CRITICAL RULES:**
-1.  **Tone of Voice:** The copy MUST strictly reflect the chosen tone: **${tone}**.
-2.  **Benefit-Driven:** Do not list features. Instead, focus entirely on the user's desired outcome and the value they will receive. Answer the question "What's in it for me?".
-3.  **Clear & Concise:** Use short, punchy sentences. Every word must earn its place.
-
-Each version MUST contain:
-1.  **A Headline:** Grabs attention by addressing a core user pain point or a powerful desired outcome.
-2.  **A Body:** Clearly explains the main benefit and how the product/service improves the user's life.
-
-${numOutputs > 1 ? `IMPORTANT: Use "[---VARIATION_SEPARATOR---]" on a new line with nothing else on it to separate each distinct ad copy variation.'` : ''}
-
-Format each version using Markdown, with '## Headline' and '## Body' sections.
-
-**Topic:** "${topic}"`
-  }
 ];
 
 type UploadedFile = { data: string; mimeType: string; name: string; dataUrl: string };
@@ -411,28 +362,65 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
   // State for reusing analyzer reports
   const [reusedReportData, setReusedReportData] = useState<any | null>(null);
 
+  const spendCredits = useCallback(async (amount: number): Promise<boolean> => {
+      if (!user || !setUser) return false;
+      if (user.credits < amount) {
+          setShowUpgradeModal(true);
+          return false;
+      }
+      try {
+          const newCredits = user.credits - amount;
+          const updatedUser = { ...user, credits: newCredits };
+          setUser(updatedUser); // Optimistic update
+          await updateUserDoc(user.uid, { credits: newCredits });
+          return true;
+      } catch (error) {
+          addToast("Failed to update credits. Please try again.", "error");
+          setUser(user); // Revert on failure
+          return false;
+      }
+  }, [user, setUser, addToast]);
+
 
   useEffect(() => {
     if (user) {
         getBrandProfile(user.uid).then(profile => {
             setBrandProfile(profile);
             setIsProfileComplete(isBrandProfileComplete(profile));
-        }).catch(err => {
-            console.error("Failed to load brand profile:", err);
-            addToast("Could not load your brand profile. Please check your connection and try again.", "error");
-            // Ensure we move out of the loading state even on error
-            setBrandProfile(null);
-            setIsProfileComplete(false);
         });
     }
-  }, [user, addToast]);
+  }, [user]);
 
   const handleOnboardingComplete = useCallback(async () => {
     if (!user || !setUser) return;
     try {
-        await updateUserDoc(user.uid, { onboardingCompleted: true });
-        setUser({ ...user, onboardingCompleted: true });
-        addToast("Setup complete! Welcome to your command center.", "success");
+        const profile = await getBrandProfile(user.uid);
+        const profileIsComplete = isBrandProfileComplete(profile);
+
+        if (profileIsComplete && !user.brandProfileBonusClaimed) {
+            const BONUS_CREDITS = 10;
+            const newCreditCount = user.credits + BONUS_CREDITS;
+            const newPlanCreditLimit = user.planCreditLimit + BONUS_CREDITS;
+            
+            await updateUserDoc(user.uid, { 
+                onboardingCompleted: true,
+                credits: newCreditCount,
+                planCreditLimit: newPlanCreditLimit,
+                brandProfileBonusClaimed: true 
+            });
+            setUser({ 
+                ...user, 
+                onboardingCompleted: true,
+                credits: newCreditCount, 
+                planCreditLimit: newPlanCreditLimit,
+                brandProfileBonusClaimed: true, 
+            });
+            addToast(`Setup complete! We've added ${BONUS_CREDITS} bonus credits for finishing your profile. ✨`, "success");
+        } else {
+            await updateUserDoc(user.uid, { onboardingCompleted: true });
+            setUser({ ...user, onboardingCompleted: true });
+            addToast("Setup complete! Welcome to your command center.", "success");
+        }
     } catch (error) {
         addToast("There was an error completing your setup. Please try again.", "error");
     }
@@ -552,14 +540,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
             } catch (compressionError: any) {
                 console.error("Image compression failed for history:", compressionError);
                 addToast("Image generated, but it's too large to save to history.", "info");
-                
-                if (setUser) {
-                  const updatedUser = { ...user, generationsUsed: user.generationsUsed + 1 };
-                  setUser(updatedUser);
-                  await updateUserDoc(user.uid, { generationsUsed: updatedUser.generationsUsed });
-                }
-                
-                return;
+                return; // Don't save to history if compression fails
             }
         } else if (!isImageTemplate) {
             const FIRESTORE_FIELD_MAX_BYTES = 1000000;
@@ -580,7 +561,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
             }
         }
 
-        const isAnalyzer = ["Resonance Engine", "Market Signal Analyzer", "SEO Content Strategist", "AI Ad Creative Studio"].includes(templateName);
+        const isAnalyzer = ["Resonance Engine", "Market Signal Analyzer", "SEO Content Strategist", "AI Ad Creative Studio", "Viral Video Blueprint"].includes(templateName);
         const historyItem: Omit<HistoryItem, 'id'> = {
             userId: user.uid,
             templateName: templateName,
@@ -604,12 +585,6 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
         
         await addHistoryDoc(user.uid, historyItem);
         
-        if (setUser) {
-          const updatedUser = { ...user, generationsUsed: user.generationsUsed + 1 };
-          setUser(updatedUser);
-          await updateUserDoc(user.uid, { generationsUsed: updatedUser.generationsUsed });
-        }
-
     } catch (err: any) {
         console.error("Failed to save history item:", err);
         if (err.message && err.message.includes('longer than 1048487 bytes')) {
@@ -618,17 +593,25 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
              addToast("Could not save generation to history.", "error");
         }
     }
-  }, [user, addToast, setUser, extraFields]);
+  }, [user, addToast, extraFields]);
 
   const handleGenerate = useCallback(async () => {
     if (!topic) {
       addToast("Please enter a topic or prompt to generate content.", "error");
       return;
     }
-    
     if (!user) return;
     
-    if (user.plan === 'freemium' && (user.generationsUsed >= FREEMIUM_GENERATION_LIMIT || selectedTemplate.isPro)) {
+    if (selectedTemplate.isPro && user.plan === 'freemium') {
+        setShowUpgradeModal(true);
+        return;
+    }
+    
+    const cost = (selectedTemplate.creditCost || 1) * (selectedTemplate.supportsVariations ? numOutputs : 1);
+    
+    // Check credits without spending them yet.
+    if (user.credits < cost) {
+        addToast(`Not enough credits. This action costs ${cost} credits.`, "error");
         setShowUpgradeModal(true);
         return;
     }
@@ -649,12 +632,14 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
       switch (selectedTemplate.id) {
         case ContentType.AIImage:
             fullResponse = await generateImage(topic, (extraFields.aspectRatio || '1:1') as any, extraFields.style || 'Photorealistic');
+            if (!await spendCredits(cost)) throw new Error("Credit deduction failed.");
             setGeneratedContents([fullResponse]);
             await handleGenerationResult(fullResponse, topic, selectedTemplate.name);
             break;
         case ContentType.AIImageEditor:
             if (!uploadedImage) throw new Error("No image uploaded.");
             fullResponse = await editImage(uploadedImage.data, uploadedImage.mimeType, topic);
+            if (!await spendCredits(cost)) throw new Error("Credit deduction failed.");
             setGeneratedContents([fullResponse]);
             await handleGenerationResult(fullResponse, topic, selectedTemplate.name, uploadedImage.dataUrl);
             break;
@@ -662,6 +647,8 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
             setVideoStatus('Initializing...');
             const videoConfig = { aspectRatio: extraFields.aspectRatio, resolution: extraFields.resolution };
             let operation = await generateVideo(topic, uploadedImage, videoConfig);
+            if (!await spendCredits(cost)) throw new Error("Credit deduction failed.");
+            
             setVideoStatus('Processing request...');
 
             while (!operation.done) {
@@ -682,29 +669,69 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
                 throw new Error("Video generation completed, but no video URI was found.");
             }
             break;
+        case ContentType.SocialMediaPost: {
+            const posts = await generateSocialPost({ 
+                topic, 
+                tone, 
+                platform: extraFields.platform as 'Twitter' | 'LinkedIn' | 'Facebook', 
+                numOutputs 
+            });
+            if (!await spendCredits(cost)) throw new Error("Credit deduction failed.");
+
+            const stringifiedPosts = posts.map(p => JSON.stringify(p));
+            setGeneratedContents(stringifiedPosts);
+            await handleGenerationResult(stringifiedPosts.join('[---VARIATION_SEPARATOR---]'), topic, selectedTemplate.name);
+            break;
+        }
         default:
-          const prompt = selectedTemplate.prompt!({ topic, tone, fields: extraFields, numOutputs });
-          const stream = generateContentStream(prompt);
-          for await (const chunk of stream) {
-              fullResponse += chunk;
-              setGeneratedContents(prev => {
-                  const newContents = [...prev];
-                  newContents[0] = (newContents[0] || '') + chunk;
-                  return newContents;
-              });
+          if(selectedTemplate.prompt) {
+            const prompt = selectedTemplate.prompt({ topic, tone, fields: extraFields, numOutputs });
+            const stream = generateContentStream(prompt);
+            let creditsSpentThisTurn = false;
+
+            for await (const chunk of stream) {
+                const textChunk = typeof chunk === 'string' ? chunk : chunk.text;
+                // Spend credits on the first successful chunk with text.
+                if (!creditsSpentThisTurn && textChunk && textChunk.trim()) {
+                    if (!await spendCredits(cost)) {
+                        addToast("Credit deduction failed. Stopping generation.", "error");
+                        break; // Stop processing stream if credit spend fails
+                    }
+                    creditsSpentThisTurn = true;
+                }
+                
+                if (textChunk) { // Only process if there's text
+                    fullResponse += textChunk;
+                    setGeneratedContents(prev => {
+                        const newContents = [...prev];
+                        newContents[0] = (newContents[0] || '') + textChunk;
+                        return newContents;
+                    });
+                }
+            }
+
+            // Only process and save if credits were successfully spent
+            if (creditsSpentThisTurn) {
+                const finalVariations = fullResponse.split('[---VARIATION_SEPARATOR---]').map(v => v.trim()).filter(Boolean);
+                setGeneratedContents(finalVariations.length > 0 ? finalVariations : [fullResponse]);
+                await handleGenerationResult(fullResponse, topic, selectedTemplate.name);
+            } else if (fullResponse.trim() === '') {
+                 // If stream completed with no text and credits were not spent
+                throw new Error("The AI returned an empty response. Your credits have not been charged.");
+            }
+          } else {
+             throw new Error(`Generation logic for template "${selectedTemplate.name}" is not implemented.`);
           }
-          const finalVariations = fullResponse.split('[---VARIATION_SEPARATOR---]').map(v => v.trim()).filter(Boolean);
-          setGeneratedContents(finalVariations.length > 0 ? finalVariations : [fullResponse]);
-          await handleGenerationResult(fullResponse, topic, selectedTemplate.name);
       }
     } catch (e: any) {
+        // No refund logic needed, as credits are only spent after a successful step.
         const errorMessage = e.message || "An unknown error occurred during generation.";
         addToast(errorMessage, 'error');
     } finally {
       setIsLoading(false);
       setVideoStatus('');
     }
-  }, [topic, tone, selectedTemplate, extraFields, user, handleGenerationResult, uploadedImage, numOutputs, addToast]);
+  }, [topic, tone, selectedTemplate, extraFields, user, handleGenerationResult, uploadedImage, numOutputs, addToast, spendCredits]);
 
   const generatedContent = useMemo(() => generatedContents[activeVariation] || '', [generatedContents, activeVariation]);
 
@@ -719,7 +746,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
             addToast('Prompt copied to clipboard!');
         }
     } else if (content) {
-      if (["Resonance Engine", "Market Signal Analyzer", "SEO Content Strategist", "AI Ad Creative Studio"].includes(templateName)) {
+      if (["Resonance Engine", "Market Signal Analyzer", "SEO Content Strategist", "AI Ad Creative Studio", "Viral Video Blueprint"].includes(templateName)) {
           try {
               const data = JSON.parse(content);
               // Simple stringify for now, a more complex report can be built
@@ -750,7 +777,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
         return;
     }
 
-    const isAnalyzer = ["Resonance Engine", "Market Signal Analyzer", "SEO Content Strategist", "AI Ad Creative Studio"].includes(template.name);
+    const isAnalyzer = ["Resonance Engine", "Market Signal Analyzer", "SEO Content Strategist", "AI Ad Creative Studio", "Viral Video Blueprint"].includes(template.name);
 
     if (isAnalyzer) {
         setActiveTab('tools');
@@ -809,7 +836,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
             setGeneratedContents([item.content]);
         }
     } else {
-        const isTextTemplate = template.prompt !== undefined;
+        const isTextTemplate = template.prompt !== undefined || template.id === ContentType.SocialMediaPost;
         const variations = item.content.split('[---VARIATION_SEPARATOR---]').map(v => v.trim()).filter(Boolean);
         
         if (isTextTemplate && variations.length > 1) {
@@ -888,9 +915,55 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
     window.scrollTo(0, 0);
 }, [templates, addToast, handleTemplateSelect]);
 
+ const handleGenerateVideoFromBlueprint = useCallback((blueprint: ViralVideoBlueprint, videoTopic: string) => {
+    if (user && user.plan === 'freemium') {
+      setShowUpgradeModal(true);
+      return;
+    }
+    
+    const videoTemplate = templates.find(t => t.id === ContentType.AIVideoGenerator);
+    if (!videoTemplate) {
+      addToast("Marketing Video Ad tool not found.", "error");
+      return;
+    }
+
+    const masterPrompt = `
+      Create a short, dynamic video ad based on this blueprint.
+      Topic: ${videoTopic}
+      Hook: "${blueprint.hookText}"
+      Script:
+      ${blueprint.scriptOutline.map(step => `- ${step}`).join('\n')}
+      Visual Style: ${blueprint.visualConcept}. ${blueprint.pacingAndStyle}
+      End with a call to action: "${blueprint.callToAction}"
+    `;
+    
+    handleTemplateSelect(videoTemplate);
+    setTimeout(() => {
+      setTopic(masterPrompt.trim());
+    }, 50);
+
+    addToast("Switched to Marketing Video Ad and pre-filled blueprint!", "info");
+    window.scrollTo(0, 0);
+
+  }, [user, templates, addToast, handleTemplateSelect]);
+
+  const handleAnalyzeResonance = useCallback((textToAnalyze: string) => {
+    const resonanceTemplate = templates.find(t => t.id === ContentType.ResonanceEngine);
+    if (!resonanceTemplate) {
+        addToast("Resonance Engine tool not found.", "error");
+        return;
+    }
+    handleTemplateSelect(resonanceTemplate);
+    setTimeout(() => {
+        setTopic(textToAnalyze);
+    }, 50);
+    addToast("Switched to Resonance Engine and pre-filled content!", "info");
+    window.scrollTo(0, 0);
+  }, [templates, addToast, handleTemplateSelect]);
+
 
   const contentStats = useMemo(() => {
-    if (!generatedContent || selectedTemplate.id === ContentType.AIImage || selectedTemplate.id === ContentType.AIImageEditor || selectedTemplate.id === ContentType.AIVideoGenerator || selectedTemplate.id === ContentType.ResonanceEngine || selectedTemplate.id === ContentType.MarketSignalAnalyzer) return { words: 0, chars: 0 };
+    if (!generatedContent || selectedTemplate.id === ContentType.AIImage || selectedTemplate.id === ContentType.AIImageEditor || selectedTemplate.id === ContentType.AIVideoGenerator || selectedTemplate.id === ContentType.ResonanceEngine || selectedTemplate.id === ContentType.MarketSignalAnalyzer || selectedTemplate.id === ContentType.SocialMediaPost) return { words: 0, chars: 0 };
     const tempDiv = document.createElement('div');
     tempDiv.innerHTML = markdownToHtml(generatedContent).replace(/<br\s*\/?>/gi, ' ');
     const plainText = tempDiv.textContent || tempDiv.innerText || '';
@@ -902,9 +975,13 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
   const handleUpgrade = async () => {
     if (!user || !setUser) return;
     try {
-        const updatedUserData = { ...user, plan: 'pro' as const };
-        await updateUserDoc(user.uid, { plan: 'pro' });
-        setUser(updatedUserData); // Update local state immediately for responsiveness
+        const newCredits = PRO_CREDIT_LIMIT;
+        const newPlanCreditLimit = PRO_CREDIT_LIMIT;
+        
+        await updateUserDoc(user.uid, { plan: 'pro', credits: newCredits, planCreditLimit: newPlanCreditLimit });
+        
+        setUser({ ...user, plan: 'pro' as const, credits: newCredits, planCreditLimit: newPlanCreditLimit });
+        
         setShowUpgradeModal(false);
         addToast("Upgrade successful! Welcome to the Pro plan.", "success");
     } catch (error) {
@@ -913,6 +990,23 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
         setShowUpgradeModal(false);
     }
   };
+
+    const handleBuyCredits = async () => {
+        if (!user || !setUser) return;
+        try {
+            const CREDITS_TO_ADD = 100;
+            const newCredits = user.credits + CREDITS_TO_ADD;
+            const newPlanCreditLimit = user.planCreditLimit + CREDITS_TO_ADD;
+            await updateUserDoc(user.uid, { credits: newCredits, planCreditLimit: newPlanCreditLimit });
+            setUser({ ...user, credits: newCredits, planCreditLimit: newPlanCreditLimit });
+            setShowUpgradeModal(false);
+            addToast(`Success! ${CREDITS_TO_ADD} credits have been added to your account.`, "success");
+        } catch (error) {
+            console.error("Failed to buy credits:", error);
+            addToast("Credit purchase failed. Please try again.", "error");
+            setShowUpgradeModal(false);
+        }
+    };
 
   const handleCommand = async (command: string) => {
     setCommandLoading(true);
@@ -990,7 +1084,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
     <aside className={`p-6 flex flex-col flex-shrink-0 bg-slate-900/80 backdrop-blur-sm ${isMobile ? 'w-64' : 'w-64'} h-full`}>
         <h2 className="text-xl font-bold text-white mb-6">Tools</h2>
         <nav className="flex-1 flex flex-col gap-2 overflow-y-auto pr-2 -mr-2">
-        {templates.filter(t => t.id !== ContentType.AdCopy).map(template => (
+        {templates.map(template => (
           <button
             key={template.id}
             onClick={() => handleTemplateSelect(template)}
@@ -1014,29 +1108,8 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
 
   const renderToolLayout = () => {
     if (!user) return null;
-
-    const needsProfile = [
-        ContentType.Campaign,
-        ContentType.MarketSignalAnalyzer,
-        ContentType.ResonanceEngine,
-        ContentType.BlogIdea,
-        ContentType.AIAdCreativeStudio,
-    ].includes(selectedTemplate.id);
-
-    if (needsProfile) {
-        // First, check for the loading state.
-        if (isProfileComplete === null) {
-            return (
-                <div className="flex-1 flex h-full items-center justify-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--gradient-end)]"></div>
-                </div>
-            );
-        }
-        // Then, check for an incomplete profile *after* loading is done.
-        // This also handles the case where the profile doesn't exist at all.
-        if (!isProfileComplete || !brandProfile) {
-            return <CompleteProfilePrompt featureName={selectedTemplate.name} onNavigate={() => handleNavigateToSettings('tools')} />;
-        }
+    if ((selectedTemplate.id === ContentType.Campaign || selectedTemplate.id === ContentType.MarketSignalAnalyzer || selectedTemplate.id === ContentType.ResonanceEngine || selectedTemplate.id === ContentType.BlogIdea || selectedTemplate.id === ContentType.AIAdCreativeStudio) && isProfileComplete === false) {
+        return <CompleteProfilePrompt featureName={selectedTemplate.name} onNavigate={() => handleNavigateToSettings('tools')} />;
     }
       
     switch (selectedTemplate.id) {
@@ -1044,12 +1117,14 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
         case ContentType.MarketSignalAnalyzer:
         case ContentType.BlogIdea:
         case ContentType.AIAdCreativeStudio:
+        case ContentType.VideoScriptHook:
              return <AnalyzerLayout 
                 key={selectedTemplate.id} // Force re-mount on template change
                 selectedTemplate={selectedTemplate} 
                 brandProfile={brandProfile!} 
                 onPrefill={handlePrefillFromReport}
                 onGenerateImage={handleGenerateImageFromPrompt}
+                onGenerateVideoFromBlueprint={handleGenerateVideoFromBlueprint}
                 onGenerate={handleGenerationResult}
                 onUpgrade={() => setShowUpgradeModal(true)}
                 user={user}
@@ -1059,10 +1134,10 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
                 initialFields={extraFields}
                 topic={topic}
                 onTopicChange={setTopic}
+                spendCredits={spendCredits}
             />;
         case ContentType.AIImage:
         case ContentType.SocialMediaPost:
-        case ContentType.VideoScriptHook:
         case ContentType.EmailCopy:
             return <TextGeneratorLayout 
                 selectedTemplate={selectedTemplate}
@@ -1076,6 +1151,8 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
                 contentStats={contentStats}
                 handleCopy={handleCopy}
                 onEditImage={handleEditGeneratedImage}
+                onGenerateImage={handleGenerateImageFromPrompt}
+                onAnalyzeResonance={handleAnalyzeResonance}
                 numOutputs={numOutputs}
                 setNumOutputs={setNumOutputs}
                 generatedContents={generatedContents}
@@ -1094,6 +1171,9 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
                 handleFileSelect={handleFileSelect}
                 originalImageUrl={originalImageUrl}
                 onEditImage={handleEditGeneratedImage}
+                // Fix: Pass missing properties
+                onGenerateImage={handleGenerateImageFromPrompt}
+                onAnalyzeResonance={handleAnalyzeResonance}
             />;
         case ContentType.AIVideoGenerator:
             return <VideoGeneratorLayout
@@ -1108,11 +1188,15 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
                 uploadedImage={uploadedImage}
                 handleFileSelect={handleFileSelect}
                 onEditImage={handleEditGeneratedImage}
+                // Fix: Pass missing properties
+                onGenerateImage={handleGenerateImageFromPrompt}
+                onAnalyzeResonance={handleAnalyzeResonance}
             />;
         case ContentType.Campaign:
              return <CampaignBuilder 
                 template={selectedTemplate} 
                 user={user}
+                spendCredits={spendCredits}
                 onUpgrade={() => setShowUpgradeModal(true)}
                 onNavigateToSettings={() => handleNavigateToSettings('tools')}
                 onNavigateToHistory={handleNavigateToCampaignHistory}
@@ -1145,7 +1229,12 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
       case 'live-agent':
         return <LiveAgentView user={user} />;
       case 'agents':
-        return <AgentManager user={user} onUpgrade={() => setShowUpgradeModal(true)} onNavigateToSettings={() => handleNavigateToSettings('agents')} />;
+        return <AgentManager 
+                    user={user} 
+                    onUpgrade={() => setShowUpgradeModal(true)} 
+                    onNavigateToSettings={() => handleNavigateToSettings('agents')} 
+                    spendCredits={spendCredits}
+                />;
       case 'analytics':
         return <AnalyticsDashboard user={user} />;
       case 'settings':
@@ -1172,7 +1261,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
 
   return (
     <div className="flex h-screen bg-[#0D1117] text-white overflow-hidden">
-      {showUpgradeModal && <UpgradeModal onClose={() => setShowUpgradeModal(false)} onUpgrade={handleUpgrade} />}
+      {showUpgradeModal && <UpgradeModal user={user} onClose={() => setShowUpgradeModal(false)} onUpgrade={handleUpgrade} onBuyCredits={handleBuyCredits} />}
       
       <aside className="hidden md:flex w-20 bg-slate-900/80 backdrop-blur-sm p-2 border-r border-slate-800/50 flex-col items-center flex-shrink-0 z-20">
           <div className="my-2">
@@ -1189,14 +1278,14 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
                 <SparklesIcon className="w-6 h-6" />
                 </button>
             </Tooltip>
+            <Tooltip text="Agents">
+                <button onClick={() => handleTabChange('agents')} className={`p-3 rounded-lg transition-colors ${activeTab === 'agents' ? 'bg-gradient-to-t from-[var(--gradient-start)] to-[var(--gradient-end)] text-white' : 'text-slate-400 hover:bg-slate-800'}`} aria-label="Agents">
+                <AgentIcon className="w-6 h-6"/>
+                </button>
+            </Tooltip>
             <Tooltip text="Live Agent">
                 <button onClick={() => handleTabChange('live-agent')} className={`p-3 rounded-lg transition-colors ${activeTab === 'live-agent' ? 'bg-gradient-to-t from-[var(--gradient-start)] to-[var(--gradient-end)] text-white' : 'text-slate-400 hover:bg-slate-800'}`} aria-label="Live Agent">
                 <HeadsetIcon className="w-6 h-6"/>
-                </button>
-            </Tooltip>
-             <Tooltip text="Agents">
-                <button onClick={() => handleTabChange('agents')} className={`p-3 rounded-lg transition-colors ${activeTab === 'agents' ? 'bg-gradient-to-t from-[var(--gradient-start)] to-[var(--gradient-end)] text-white' : 'text-slate-400 hover:bg-slate-800'}`} aria-label="Agents">
-                <AgentIcon className="w-6 h-6"/>
                 </button>
             </Tooltip>
              <Tooltip text="Analytics">

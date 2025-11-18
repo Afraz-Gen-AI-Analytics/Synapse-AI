@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Template, ContentType, ResonanceFeedback, MarketSignalReport as MarketSignalReportData, ContentRecommendation } from '../types';
+import { Template, ContentType, ResonanceFeedback, MarketSignalReport as MarketSignalReportData, ContentRecommendation, SocialPostContent } from '../types';
 import { markdownToHtml } from './Dashboard';
 import SynapseCoreIcon from './icons/SynapseCoreIcon'; 
 import CopyIcon from './icons/CopyIcon';
@@ -13,6 +13,7 @@ import DownloadIcon from './icons/DownloadIcon';
 import EditIcon from './icons/EditIcon';
 import { useToast } from '../contexts/ToastContext';
 import ExternalLinkIcon from './icons/ExternalLinkIcon';
+import SocialPostOutput from './SocialPostOutput';
 
 
 interface GenerationOutputProps {
@@ -29,6 +30,8 @@ interface GenerationOutputProps {
     videoStatus: string;
     videoUrl: string | null;
     onEditImage: (imageDataUrl: string) => void;
+    onGenerateImage: (prompt: string) => void;
+    onAnalyzeResonance: (text: string) => void;
 }
 
 const textLoadingMessages = [
@@ -109,7 +112,7 @@ const GenerationOutput: React.FC<GenerationOutputProps> = (props) => {
     const {
         isLoading, generatedContent, generatedContents, activeVariation, setActiveVariation,
         contentStats, handleCopy, selectedTemplate, topic,
-        originalImageUrl, videoStatus, videoUrl, onEditImage,
+        originalImageUrl, videoStatus, videoUrl, onEditImage, onGenerateImage, onAnalyzeResonance
     } = props;
     
     const { addToast } = useToast();
@@ -163,6 +166,27 @@ const GenerationOutput: React.FC<GenerationOutputProps> = (props) => {
             if (isImageTool || isImageEditTool) {
                 return <img src={generatedContent} alt={topic} className="object-contain max-w-full max-h-full rounded-md animate-fade-in-up" />;
             }
+             if (selectedTemplate.id === ContentType.SocialMediaPost) {
+                try {
+                    const postContent: SocialPostContent = JSON.parse(generatedContent);
+                    return <SocialPostOutput 
+                                content={postContent}
+                                onGenerateImage={onGenerateImage}
+                                onAnalyzeResonance={onAnalyzeResonance}
+                            />;
+                } catch (e) {
+                    // Fallback for old, non-JSON history items
+                    console.warn("Could not parse Social Post content as JSON, falling back to text display.");
+                    return (
+                        <div className="w-full">
+                            <div
+                                className="prose prose-invert prose-sm max-w-none text-slate-300"
+                                dangerouslySetInnerHTML={{ __html: markdownToHtml(generatedContent) }}
+                            />
+                        </div>
+                    );
+                }
+            }
             return (
                 <div className="w-full">
                     <div
@@ -208,7 +232,7 @@ const GenerationOutput: React.FC<GenerationOutputProps> = (props) => {
             <div className="flex justify-between items-center p-4 border-b border-slate-800 flex-shrink-0">
                 <h2 className="font-semibold text-white">Creation Canvas</h2>
                 <div className="flex items-center">
-                    {generatedContent && !isLoading && !isImageTool && !isImageEditTool && !isVideoTool && (
+                    {generatedContent && !isLoading && !isImageTool && !isImageEditTool && !isVideoTool && selectedTemplate.id !== ContentType.SocialMediaPost && (
                         <div className="text-xs text-slate-400 flex justify-end gap-4 mr-4">
                             <span>{contentStats.words} words</span>
                             <span>{contentStats.chars} characters</span>

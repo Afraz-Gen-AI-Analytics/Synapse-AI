@@ -21,6 +21,7 @@ import InfoIcon from './icons/InfoIcon';
 import Tooltip from './Tooltip';
 import SparklesIcon from './icons/SparklesIcon';
 import TrendingUpIcon from './icons/TrendingUpIcon';
+import ImageIcon from './icons/ImageIcon';
 
 
 interface LandingPageProps {
@@ -138,9 +139,9 @@ const AnimatedSection: React.FC<{ children: React.ReactNode; className?: string;
     const isVisible = useIntersectionObserver(ref, { threshold: 0.1 });
 
     return (
-        <div ref={ref} className={`${className} transition-opacity duration-1000 ${isVisible ? 'opacity-100' : 'opacity-0'}`}>
+        <div ref={ref} className={`${className} transition-opacity duration-1000 ${isVisible ? 'opacity-100' : 'opacity-0'} flex`}>
             <div 
-                className={`transition-transform duration-1000 ${isVisible ? 'translate-y-0' : 'translate-y-5'}`}
+                className={`transition-transform duration-1000 w-full ${isVisible ? 'translate-y-0' : 'translate-y-5'}`}
                 style={{ transitionDelay: `${delay}ms` }}
             >
                 {children}
@@ -236,7 +237,7 @@ const DynamicHeadline: React.FC = () => {
 const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
   const [activeDemo, setActiveDemo] = useState<DemoTab>('productLaunch');
   const currentDemo = demoContent[activeDemo];
-  const [billingCycle, setBillingCycle] = useState<'monthly' | 'annually'>('monthly');
+  const [billingCycle, setBillingCycle] = useState<'monthly' | 'annually'>('annually');
   
   const [isDemoVisible, setIsDemoVisible] = useState(false);
   const demoRef = useRef<HTMLDivElement>(null);
@@ -416,8 +417,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
       <section id="pricing" className="py-20">
         <div className="container mx-auto px-4">
             <div className="text-center mb-12">
-                <h2 className="text-3xl md:text-4xl font-bold">Pricing That Powers Ambition</h2>
-                <p className="text-slate-400 mt-2">Start for free, then scale to infinity.</p>
+                <h2 className="text-3xl md:text-4xl font-bold">Flexible Plans for Every Ambition</h2>
+                <p className="text-slate-400 mt-2">Start for free, then scale as you grow. The more you create, the more value you get.</p>
             </div>
              <div className="flex justify-center items-center gap-4 mb-10">
                 <span className={`font-medium transition-colors ${billingCycle === 'monthly' ? 'text-white' : 'text-slate-400'}`}>Monthly</span>
@@ -441,7 +442,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
                     <p className="text-5xl font-extrabold mb-4">$0<span className="text-lg font-medium text-slate-400">/mo</span></p>
                     <p className="text-slate-400 mb-6 flex-grow">For individuals and teams testing the waters of AI-powered creation.</p>
                     <ul className="space-y-4 mb-8">
-                        <li className="flex items-center"><CheckIcon className="w-5 h-5 text-green-400 mr-3" /> 10 generations / month</li>
+                        <li className="flex items-center"><CheckIcon className="w-5 h-5 text-green-400 mr-3" /> 50 Credits / month</li>
                         <li className="flex items-center"><CheckIcon className="w-5 h-5 text-green-400 mr-3" /> Access to all templates</li>
                         <li className="flex items-center"><CheckIcon className="w-5 h-5 text-green-400 mr-3" /> Generation History</li>
                     </ul>
@@ -461,7 +462,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
                     {billingCycle === 'annually' && <p className="text-sm text-slate-500 -mt-4 mb-4">Billed as $468 per year</p>}
                     <p className="text-slate-400 mb-6 flex-grow">For professionals and teams executing campaigns with autonomous agents and analytics.</p>
                     <ul className="space-y-4 mb-8">
-                        <li className="flex items-center"><CheckIcon className="w-5 h-5 text-green-400 mr-3" /> Unlimited generations</li>
+                        <li className="flex items-center"><CheckIcon className="w-5 h-5 text-green-400 mr-3" /> 2,500 Credits / month</li>
                         <li className="flex items-center">
                             <CheckIcon className="w-5 h-5 text-green-400 mr-3" />
                             Autonomous AI Agents
@@ -484,6 +485,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
                     <button onClick={() => alert('Contacting sales!')} className="mt-auto w-full bg-slate-800 hover:bg-slate-700 text-white font-semibold py-3 rounded-lg transition-colors">Contact Sales</button>
                 </div>
             </div>
+
         </div>
       </section>
       </AnimatedSection>
@@ -536,19 +538,12 @@ const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
           </div>
           <div className="space-y-2">
             <FaqItem question="What makes Synapse different from other AI writers?">
-                <div className="space-y-4">
-                    <p>
-                        Synapse AI is much more than a simple content generator; it's a complete marketing command center. While all users get access to a powerful suite of <strong className="font-semibold text-slate-200">Core Content Tools</strong> for creating social media posts, ads, and images, our true strength lies in strategy and automation.
-                    </p>
-                    <p>
-                        What truly sets us apart is our <strong className="font-semibold text-slate-200">Autonomous Pro Suite</strong>. This collection of advanced tools moves beyond basic creation, empowering you with strategic weapons like the <strong className="font-semibold text-slate-300">Resonance Engine</strong> to test copy before publishing, the <strong className="font-semibold text-slate-300">Market Signal Analyzer</strong> to uncover trends, the <strong className="font-semibold text-slate-300">SEO Content Strategist</strong> to build content blueprints, and the <strong className="font-semibold text-slate-300">AI Ad Creative Studio</strong> to generate entire ad campaigns. These work alongside our <strong className="font-semibold text-slate-300">Campaign Builder</strong> and autonomous <strong className="font-semibold text-slate-300">AI Agents</strong>, enabling you to research, plan, and execute from a single goal. It’s an end-to-end platform built not just for creating content, but for driving strategic growth.
-                    </p>
-                </div>
-            </FaqItem>
-            <FaqItem question="How do the AI Agents work?">
-                <>
-                  Our AI Agents are a flagship Pro feature. You simply provide a high-level goal, like 'launch a new product.' The agent then autonomously plans a multi-step strategy, generates all the necessary content (social posts, emails, etc.), and prepares it for deployment, all while adhering to your brand's unique voice.
-                </>
+                <p>
+                    While most AI writers focus only on generating text, Synapse AI is a complete marketing command center designed to deliver measurable results. We go beyond simple content creation by providing a suite of powerful strategic tools. 
+                </p>
+                 <p className="mt-4">
+                    With our <strong className="font-semibold text-slate-200">Campaign Builder</strong>, you can plan an entire multi-channel strategy from a single goal. The <strong className="font-semibold text-slate-200">Resonance Engine</strong> predicts how your audience will react to copy *before* you publish it, and our <strong className="font-semibold text-slate-200">Market Signal Analyzer</strong> uncovers the trending topics your customers are actively searching for. This strategic foundation empowers our <strong className="font-semibold text-slate-200">Autonomous AI Agents</strong> to execute entire campaigns for you, turning your goals into reality. We're not just a tool; we're your strategic partner for growth.
+                </p>
             </FaqItem>
             <FaqItem question="Is my data secure?">
                 Absolutely. We prioritize user privacy and data security. All your generated content, brand profile, and account information are encrypted and securely stored.

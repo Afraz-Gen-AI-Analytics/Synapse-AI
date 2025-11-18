@@ -21,6 +21,7 @@ interface AgentManagerProps {
     user: User;
     onUpgrade: () => void;
     onNavigateToSettings: () => void;
+    spendCredits: (amount: number) => Promise<boolean>;
 }
 
 const personaIcons: Record<AgentPersona, React.FC<{className?: string}>> = {
@@ -56,7 +57,7 @@ const AgentSkeleton: React.FC = () => (
     </div>
 );
 
-const AgentManager: React.FC<AgentManagerProps> = ({ user, onUpgrade, onNavigateToSettings }) => {
+const AgentManager: React.FC<AgentManagerProps> = ({ user, onUpgrade, onNavigateToSettings, spendCredits }) => {
     const [agents, setAgents] = useState<Agent[]>([]);
     const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null);
     const [isConfiguring, setIsConfiguring] = useState(false);
@@ -118,7 +119,7 @@ const AgentManager: React.FC<AgentManagerProps> = ({ user, onUpgrade, onNavigate
 
     if (selectedAgentId) {
         const selectedAgent = agents.find(a => a.id === selectedAgentId);
-        return <AgentDetailView agent={selectedAgent} onBack={handleBackToList} />;
+        return <AgentDetailView agent={selectedAgent} onBack={handleBackToList} spendCredits={spendCredits} />;
     }
 
     const renderContent = () => {

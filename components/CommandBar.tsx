@@ -13,15 +13,15 @@ const LoadingSpinner: React.FC = () => (
 );
 
 const examplePrompts = [
-    "Plan a launch campaign for a mobile app",
-    "Analyze ad copy for an e-commerce site",
-    "Create an ad image for a new sneaker",
-    "Generate a video ad for a new tech gadget",
-    "Write a tweet about sustainable fashion",
-    "Create a video hook for a cooking channel",
-    "Brainstorm blog topics about remote work",
-    "Draft a promo email for a summer sale",
-    "Write ad copy for a new productivity app",
+    "Plan a launch campaign for a new mobile app",
+    "Analyze this copy: 'Supercharge your workflow'",
+    "Research the market for 'AI-powered assistants'",
+    "Create an SEO blog post about intermittent fasting",
+    "Generate ad creative for a new brand of coffee",
+    "Create a cinematic photo of a sports car at night",
+    "Make a video ad for a new eco-friendly sneaker",
+    "Write a LinkedIn post about the future of work",
+    "Create a viral video blueprint for a new gadget",
 ];
 
 

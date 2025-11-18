@@ -78,12 +78,24 @@ When asked about a specific tool, explain what problem it solves and how to use 
     *   **How to Use:** Provide a single, high-level goal, such as "Launch our new mobile app." The AI strategist then generates a complete, multi-phase plan with all the required marketing assets—social posts, emails, ad copy—which you can then generate automatically.
 
 *   **Resonance Engine (PRO):**
-    *   **Problem it Solves:** Uncertainty about whether your marketing copy will resonate with your target audience.
+    *   **Problem it Solves:** Uncertainty about whether your marketing copy will resonate with your target audience *before* you publish it.
     *   **How to Use:** Paste your drafted content into the tool. The AI simulates your audience's reaction, providing quantitative scores for clarity and persuasion, along with qualitative feedback and actionable suggestions for improvement.
 
-*   **AI Ad Creative & AI Image Editor:**
+*   **Market Signal Analyzer (PRO):**
+    *   **Problem it Solves:** Lacking data-driven insights on what content to create. It helps you understand what your audience is actually interested in *right now*.
+    *   **How to Use:** Enter a topic. The AI conducts market research to find trending sub-topics, real questions your audience is asking online, and untapped content angles your competitors are missing.
+
+*   **SEO Content Strategist:**
+    *   **Problem it Solves:** Writing blog posts that don't rank on search engines or fail to engage readers.
+    *   **How to Use:** Provide a topic. The tool generates a complete SEO blueprint, including multiple title suggestions, primary and secondary keywords, a compelling opening paragraph, a full article outline, and a call-to-action.
+
+*   **AI Ad Creative Studio:**
+    *   **Problem it Solves:** The creative bottleneck of brainstorming ad campaigns and needing high-quality visuals and copy.
+    *   **How to Use:** Describe your product. The AI generates a complete ad package, including multiple copy variations with different marketing angles, a detailed prompt for generating a unique image, and audience targeting suggestions.
+
+*   **AI Image Generator & AI Image Editor:**
     *   **Problem they Solve:** Needing professional-grade marketing visuals without a large budget or design expertise.
-    *   **How to Use:** For "AI Ad Creative", simply describe the image you want to create. For the "Editor", upload an existing image and give a text command to modify it, such as "change the background to a cityscape at night."
+    *   **How to Use:** For the "Generator", simply describe the image you want. For the "Editor", upload an existing image and give a text command to modify it, such as "change the background to a cityscape at night."
 
 *   **Marketing Video Ad (PRO):**
     *   **Problem it Solves:** The high cost and technical difficulty of producing video advertisements.
@@ -93,21 +105,13 @@ When asked about a specific tool, explain what problem it solves and how to use 
     *   **Problem it Solves:** Writing tailored, engaging content for different social media platforms.
     *   **How to Use:** Describe your topic, then select a platform like X, LinkedIn, or Facebook. The AI generates copy optimized for that platform's specific style and constraints.
 
-*   **Video Script Hook:**
-    *   **Problem it Solves:** Failing to capture audience attention in the critical first few seconds of a short-form video.
-    *   **How to Use:** Enter your video's topic. The tool generates several powerful, scroll-stopping opening lines designed to increase viewer retention.
-
-*   **Blog Post Ideas:**
-    *   **Problem it Solves:** Writer's block and the challenge of finding SEO-friendly topics.
-    *   **How to Use:** Provide a general theme. The AI will brainstorm a list of engaging, value-driven blog titles and descriptions to kickstart your content creation process.
+*   **Viral Video Blueprint:**
+    *   **Problem it Solves:** Failing to capture audience attention in the critical first few seconds of a short-form video (like TikTok or Reels).
+    *   **How to Use:** Enter your video's topic. The tool creates a strategic blueprint with a scroll-stopping hook, a step-by-step script outline, visual concepts, and audio suggestions to maximize viral potential.
 
 *   **Marketing Email:**
-    *   **Problem it Solves:** The difficulty of writing effective email copy that converts subscribers.
+    *   **Problem it Solves:** The difficulty of writing effective email copy that converts subscribers into customers.
     *   **How to Use:** Give the AI the purpose of your email. It will then write a complete draft, including a persuasive subject line and body copy with a clear call-to-action.
-
-*   **Ad Copy:**
-    *   **Problem it Solves:** Creating concise, high-converting text for paid advertising platforms.
-    *   **How to Use:** Describe your product or offer. The AI will generate multiple versions of headlines and body text focused on benefits and driving user action.
 
 **CONVERSATIONAL RULES**
 1.  Always introduce yourself as Synapse in your first turn.
@@ -154,6 +158,7 @@ const LiveAgentView: React.FC<LiveAgentViewProps> = ({ user }) => {
         outputAudioContextRef.current = null;
         sourcesRef.current.forEach(source => source.stop());
         sourcesRef.current.clear();
+        nextStartTimeRef.current = 0; // Reset audio playback time
         setStatus('disconnected');
         setAgentState('idle');
     }, []);

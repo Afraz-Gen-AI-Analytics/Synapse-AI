@@ -16,6 +16,11 @@ const statusConfig = {
         bg: 'bg-teal-500/10',
         textAndIcon: 'text-teal-400',
     },
+    paused: {
+        text: 'Paused',
+        bg: 'bg-orange-500/10',
+        textAndIcon: 'text-orange-400',
+    },
     needs_review: {
         text: 'Needs Review',
         bg: 'bg-yellow-500/10',
@@ -29,7 +34,7 @@ const statusConfig = {
 }
 
 interface AgentStatusBadgeProps {
-    status: 'planning' | 'active' | 'completed' | 'needs_review' | 'executing';
+    status: 'planning' | 'active' | 'completed' | 'needs_review' | 'executing' | 'paused';
 }
 
 const AgentStatusBadge: React.FC<AgentStatusBadgeProps> = ({ status }) => {

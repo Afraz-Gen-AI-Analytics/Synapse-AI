@@ -1,5 +1,5 @@
 import { GoogleGenAI, GenerateContentResponse, Type, Modality } from "@google/genai";
-import { BrandProfile, ToolRoute, ResonanceFeedback, MarketSignalReport, SeoContentBlueprint, AdCreativeBlueprint, ViralVideoBlueprint } from "../types";
+import { BrandProfile, ToolRoute, ResonanceFeedback, MarketSignalReport, SeoContentBlueprint, AdCreativeBlueprint, ViralVideoBlueprint, SocialPostContent } from "../types";
 
 
 // A custom error class to hold a user-friendly message that can be displayed directly in the UI.
@@ -207,6 +207,70 @@ export async function generateStructuredContent(prompt: string, schema: any): Pr
     handleGeminiError(error, 'structured content generation');
   }
 }
+
+export async function generateSocialPost(options: { topic: string; tone: string; platform: 'Twitter' | 'LinkedIn' | 'Facebook'; numOutputs: number }): Promise<SocialPostContent[]> {
+    const { topic, tone, platform, numOutputs } = options;
+    let platformInstruction = '';
+    switch (platform) {
+        case 'LinkedIn':
+            platformInstruction = `The post should be professional, insightful, and ${tone}, approximately 4-6 sentences. It should be suitable for a professional audience, encourage discussion, and use strategic hashtags.`;
+            break;
+        case 'Facebook':
+            platformInstruction = `The post should be engaging, conversational, and ${tone}, 2-3 short paragraphs. It should be designed to spark conversation, include 1-2 relevant emojis, and use popular hashtags.`;
+            break;
+        case 'Twitter':
+        default:
+            platformInstruction = `The post must be a concise, impactful, and ${tone} tweet (under 280 characters). It must be attention-grabbing and include 2-3 highly relevant hashtags.`;
+            break;
+    }
+
+    const prompt = `
+        You are an expert social media manager and visual strategist. Your task is to generate complete social media post packages.
+        
+        **Platform & Tone:**
+        - Platform: ${platform}
+        - Tone: ${tone}
+        - Instructions: ${platformInstruction}
+
+        **Core Task:**
+        Based on the topic below, generate ${numOutputs} distinct post variation(s). For EACH variation, you must provide:
+        1.  **copy**: The main body text of the post, adhering to platform constraints and tone.
+        2.  **hashtags**: A string of 3-4 relevant hashtags, starting with '#'.
+        3.  **imagePrompt**: A detailed, professional prompt for an AI image generator. The prompt should describe a visually stunning and contextually relevant image that would capture the target audience's attention and complement the ad copy. The image should be photorealistic and high-quality.
+
+        **CRITICAL RULES:**
+        1.  Adhere strictly to the JSON schema.
+        2.  The \`platform\` field in the response MUST be exactly "${platform}".
+        3.  The \`type\` field MUST be exactly "social".
+
+        **Topic:** "${topic}"
+    `;
+
+    const singlePostSchema = {
+        type: Type.OBJECT,
+        properties: {
+            type: { type: Type.STRING, description: "Must be 'social'" },
+            platform: { type: Type.STRING, enum: ['Twitter', 'LinkedIn', 'Facebook'] },
+            copy: { type: Type.STRING, description: "The main body of the post." },
+            hashtags: { type: Type.STRING, description: "3-4 relevant hashtags." },
+            imagePrompt: { type: Type.STRING, description: "A detailed prompt for an AI image generator to create an accompanying visual." }
+        },
+        required: ["type", "platform", "copy", "hashtags", "imagePrompt"]
+    };
+    
+    const schema = numOutputs > 1 
+        ? { type: Type.ARRAY, items: singlePostSchema } 
+        : singlePostSchema;
+
+    const result = await generateStructuredContent(prompt, schema);
+    
+    if (numOutputs === 1) {
+        return [result as SocialPostContent];
+    } else {
+        return result as SocialPostContent[];
+    }
+}
+
 
 export async function getResonanceFeedback(content: string, brandProfile: BrandProfile, options: { contentGoal: string; platform: string; emotion: string; }): Promise<ResonanceFeedback> {
     const prompt = `
@@ -748,33 +812,72 @@ export async function getVideosOperation(operation: any): Promise<any> {
 
 export async function routeUserIntent(command: string): Promise<ToolRoute> {
   const prompt = `
-    You are an intelligent routing system for an AI platform. Analyze the user's command and determine the best tool and pre-fill information.
-    Available Tool IDs: 'CampaignBuilder', 'ResonanceEngine', 'MarketSignalAnalyzer', 'AIImageGenerator', 'AIImageEditor', 'MarketingVideoAd', 'SocialMediaPost', 'VideoScriptHook', 'BlogPostIdeas', 'MarketingEmail', 'AIAdCreativeStudio'.
-    
-    **Tool Descriptions & Routing Logic:**
-    - 'CampaignBuilder': For planning multi-step marketing campaigns. Keywords: "plan", "campaign", "strategy".
-    - 'ResonanceEngine': For analyzing or getting feedback on existing content. Keywords: "analyze", "test", "feedback", "review this".
-    - 'MarketSignalAnalyzer': For market research, finding trends, and audience questions. Keywords: "market research", "analyze topic", "trending topics", "what should I write about".
-    - 'AIImageGenerator': For generating a new image from a description. Keywords: "image", "photo", "picture", "graphic", "generate an image".
-    - 'AIImageEditor': For modifying an existing image. Keywords: "edit this image", "change the background", "add text to photo".
-    - 'MarketingVideoAd': For creating a short video ad. Keywords: "video", "ad", "commercial".
-    - 'SocialMediaPost': For specific social media content. Keywords: "tweet", "LinkedIn post", "Facebook update".
-    - 'VideoScriptHook': For creating a short, catchy opening for a video. Keywords: "video hook", "TikTok intro", "Reel idea", "opening line".
-    - 'BlogPostIdeas': For brainstorming blog titles. Keywords: "blog ideas", "article topics".
-    - 'MarketingEmail': For writing email copy. Keywords: "email", "newsletter".
-    - 'AIAdCreativeStudio': For text-based ads (e.g., Google Ads, Facebook Ads) or brainstorming ad concepts. Keywords: "ad copy", "headline", "google ad", "facebook ad".
+    You are an intelligent routing system for a powerful AI marketing platform named Synapse. Your primary function is to analyze a user's natural language command and accurately map it to the most appropriate tool within the platform. You must also extract the core topic or subject from the command to pre-fill the tool's input field.
 
-    Analyze the user's command: "${command}" and extract the main topic and specific parameters (like platform for social media).
+    **TOOL MANIFEST & ROUTING LOGIC:**
+    Carefully review the user's command and choose the BEST matching 'toolId' from the list below.
+
+    - toolId: 'CampaignBuilder'
+      - Description: Plans a complete, multi-phase, multi-channel marketing campaign from a single high-level goal.
+      - Keywords: "plan a campaign", "marketing strategy", "launch plan", "campaign for", "create a strategy".
+
+    - toolId: 'ResonanceEngine'
+      - Description: Analyzes and scores existing marketing copy by simulating a target audience's reaction. Provides feedback on clarity, persuasion, and emotional impact.
+      - Keywords: "analyze my copy", "get feedback on this post", "test this email", "review this ad", "will this resonate".
+
+    - toolId: 'MarketSignalAnalyzer'
+      - Description: Conducts market research on a topic to find trending sub-topics, audience questions, competitor angles, and content recommendations.
+      - Keywords: "market research", "trending topics for", "analyze the topic of", "what are people asking about", "competitor analysis for".
+      
+    - toolId: 'SEOContentStrategist'
+      - Description: Generates a complete SEO content blueprint for a blog post, including title suggestions, target keywords, a compelling hook, a full article outline, and a call-to-action.
+      - Keywords: "blog post", "article idea", "SEO content", "content strategy", "outline for a blog", "keyword research", "write an article about".
+
+    - toolId: 'AIAdCreativeStudio'
+      - Description: Brainstorms multiple marketing angles and generates a complete ad creative package, including several copy variations (headline/body), a detailed AI image prompt, targeting suggestions, and CTA ideas.
+      - Keywords: "ad copy", "Facebook ad", "Google ad", "ad creative", "marketing angles", "write an ad for".
+
+    - toolId: 'AIImageGenerator'
+      - Description: Generates a new, high-quality image from a descriptive text prompt.
+      - Keywords: "generate an image of", "create a photo of", "picture of a", "graphic for", "make an image".
+
+    - toolId: 'AIImageEditor'
+      - Description: Modifies an existing image based on text commands. This tool is for editing, not creation. Do NOT select this if the user wants a new image.
+      - Keywords: "edit this image", "change the background", "add text to my photo", "remove object from image".
+
+    - toolId: 'MarketingVideoAd'
+      - Description: Generates a short video ad from a text prompt or a starting image.
+      - Keywords: "create a video ad", "make a commercial for", "video of a", "product video".
+
+    - toolId: 'SocialMediaPost'
+      - Description: Generates a post for a specific social media platform like Twitter/X, LinkedIn, or Facebook.
+      - Keywords: "write a tweet", "create a LinkedIn post", "draft a Facebook update", "post about".
+
+    - toolId: 'ViralVideoBlueprint'
+      - Description: Creates a strategic blueprint for a short-form viral video (TikTok, Reels, Shorts). Includes a scroll-stopping hook, script outline, visual concepts, and audio suggestions.
+      - Keywords: "video hook", "TikTok idea", "Reel idea", "viral video", "script for a short video", "opening line for a video".
+    
+    - toolId: 'MarketingEmail'
+      - Description: Writes a complete marketing email, including the subject line and body.
+      - Keywords: "write an email", "draft a newsletter", "promo email for", "email copy".
+
+    **INSTRUCTIONS:**
+    1.  **Analyze Command:** User command is: "${command}".
+    2.  **Select Tool:** Choose the single most appropriate 'toolId' from the manifest above. If a command is ambiguous, prioritize the most specific tool. For example, 'write a hook for a tiktok video' should route to 'ViralVideoBlueprint', not the more general 'MarketingVideoAd'.
+    3.  **Extract Prefill Topic:** Identify the core subject matter or the complete descriptive phrase from the command. This should serve as a comprehensive and useful prefill for the tool's main input field. For example, in 'write a tweet about sustainable fashion', the topic should be 'a tweet about sustainable fashion'. In 'create an SEO blog post about intermittent fasting', the topic should be 'an SEO blog post about intermittent fasting'. Remove initial imperatives like 'write', 'create', 'generate' where it makes sense to create a natural-sounding prefill.
+    4.  **Extract Platform (if applicable):** If the command mentions a specific social media platform (e.g., 'LinkedIn post', 'tweet', 'Facebook update'), extract it as the 'platform'.
+
+    Your output MUST be a JSON object matching the provided schema. Do not include any other text.
   `;
 
   const schema = {
     type: Type.OBJECT,
     properties: {
-      toolId: { type: Type.STRING, description: "The ID of the best tool for the user's command.", enum: ['CampaignBuilder', 'ResonanceEngine', 'MarketSignalAnalyzer', 'AIImageGenerator', 'AIImageEditor', 'MarketingVideoAd', 'SocialMediaPost', 'VideoScriptHook', 'BlogPostIdeas', 'MarketingEmail', 'AIAdCreativeStudio'] },
+      toolId: { type: Type.STRING, description: "The ID of the best tool for the user's command.", enum: ['CampaignBuilder', 'ResonanceEngine', 'MarketSignalAnalyzer', 'SEOContentStrategist', 'AIAdCreativeStudio', 'AIImageGenerator', 'AIImageEditor', 'MarketingVideoAd', 'SocialMediaPost', 'ViralVideoBlueprint', 'MarketingEmail'] },
       prefill: {
         type: Type.OBJECT, properties: {
-          topic: { type: Type.STRING, description: "The main subject extracted from the command." },
-          platform: { type: Type.STRING, description: "The social media platform if specified (e.g., 'Twitter', 'LinkedIn').", nullable: true }
+          topic: { type: Type.STRING, description: "The core subject matter or full descriptive phrase extracted from the command to be used as a prefill." },
+          platform: { type: Type.STRING, description: "The social media platform if specified (e.g., 'Twitter', 'LinkedIn', 'Facebook').", nullable: true }
         }, required: ["topic"]
       }
     }, required: ["toolId", "prefill"]

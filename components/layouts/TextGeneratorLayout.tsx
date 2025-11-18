@@ -4,8 +4,9 @@ import GenerationOutput from '../GenerationOutput'; // New component for the out
 import ProFeatureBadge from '../ProFeatureBadge';
 import SpeechToTextInput from '../SpeechToTextInput'; // Import the new component
 
-import SparklesIcon from '../icons/SparklesIcon';
-import ChevronDownIcon from '../icons/ChevronDownIcon';
+import SparklesIcon from './../icons/SparklesIcon';
+import ChevronDownIcon from './../icons/ChevronDownIcon';
+import DiamondIcon from '../icons/DiamondIcon';
 
 
 interface TextGeneratorLayoutProps {
@@ -23,6 +24,8 @@ interface TextGeneratorLayoutProps {
     contentStats: { words: number, chars: number };
     handleCopy: (content: string, templateName: string) => void;
     onEditImage: (imageDataUrl: string) => void;
+    onGenerateImage: (prompt: string) => void;
+    onAnalyzeResonance: (text: string) => void;
     numOutputs: number;
     setNumOutputs: (value: number) => void;
     generatedContents: string[];
@@ -38,7 +41,7 @@ const TextGeneratorLayout: React.FC<TextGeneratorLayoutProps> = (props) => {
     const {
         selectedTemplate, topic, setTopic, tone, setTone, tones,
         extraFields, handleFieldChange, isLoading, handleGenerate,
-        generatedContent, contentStats, handleCopy, onEditImage,
+        generatedContent, contentStats, handleCopy, onEditImage, onGenerateImage, onAnalyzeResonance,
         numOutputs, setNumOutputs, generatedContents, activeVariation, setActiveVariation,
     } = props;
     
@@ -46,6 +49,8 @@ const TextGeneratorLayout: React.FC<TextGeneratorLayoutProps> = (props) => {
     const isBlogTool = selectedTemplate.id === ContentType.BlogIdea;
 
     const showFineTune = !isImageTool || (selectedTemplate.fields && selectedTemplate.fields.length > 0);
+    const cost = (selectedTemplate.creditCost || 1) * (selectedTemplate.supportsVariations ? numOutputs : 1);
+
 
     return (
         <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-6 lg:h-full">
@@ -143,7 +148,7 @@ const TextGeneratorLayout: React.FC<TextGeneratorLayoutProps> = (props) => {
                     {isLoading ? <LoadingSpinner/> : (
                         <span className="flex items-center">
                             <SparklesIcon className="w-5 h-5 mr-2" />
-                            Generate
+                            Generate ({cost} <DiamondIcon className="w-4 h-4 ml-1 inline-block" />)
                         </span>
                     )}
                     </button>
@@ -157,6 +162,8 @@ const TextGeneratorLayout: React.FC<TextGeneratorLayoutProps> = (props) => {
                 contentStats={contentStats}
                 handleCopy={handleCopy}
                 onEditImage={onEditImage}
+                onGenerateImage={onGenerateImage}
+                onAnalyzeResonance={onAnalyzeResonance}
                 generatedContents={generatedContents}
                 activeVariation={activeVariation}
                 setActiveVariation={setActiveVariation}

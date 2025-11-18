@@ -20,11 +20,13 @@ import ExternalLinkIcon from './icons/ExternalLinkIcon';
 import CompleteProfilePrompt from './CompleteProfilePrompt';
 import PlaybookIcon from './icons/PlaybookIcon';
 import ProFeatureBadge from './ProFeatureBadge';
+import DiamondIcon from './icons/DiamondIcon';
 
 
 interface CampaignBuilderProps {
     template: Template;
     user: User;
+    spendCredits: (amount: number) => Promise<boolean>;
     onUpgrade: () => void;
     onNavigateToSettings: () => void;
     onNavigateToHistory: () => void;
@@ -231,7 +233,7 @@ const AssetCard: React.FC<{ asset: CampaignAsset, brandProfile: BrandProfile | n
     );
 };
 
-const CampaignBuilder: React.FC<CampaignBuilderProps> = ({ template, user, onUpgrade, onNavigateToSettings, onNavigateToHistory }) => {
+const CampaignBuilder: React.FC<CampaignBuilderProps> = ({ template, user, spendCredits, onUpgrade, onNavigateToSettings, onNavigateToHistory }) => {
     const [step, setStep] = useState(1);
     const [campaignGoal, setCampaignGoal] = useState('');
     const [brandProfile, setBrandProfile] = useState<BrandProfile | null>(null);
@@ -282,24 +284,30 @@ const CampaignBuilder: React.FC<CampaignBuilderProps> = ({ template, user, onUpg
             onUpgrade();
             return;
         }
-        if (!brandProfile) {
-            setError("Brand Profile is not loaded. Please wait or check your settings.");
-            return;
-        }
+        
+        const cost = template.creditCost || 25;
 
         setIsGeneratingStrategy(true);
         setError('');
 
         try {
-            const result = await generateCampaignStrategy(campaignGoal, brandProfile);
+            const result = await generateCampaignStrategy(campaignGoal, brandProfile!);
+
+            // Spend credits only after successful strategy generation
+            if (!await spendCredits(cost)) {
+                // spendCredits handles showing the modal and returns false if insufficient
+                throw new Error("Credit deduction failed. Please try again.");
+            }
+
             const strategyWithAssetIds: Strategy = {
                 ...result,
-                phases: result.phases.map((phase: Omit<CampaignPhase, 'assets'> & { assets: Omit<CampaignAsset, 'id' | 'status'>[] }) => ({
+                phases: result.phases.map((phase: Omit<CampaignPhase, 'assets'> & { assets: Omit<CampaignAsset, 'id' | 'status' | 'creditCost'>[] }) => ({
                     ...phase,
                     assets: phase.assets.map((asset): CampaignAsset => ({
                         ...asset,
                         id: crypto.randomUUID(),
                         status: 'pending',
+                        creditCost: 5, // Assign a fixed cost for each asset generation
                     }))
                 }))
             };
@@ -320,12 +328,13 @@ const CampaignBuilder: React.FC<CampaignBuilderProps> = ({ template, user, onUpg
 
     const generateAllAssetsSequentially = useCallback(async () => {
         if (!brandProfile || !strategy) return;
+        
+        const allAssets = strategy.phases.flatMap(p => p.assets);
+        
         setIsGeneratingAssets(true);
         setHasSaved(false); // Reset save flag for new generation
         let hasError = false;
 
-        const allAssets = strategy.phases.flatMap(p => p.assets);
-        
         // Set all to 'generating' initially
         setGeneratedAssets(prev => {
             const newMap = new Map(prev);
@@ -335,14 +344,28 @@ const CampaignBuilder: React.FC<CampaignBuilderProps> = ({ template, user, onUpg
 
         for (const asset of allAssets) {
             try {
-                // Sequential generation with a small delay
+                 // Check credits before each asset generation for immediate feedback.
+                if (user.credits < asset.creditCost) {
+                    throw new Error(`Not enough credits to generate "${asset.contentType}". Campaign paused.`);
+                }
+
                 await new Promise(resolve => setTimeout(resolve, 500)); 
                 const content = await generateCampaignAsset(asset.description, asset.contentType, brandProfile);
+
+                // Deduct credits only after the asset is successfully generated.
+                if (!await spendCredits(asset.creditCost)) {
+                    throw new Error("Credit deduction failed post-generation. This should not happen if the initial check passed.");
+                }
+
                 setGeneratedAssets(prev => new Map(prev).set(asset.id, { ...asset, status: 'generated', content }));
             } catch (error) {
                 hasError = true;
                 const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
                 setGeneratedAssets(prev => new Map(prev).set(asset.id, { ...asset, status: 'error', error: errorMessage }));
+                if (errorMessage.includes("Not enough credits")) {
+                    addToast(errorMessage, "error");
+                    break; // Stop the loop if credits run out.
+                }
             }
         }
         
@@ -353,7 +376,7 @@ const CampaignBuilder: React.FC<CampaignBuilderProps> = ({ template, user, onUpg
         }
 
         setIsGeneratingAssets(false);
-    }, [strategy, brandProfile, addToast]);
+    }, [strategy, brandProfile, addToast, spendCredits, user]);
 
 
     useEffect(() => {
@@ -456,7 +479,7 @@ const CampaignBuilder: React.FC<CampaignBuilderProps> = ({ template, user, onUpg
                                     </div>
                                 </div>
                                 <button onClick={handleGenerateStrategy} disabled={isGeneratingStrategy || !brandProfile || !campaignGoal} className="w-full flex items-center justify-center bg-gradient-to-r from-[var(--gradient-start)] to-[var(--gradient-end)] hover:opacity-90 text-white font-semibold py-3 px-6 rounded-lg transition-all text-lg shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
-                                    Generate Strategy
+                                    Generate Strategy ({template.creditCost || 25} <DiamondIcon className="w-4 h-4 ml-1.5" />)
                                 </button>
                                 {error && <p className="text-red-400 text-sm mt-3 text-center">{error}</p>}
                             </div>

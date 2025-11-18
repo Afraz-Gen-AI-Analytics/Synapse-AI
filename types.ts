@@ -6,9 +6,11 @@ export interface User {
   displayName: string;
   photoURL?: string | null;
   plan: 'freemium' | 'pro';
-  generationsUsed: number;
+  credits: number;
+  planCreditLimit: number;
   theme?: string; // e.g., 'Twilight', 'Sunrise'
   onboardingCompleted?: boolean;
+  brandProfileBonusClaimed?: boolean;
 }
 
 export enum ContentType {
@@ -23,7 +25,6 @@ export enum ContentType {
   AIVideoGenerator,
   VideoScriptHook,
   ResonanceEngine,
-  AdCopy, // Kept for programmatic use in campaigns/agents
 }
 
 export interface Template {
@@ -42,6 +43,7 @@ export interface Template {
   }[];
   isPro?: boolean;
   supportsVariations?: boolean;
+  creditCost?: number;
 }
 
 export interface HistoryItem {
@@ -100,6 +102,7 @@ export interface CampaignAsset {
     status: 'pending' | 'generating' | 'generated' | 'error';
     content?: GeneratedContent;
     error?: string;
+    creditCost: number;
 }
 
 export interface CampaignPhase {
@@ -138,7 +141,7 @@ export interface Agent {
     name: string;
     persona: AgentPersona;
     goal: string;
-    status: 'planning' | 'active' | 'completed';
+    status: 'planning' | 'active' | 'completed' | 'paused';
     createdAt: string;
     taskStats?: {
         completed: number;

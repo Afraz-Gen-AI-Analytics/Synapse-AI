@@ -6,6 +6,7 @@ import SpeechToTextInput from '../SpeechToTextInput';
 import SparklesIcon from '../icons/SparklesIcon';
 import ChevronDownIcon from '../icons/ChevronDownIcon';
 import ProFeatureBadge from '../ProFeatureBadge';
+import DiamondIcon from '../icons/DiamondIcon';
 
 type UploadedFile = { data: string; mimeType: string; name: string; dataUrl: string };
 
@@ -24,6 +25,9 @@ interface VideoGeneratorLayoutProps {
     uploadedImage: UploadedFile | null;
     handleFileSelect: (file: UploadedFile | null) => void;
     onEditImage: (imageDataUrl: string) => void;
+    // Fix: Add missing properties for GenerationOutput
+    onGenerateImage: (prompt: string) => void;
+    onAnalyzeResonance: (text: string) => void;
 }
 
 const LoadingSpinner: React.FC = () => (
@@ -35,7 +39,11 @@ const VideoGeneratorLayout: React.FC<VideoGeneratorLayoutProps> = (props) => {
         selectedTemplate, user, topic, setTopic, extraFields, handleFieldChange,
         isLoading, handleGenerate, videoStatus, videoUrl,
         handleCopy, uploadedImage, handleFileSelect, onEditImage,
+        // Fix: Destructure added properties
+        onGenerateImage,
+        onAnalyzeResonance,
     } = props;
+    const cost = selectedTemplate.creditCost || 50;
 
     return (
         <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-6 lg:h-full">
@@ -93,12 +101,18 @@ const VideoGeneratorLayout: React.FC<VideoGeneratorLayoutProps> = (props) => {
                 </div>
                 <div className="mt-auto pt-6 border-t border-slate-800">
                     <button onClick={handleGenerate} disabled={isLoading} className="w-full flex items-center justify-center bg-gradient-to-r from-[var(--gradient-start)] to-[var(--gradient-end)] hover:opacity-90 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-fuchsia-500/20">
-                        {isLoading ? <LoadingSpinner/> : <span className="flex items-center"><SparklesIcon className="w-5 h-5 mr-2" /> {user.plan === 'freemium' ? 'Upgrade to Generate Video' : 'Generate'}</span>}
+                        {isLoading ? <LoadingSpinner/> : <span className="flex items-center">
+                            <SparklesIcon className="w-5 h-5 mr-2" /> 
+                            {user.plan === 'freemium' ? 'Upgrade to Generate Video' : `Generate (${cost} `}
+                            {user.plan !== 'freemium' && <DiamondIcon className="w-4 h-4 ml-1 inline-block" />}
+                            {user.plan !== 'freemium' && `)`}
+                        </span>}
                     </button>
                 </div>
             </div>
 
             {/* Output Column */}
+            {/* Fix: Pass missing properties to GenerationOutput */}
             <GenerationOutput
                 isLoading={isLoading}
                 generatedContent={""} // Not used for video, url is used instead
@@ -113,6 +127,8 @@ const VideoGeneratorLayout: React.FC<VideoGeneratorLayoutProps> = (props) => {
                 videoStatus={videoStatus}
                 videoUrl={videoUrl}
                 onEditImage={onEditImage}
+                onGenerateImage={onGenerateImage}
+                onAnalyzeResonance={onAnalyzeResonance}
             />
         </div>
     );

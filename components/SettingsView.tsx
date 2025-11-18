@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { User, BrandProfile } from '../types';
-import { getBrandProfile, updateBrandProfile } from '../services/firebaseService';
+import { getBrandProfile, updateBrandProfile, isBrandProfileComplete, updateUserDoc } from '../services/firebaseService';
 import SettingsIcon from './icons/SettingsIcon';
 import { useToast } from '../contexts/ToastContext';
 import ThemeSwitcher from './ThemeSwitcher';
@@ -67,6 +67,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({ user, onUserUpdate, onSaveS
         try {
             const { id, userId, ...profileData } = profile;
             await updateBrandProfile(user.uid, profileData);
+            
             setSaveSuccess(true);
             setTimeout(() => setSaveSuccess(false), 2000);
             onSaveSuccess();

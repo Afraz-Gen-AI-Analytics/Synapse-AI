@@ -60,7 +60,8 @@ enableIndexedDbPersistence(db)
   });
 
 
-export const FREEMIUM_GENERATION_LIMIT = 10;
+export const FREEMIUM_CREDIT_LIMIT = 50;
+export const PRO_CREDIT_LIMIT = 2500;
 export const FREEMIUM_AGENT_LIMIT = 1;
 
 
@@ -71,7 +72,25 @@ const mapFirebaseUserToAppUser = async (firebaseUser: FirebaseAuthUser): Promise
     const userDocSnap = await firestoreGetDoc(userDocRef);
 
     if (userDocSnap.exists()) {
-        const appUserFromDb = { uid: firebaseUser.uid, ...(userDocSnap.data() as Omit<User, 'uid'>) };
+        const dbData = userDocSnap.data();
+        const appUserFromDb = { uid: firebaseUser.uid, ...(dbData as Omit<User, 'uid'>) };
+
+        // Ensure credit-related fields exist for older user documents that might not have them.
+        if (!appUserFromDb.plan) {
+            appUserFromDb.plan = 'freemium';
+        }
+        if (typeof appUserFromDb.credits !== 'number') {
+            // Assign credits based on plan, defaulting to freemium limit.
+            appUserFromDb.credits = appUserFromDb.plan === 'pro' ? PRO_CREDIT_LIMIT : FREEMIUM_CREDIT_LIMIT;
+        }
+        if (typeof appUserFromDb.planCreditLimit !== 'number') {
+            // Assign credit limit based on plan.
+            appUserFromDb.planCreditLimit = appUserFromDb.plan === 'pro' ? PRO_CREDIT_LIMIT : FREEMIUM_CREDIT_LIMIT;
+        }
+        if (typeof appUserFromDb.brandProfileBonusClaimed !== 'boolean') {
+            appUserFromDb.brandProfileBonusClaimed = false;
+        }
+
 
         // Sync photoURL from Auth provider to our DB if it has changed.
         if (firebaseUser.photoURL && appUserFromDb.photoURL !== firebaseUser.photoURL) {
@@ -79,7 +98,7 @@ const mapFirebaseUserToAppUser = async (firebaseUser: FirebaseAuthUser): Promise
             appUserFromDb.photoURL = firebaseUser.photoURL;
         }
         
-        return appUserFromDb;
+        return appUserFromDb as User;
     }
     
     // Document doesn't exist. This can happen due to a race condition on signup
@@ -92,9 +111,11 @@ const mapFirebaseUserToAppUser = async (firebaseUser: FirebaseAuthUser): Promise
         displayName: firebaseUser.displayName || firebaseUser.email!.split('@')[0],
         photoURL: firebaseUser.photoURL || null,
         plan: 'freemium',
-        generationsUsed: 0,
+        credits: FREEMIUM_CREDIT_LIMIT,
+        planCreditLimit: FREEMIUM_CREDIT_LIMIT,
         theme: 'Twilight',
         onboardingCompleted: false,
+        brandProfileBonusClaimed: false,
     };
     
     // Also need to create the brand profile if it's missing.
@@ -164,9 +185,11 @@ export const signUpWithEmail = async (email: string, password: string): Promise<
         displayName: email.split('@')[0],
         photoURL: null,
         plan: 'freemium',
-        generationsUsed: 0,
+        credits: FREEMIUM_CREDIT_LIMIT,
+        planCreditLimit: FREEMIUM_CREDIT_LIMIT,
         theme: 'Twilight',
         onboardingCompleted: false,
+        brandProfileBonusClaimed: false,
     };
     await setDoc(userDocRef, newUser);
 
@@ -387,22 +410,18 @@ export const addAgentLogDoc = async (userId: string, agentId: string, data: Omit
 
 export const isBrandProfileComplete = (profile: BrandProfile | null): boolean => {
     if (!profile) return false;
-
-    // Check against default initial values. A name is default if it's "email's Brand".
-    const isDefaultName = profile.brandName.endsWith("'s Brand") && profile.brandName.includes('@');
     
     // Key fields that must be filled for quality generation
     const requiredFields: (keyof BrandProfile)[] = [
         'productDescription',
         'targetAudience',
         'toneOfVoice',
+        'brandName',
     ];
-
-    if (isDefaultName) return false;
 
     for (const field of requiredFields) {
         const value = profile[field as keyof typeof profile];
-        if (typeof value !== 'string' || value.trim() === '') {
+        if (typeof value !== 'string' || value.trim() === '' || value.endsWith("'s Brand")) {
             return false;
         }
     }

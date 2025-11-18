@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Agent, AgentTask, AgentLog, GeneratedContent, SocialPostContent, EmailContent, AdContent, BlogContent, AgentPersona, BrandProfile } from '../types';
-import { onAgentTasksSnapshot, onAgentLogsSnapshot, addAgentLogDoc, updateAgentTaskDoc, updateAgentDoc, getBrandProfile } from '../services/firebaseService';
+import React, { useState, useEffect, useCallback, useMemo, useContext } from 'react';
+import { Agent, AgentTask, AgentLog, GeneratedContent, SocialPostContent, EmailContent, AdContent, BlogContent, AgentPersona, BrandProfile, User } from '../types';
+import { onAgentTasksSnapshot, onAgentLogsSnapshot, addAgentLogDoc, updateAgentTaskDoc, updateAgentDoc, getBrandProfile, updateUserDoc } from '../services/firebaseService';
 import { generateStructuredContent } from '../services/geminiService';
 import { Type } from "@google/genai";
 import AgentStatusBadge from './AgentStatusBadge';
@@ -18,10 +18,14 @@ import SocialPostPreview from './previews/SocialPostPreview';
 import EmailPreview from './previews/EmailPreview';
 import CopyIcon from './icons/CopyIcon';
 import CheckIcon from './icons/CheckIcon';
+import { AuthContext } from '../App';
+
+const AGENT_TASK_CREDIT_COST = 5;
 
 interface AgentDetailViewProps {
     agent: Agent | undefined;
     onBack: () => void;
+    spendCredits: (amount: number) => Promise<boolean>;
 }
 
 const personaIcons: Record<AgentPersona, React.FC<{className?: string}>> = {
@@ -194,7 +198,7 @@ const TaskCard: React.FC<{
     )
 }
 
-const AgentDetailView: React.FC<AgentDetailViewProps> = ({ agent, onBack }) => {
+const AgentDetailView: React.FC<AgentDetailViewProps> = ({ agent, onBack, spendCredits }) => {
     const [tasks, setTasks] = useState<AgentTask[]>([]);
     const [logs, setLogs] = useState<AgentLog[]>([]);
     const [brandProfile, setBrandProfile] = useState<BrandProfile | null>(null);
@@ -202,6 +206,7 @@ const AgentDetailView: React.FC<AgentDetailViewProps> = ({ agent, onBack }) => {
     const [activeTab, setActiveTab] = useState<'plan' | 'log'>('plan');
     const [processingTaskId, setProcessingTaskId] = useState<string | null>(null);
     const { addToast } = useToast();
+    const { user } = useContext(AuthContext);
 
     useEffect(() => {
         if (!agent) return;
@@ -231,13 +236,20 @@ const AgentDetailView: React.FC<AgentDetailViewProps> = ({ agent, onBack }) => {
     }, [agent]);
     
     const executeTask = useCallback(async (task: AgentTask) => {
-        if (!agent || !brandProfile) return;
+        if (!agent || !brandProfile || !user || !spendCredits) return;
+
+        if (user.credits < AGENT_TASK_CREDIT_COST) {
+            await updateAgentDoc(agent.userId, agent.id, { status: 'paused' });
+            await addAgentLogDoc(agent.userId, agent.id, { agentId: agent.id, userId: agent.userId, message: `Agent paused: Not enough credits to execute task.`, timestamp: new Date().toISOString() });
+            addToast(`Agent "${agent.name}" paused. Not enough credits.`, "error");
+            return;
+        }
+
         try {
             await updateAgentTaskDoc(agent.userId, agent.id, task.id, { status: 'executing' });
             await addAgentLogDoc(agent.userId, agent.id, { agentId: agent.id, userId: agent.userId, message: `Executing task: "${task.description}"`, timestamp: new Date().toISOString() });
             
-            // Add a realistic delay to simulate work and avoid rapid firing API calls
-            await new Promise(resolve => setTimeout(resolve, 3000));
+            await new Promise(resolve => setTimeout(resolve, 2000));
 
             let prompt = `You are an AI Agent with the persona of a ${agent.persona}. Your current task is: "${task.description}".\n\nBrand info:\n- Tone: ${brandProfile.toneOfVoice}\n- Product: ${brandProfile.productDescription}\n\nGenerate the required content.`;
             let schema;
@@ -292,6 +304,13 @@ const AgentDetailView: React.FC<AgentDetailViewProps> = ({ agent, onBack }) => {
             }
 
             const generatedData = await generateStructuredContent(prompt, schema);
+
+            // Spend credits only AFTER successful generation.
+            if (!await spendCredits(AGENT_TASK_CREDIT_COST)) {
+                await updateAgentDoc(agent.userId, agent.id, { status: 'paused' });
+                throw new Error("Credit deduction failed. Agent paused.");
+            }
+
             await updateAgentTaskDoc(agent.userId, agent.id, task.id, {
                 generatedContent: JSON.stringify(generatedData),
                 status: 'needs_review'
@@ -302,10 +321,11 @@ const AgentDetailView: React.FC<AgentDetailViewProps> = ({ agent, onBack }) => {
             const errorMessage = `Agent failed on task: "${task.description}". Reason: ${err.message}`;
             addToast(errorMessage, 'error');
             await addAgentLogDoc(agent.userId, agent.id, { agentId: agent.id, userId: agent.userId, message: errorMessage, timestamp: new Date().toISOString() });
-            // Revert task to pending so it can be retried or handled manually
+            
+            // No refund logic is needed as credits are only spent on success.
             await updateAgentTaskDoc(agent.userId, agent.id, task.id, { status: 'pending' });
         }
-    }, [agent, brandProfile, addToast]);
+    }, [agent, brandProfile, addToast, user, spendCredits]);
 
     useEffect(() => {
         if (agent?.status === 'active' && brandProfile) {

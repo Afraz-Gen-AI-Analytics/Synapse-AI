@@ -15,6 +15,7 @@ import SeoContentBlueprintReport from '../SeoContentBlueprintReport';
 import AdCreativeBlueprintReport from '../AdCreativeBlueprintReport';
 import ViralVideoBlueprintReport from '../ViralVideoBlueprintReport';
 import CopyIcon from '../icons/CopyIcon';
+import DiamondIcon from '../icons/DiamondIcon';
 
 interface AnalyzerLayoutProps {
     selectedTemplate: Template;
@@ -31,6 +32,7 @@ interface AnalyzerLayoutProps {
     initialFields: { [key: string]: string };
     topic: string;
     onTopicChange: (value: string) => void;
+    spendCredits: (amount: number) => Promise<boolean>;
 }
 
 const loadingMessages = [
@@ -67,7 +69,7 @@ const LoadingState: React.FC = () => {
     );
 };
 
-const AnalyzerLayout: React.FC<AnalyzerLayoutProps> = ({ selectedTemplate, brandProfile, user, onPrefill, onGenerateImage, onGenerateVideoFromBlueprint, onGenerate, onUpgrade, reusedReportData, onClearReusedData, tones, initialFields, topic, onTopicChange }) => {
+const AnalyzerLayout: React.FC<AnalyzerLayoutProps> = ({ selectedTemplate, brandProfile, user, onPrefill, onGenerateImage, onGenerateVideoFromBlueprint, onGenerate, onUpgrade, reusedReportData, onClearReusedData, tones, initialFields, topic, onTopicChange, spendCredits }) => {
     const [view, setView] = useState<'form' | 'loading' | 'report'>('form');
     const [extraFields, setExtraFields] = useState<{ [key: string]: string }>(initialFields);
     const [reportData, setReportData] = useState<ResonanceFeedback | MarketSignalReportData | SeoContentBlueprint | AdCreativeBlueprint | ViralVideoBlueprint | null>(null);
@@ -88,6 +90,13 @@ const AnalyzerLayout: React.FC<AnalyzerLayoutProps> = ({ selectedTemplate, brand
             return;
         }
         if (user.plan === 'freemium' && selectedTemplate.isPro) {
+            onUpgrade();
+            return;
+        }
+        
+        const cost = selectedTemplate.creditCost || 25;
+        if (user.credits < cost) {
+            addToast(`This action costs ${cost} credits, but you only have ${user.credits}.`, "error");
             onUpgrade();
             return;
         }
@@ -153,6 +162,11 @@ const AnalyzerLayout: React.FC<AnalyzerLayoutProps> = ({ selectedTemplate, brand
                 throw new Error("Unsupported template for this layout.");
             }
             
+            // Deduct credits only after a successful generation
+            if (!await spendCredits(cost)) {
+                throw new Error("Credit deduction failed. Your balance may have changed.");
+            }
+
             setReportData(result);
             onGenerate(JSON.stringify(result), topic, selectedTemplate.name);
             setView('report');
@@ -279,6 +293,7 @@ const AnalyzerLayout: React.FC<AnalyzerLayoutProps> = ({ selectedTemplate, brand
         }
     };
     const { text: buttonText, icon: ButtonIcon } = getButtonConfig();
+    const cost = selectedTemplate.creditCost || 25;
 
 
     if (view === 'loading') {
@@ -391,7 +406,7 @@ const AnalyzerLayout: React.FC<AnalyzerLayoutProps> = ({ selectedTemplate, brand
 
                 <button onClick={handleGenerate} disabled={isGenerating} className="w-full mt-8 flex items-center justify-center bg-gradient-to-r from-[var(--gradient-start)] to-[var(--gradient-end)] hover:opacity-90 text-white font-semibold py-3 px-6 rounded-lg transition-all text-lg disabled:opacity-50 shadow-lg shadow-[color:var(--gradient-start)]/30">
                     <ButtonIcon className="w-5 h-5 mr-2" />
-                    {buttonText}
+                    {buttonText} ({cost} <DiamondIcon className="w-4 h-4 ml-1 inline-block" />)
                 </button>
             </div>
         </div>

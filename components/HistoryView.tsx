@@ -59,18 +59,35 @@ const HistorySkeleton: React.FC = () => (
         {[...Array(5)].map((_, i) => (
             <div key={i} className="bg-slate-800/50 p-4 rounded-lg border border-slate-700/70 flex items-start space-x-4">
                 <div className="w-16 h-16 rounded-md bg-slate-700 flex-shrink-0"></div>
-                <div className="flex-1 space-y-3">
-                    <div className="flex justify-between items-center">
-                        <div className="h-5 bg-slate-700 rounded w-1/4"></div>
-                        <div className="flex items-center space-x-4">
-                            <div className="h-5 bg-slate-700 rounded w-20"></div>
-                            <div className="h-5 bg-slate-700 rounded w-20"></div>
+                <div className="flex-1 overflow-hidden">
+                    <div className="flex justify-between items-start">
+                        <div className="space-y-2">
+                            <div className="h-5 bg-slate-700 rounded w-32" /> {/* Template name badge */}
+                            <div className="h-3 bg-slate-700 rounded w-48" /> {/* Date */}
+                        </div>
+                        <div className="flex-shrink-0 ml-4">
+                             <div className="h-8 w-32 bg-slate-700 rounded-md" /> {/* Button group placeholder */}
                         </div>
                     </div>
-                    <div className="space-y-2">
-                        <div className="h-4 bg-slate-700 rounded w-full"></div>
-                        <div className="h-4 bg-slate-700 rounded w-3/4"></div>
-                    </div>
+                    <div className="h-4 bg-slate-700 rounded w-3/4 mt-3" /> {/* Topic line */}
+                </div>
+            </div>
+        ))}
+    </div>
+);
+
+const CampaignHistorySkeleton: React.FC = () => (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-pulse">
+        {[...Array(6)].map((_, i) => (
+            <div key={i} className="bg-slate-800/50 p-5 rounded-lg border border-slate-700/70 flex flex-col justify-between">
+                <div className="space-y-3">
+                    <div className="h-5 bg-slate-700 rounded w-3/4 mb-1" /> {/* title */}
+                    <div className="h-4 bg-slate-700 rounded w-full" /> {/* goal line 1 */}
+                    <div className="h-4 bg-slate-700 rounded w-1/2" /> {/* goal line 2 */}
+                </div>
+                <div className="flex justify-between items-center mt-6">
+                    <div className="h-3 bg-slate-700 rounded w-24" /> {/* date */}
+                    <div className="h-8 bg-slate-700 rounded-md w-20" /> {/* button */}
                 </div>
             </div>
         ))}
@@ -102,23 +119,53 @@ const HistoryView: React.FC<HistoryViewProps> = ({ user, onReuse, onCopy, onEdit
     }, [initialTab]);
 
     useEffect(() => {
-        setIsToolHistoryLoading(true);
+        const startTime = Date.now();
+        const MIN_LOADING_TIME = 600; // milliseconds
+
         const unsubscribe = onHistorySnapshot(user.uid, (userHistory) => {
             const sortedHistory = userHistory.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-            setToolHistory(sortedHistory);
-            setIsToolHistoryLoading(false);
+            
+            if (isToolHistoryLoading) {
+                const elapsedTime = Date.now() - startTime;
+                const delay = Math.max(0, MIN_LOADING_TIME - elapsedTime);
+
+                setTimeout(() => {
+                    setToolHistory(sortedHistory);
+                    setIsToolHistoryLoading(false);
+                }, delay);
+            } else {
+                setToolHistory(sortedHistory);
+            }
         });
-        return () => unsubscribe();
+        return () => {
+            unsubscribe();
+            setIsToolHistoryLoading(true);
+        };
     }, [user.uid]);
 
      useEffect(() => {
-        setIsCampaignHistoryLoading(true);
+        const startTime = Date.now();
+        const MIN_LOADING_TIME = 600; // milliseconds
+
         const unsubscribe = onCampaignsSnapshot(user.uid, (campaigns) => {
             const sortedCampaigns = campaigns.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-            setCampaignHistory(sortedCampaigns);
-            setIsCampaignHistoryLoading(false);
+            
+            if (isCampaignHistoryLoading) {
+                const elapsedTime = Date.now() - startTime;
+                const delay = Math.max(0, MIN_LOADING_TIME - elapsedTime);
+
+                setTimeout(() => {
+                    setCampaignHistory(sortedCampaigns);
+                    setIsCampaignHistoryLoading(false);
+                }, delay);
+            } else {
+                 setCampaignHistory(sortedCampaigns);
+            }
         });
-        return () => unsubscribe();
+        return () => {
+            unsubscribe();
+            setIsCampaignHistoryLoading(true);
+        };
     }, [user.uid]);
 
     const handleConfirmClearToolsHistory = async () => {
@@ -303,7 +350,7 @@ const HistoryView: React.FC<HistoryViewProps> = ({ user, onReuse, onCopy, onEdit
                     )
                 )}
                 {activeTab === 'campaigns' && (
-                    isCampaignHistoryLoading ? <HistorySkeleton /> : campaignHistory.length > 0 ? (
+                    isCampaignHistoryLoading ? <CampaignHistorySkeleton /> : campaignHistory.length > 0 ? (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             {campaignHistory.map(campaign => (
                                 <div key={campaign.id} className="bg-slate-800/50 p-5 rounded-lg border border-slate-700/70 flex flex-col justify-between group">
