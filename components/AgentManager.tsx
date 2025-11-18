@@ -1,6 +1,7 @@
+
 import React, { useState, useEffect } from 'react';
 import { Agent, User, AgentPersona } from '../types';
-import { onAgentsSnapshot, deleteAgentAndSubcollections, getBrandProfile, isBrandProfileComplete } from '../services/firebaseService';
+import { onAgentsSnapshot, deleteAgentAndSubcollections } from '../services/firebaseService';
 import AgentConfigurationModal from './AgentConfigurationModal';
 import AgentDetailView from './AgentDetailView';
 import AgentIcon from './icons/AgentIcon';
@@ -13,7 +14,6 @@ import ChevronDownIcon from './icons/ChevronDownIcon';
 import TrashIcon from './icons/TrashIcon';
 import ConfirmationModal from './ConfirmationModal';
 import { useToast } from '../contexts/ToastContext';
-import CompleteProfilePrompt from './CompleteProfilePrompt';
 import ProFeatureBadge from './ProFeatureBadge';
 
 
@@ -64,14 +64,9 @@ const AgentManager: React.FC<AgentManagerProps> = ({ user, onUpgrade, onNavigate
     const [isInitialLoading, setIsInitialLoading] = useState(true);
     const [agentToDelete, setAgentToDelete] = useState<Agent | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
-    const [isProfileComplete, setIsProfileComplete] = useState<boolean | null>(null);
     const { addToast } = useToast();
     
     useEffect(() => {
-        getBrandProfile(user.uid).then(profile => {
-            setIsProfileComplete(isBrandProfileComplete(profile));
-        });
-
         const unsubscribe = onAgentsSnapshot(user.uid,
             (userAgents) => {
                 setAgents(userAgents);
@@ -82,11 +77,6 @@ const AgentManager: React.FC<AgentManagerProps> = ({ user, onUpgrade, onNavigate
     }, [user.uid]);
 
     const handleDeployAgent = () => {
-        if (!isProfileComplete) {
-            addToast("Please complete your Brand Profile in Settings first.", "info");
-            onNavigateToSettings();
-            return;
-        }
         // Allow ONE free agent deployment to solve the "Black Box" problem
         if (user.plan === 'freemium' && agents.length > 0) {
             onUpgrade();
@@ -124,11 +114,8 @@ const AgentManager: React.FC<AgentManagerProps> = ({ user, onUpgrade, onNavigate
     }
 
     const renderContent = () => {
-        if (isProfileComplete === null || (isProfileComplete && isInitialLoading)) {
+        if (isInitialLoading) {
             return <AgentSkeleton />;
-        }
-        if (!isProfileComplete) {
-            return <div className="flex-1 mt-6"><CompleteProfilePrompt featureName="AI Agents" onNavigate={onNavigateToSettings} /></div>;
         }
 
         return (
