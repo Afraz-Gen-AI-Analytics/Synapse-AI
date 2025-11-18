@@ -1289,7 +1289,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
 
 
   return (
-    <div className="flex h-screen bg-slate-950 text-white overflow-hidden">
+    <div className="flex h-screen bg-[#0D1117] text-white overflow-hidden">
       {showUpgradeModal && <UpgradeModal user={user} onClose={() => setShowUpgradeModal(false)} onUpgrade={handleUpgrade} onBuyCredits={handleBuyCredits} />}
       
       <aside className="hidden md:flex w-20 bg-slate-900/80 backdrop-blur-sm p-2 border-r border-slate-800/50 flex-col items-center flex-shrink-0 z-20">

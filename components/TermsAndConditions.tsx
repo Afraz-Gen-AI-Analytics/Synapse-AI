@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React from 'react';
 import SynapseLogo from './icons/SynapseLogo';
 import ArrowRightIcon from './icons/ArrowRightIcon';
 
@@ -18,7 +17,7 @@ const Section: React.FC<{ title: string; children: React.ReactNode }> = ({ title
 
 const TermsAndConditions: React.FC<TermsAndConditionsProps> = ({ onNavigate }) => {
     return (
-        <div className="min-h-screen bg-slate-950 text-white p-4 sm:p-6 lg:p-8">
+        <div className="min-h-screen bg-[#0D1117] text-white p-4 sm:p-6 lg:p-8">
             <div className="max-w-4xl mx-auto">
                 <header className="text-center mb-12">
                     <SynapseLogo className="w-12 h-12 mx-auto mb-4" />

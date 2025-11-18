@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import SynapseLogo from './icons/SynapseLogo';
 import { signInWithEmail, signInWithGoogle } from '../services/firebaseService';
@@ -55,7 +54,7 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess, onNavigate }) => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-950 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-[#0D1117] p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
             <SynapseLogo className="w-12 h-12 mx-auto mb-4" />
