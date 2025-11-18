@@ -203,27 +203,33 @@ const HomeDashboard: React.FC<HomeDashboardProps> = ({ user, templates, onSelect
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <button
                         onClick={() => onTabChange('agents')}
-                        className="flex flex-col items-start p-4 rounded-lg text-left transition-all bg-slate-800/50 hover:bg-slate-800 border border-slate-700/70 hover:border-fuchsia-500/50"
+                        className="flex flex-col items-start p-4 rounded-lg text-left transition-all bg-slate-800/50 hover:bg-slate-800 border border-slate-700/70 hover:border-fuchsia-500/50 w-full group"
                     >
-                        <AgentIcon className="w-7 h-7 mb-3 text-fuchsia-400" />
-                        <span className="font-semibold text-white">Automate with Agents</span>
-                        <span className="text-sm text-slate-400 mt-1">Deploy an AI workforce to execute entire campaigns.</span>
+                         <div className="flex flex-row md:flex-col items-center md:items-start w-full mb-2 md:mb-0">
+                            <AgentIcon className="w-6 h-6 md:w-7 md:h-7 mr-3 md:mr-0 md:mb-3 text-fuchsia-400 flex-shrink-0" />
+                            <span className="font-semibold text-white">Automate with Agents</span>
+                        </div>
+                        <span className="text-sm text-slate-400 md:mt-1 leading-snug">Deploy an AI workforce to execute entire campaigns.</span>
                     </button>
                     <button
                         onClick={() => onTabChange('live-agent')}
-                        className="flex flex-col items-start p-4 rounded-lg text-left transition-all bg-slate-800/50 hover:bg-slate-800 border border-slate-700/70 hover:border-sky-500/50"
+                        className="flex flex-col items-start p-4 rounded-lg text-left transition-all bg-slate-800/50 hover:bg-slate-800 border border-slate-700/70 hover:border-sky-500/50 w-full group"
                     >
-                        <HeadsetIcon className="w-7 h-7 mb-3 text-sky-400" />
-                        <span className="font-semibold text-white">Live Agent</span>
-                        <span className="text-sm text-slate-400 mt-1">Instant strategies and platform guidance via voice.</span>
+                        <div className="flex flex-row md:flex-col items-center md:items-start w-full mb-2 md:mb-0">
+                            <HeadsetIcon className="w-6 h-6 md:w-7 md:h-7 mr-3 md:mr-0 md:mb-3 text-sky-400 flex-shrink-0" />
+                            <span className="font-semibold text-white">Live Agent</span>
+                        </div>
+                        <span className="text-sm text-slate-400 md:mt-1 leading-snug">Instant strategies and platform guidance via voice.</span>
                     </button>
                     <button
                         onClick={() => onTabChange('analytics')}
-                        className="flex flex-col items-start p-4 rounded-lg text-left transition-all bg-slate-800/50 hover:bg-slate-800 border border-slate-700/70 hover:border-emerald-500/50"
+                        className="flex flex-col items-start p-4 rounded-lg text-left transition-all bg-slate-800/50 hover:bg-slate-800 border border-slate-700/70 hover:border-emerald-500/50 w-full group"
                     >
-                        <AnalyticsIcon className="w-7 h-7 mb-3 text-emerald-400" />
-                        <span className="font-semibold text-white">View Analytics</span>
-                        <span className="text-sm text-slate-400 mt-1">Track performance and gain strategic insights.</span>
+                         <div className="flex flex-row md:flex-col items-center md:items-start w-full mb-2 md:mb-0">
+                            <AnalyticsIcon className="w-6 h-6 md:w-7 md:h-7 mr-3 md:mr-0 md:mb-3 text-emerald-400 flex-shrink-0" />
+                            <span className="font-semibold text-white">View Analytics</span>
+                        </div>
+                        <span className="text-sm text-slate-400 md:mt-1 leading-snug">Track performance and gain strategic insights.</span>
                     </button>
                 </div>
             </div>
