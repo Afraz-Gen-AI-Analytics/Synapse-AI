@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useMemo, useEffect, useContext } from 'react';
 import { ContentType, Template, HistoryItem, User, ToolRoute, BrandProfile, ContentRecommendation, ViralVideoBlueprint } from '../types';
 import { 
@@ -66,7 +65,6 @@ import UsageUpgradeCard from './UsageUpgradeCard';
 import BottomNavBar from './BottomNavBar';
 import CommandBar from './CommandBar';
 import CompleteProfilePrompt from './CompleteProfilePrompt';
-import ProFeatureBadge from './ProFeatureBadge';
 
 declare global {
   interface AIStudio {
@@ -171,110 +169,7 @@ const compressImageForHistory = (base64DataUrl: string, maxSizeInBytes: number =
 
 const tones = ["Professional", "Casual", "Witty", "Enthusiastic", "Bold"];
 
-// Templates reordered: Free tools first, then Pro tools logic handled in ToolsPanel
 const templates: Template[] = [
-  // --- CORE TOOLS (Free) ---
-  {
-    id: ContentType.SocialMediaPost,
-    name: "Social Media Post",
-    description: "Craft engaging social media posts that build your audience.",
-    icon: SocialIcon,
-    placeholder: "e.g., Announcing a new AI-powered productivity app called 'Momentum'",
-    fields: [
-      { name: "platform", label: "Platform", options: ["Twitter", "LinkedIn", "Facebook"], defaultValue: "Twitter" }
-    ],
-    supportsVariations: true,
-    creditCost: 2,
-  },
-  {
-    id: ContentType.EmailCopy,
-    name: "Marketing Email",
-    description: "Write powerful, persuasive emails that turn subscribers into customers.",
-    icon: EmailIcon,
-    placeholder: "e.g., A 20% discount offer for returning customers",
-    supportsVariations: true,
-    prompt: ({ topic, tone, numOutputs = 1 }) => `You are an expert marketing copywriter specializing in creating highly engaging and professional emails. Your sole task is to generate the direct email content. Do not include any extra conversational text, introductions, or explanations.
-
-Write ${numOutputs} persuasive marketing email${numOutputs > 1 ? 's' : ''} for the following purpose.
-
-**CRITICAL RULES:**
-1.  **Tone of Voice:** The email's style, language, and feeling MUST strictly reflect the chosen tone: **${tone}**.
-2.  **Emojis:** Incorporate 2-3 relevant emojis naturally within the email body. The emojis you choose must align perfectly with the selected tone. For example:
-    - If the tone is 'Professional', use emojis like ✅, 🚀, 📈.
-    - If the tone is 'Casual' or 'Enthusiastic', use emojis like 👋, 🎉, 😊, 🔥.
-    - If the tone is 'Witty', use emojis like 😉, 💡, 😜.
-3.  **Formatting:**
-    - Start with a heading for the subject line (e.g., '## Subject: ...').
-    - Use **bold text** for the primary call-to-action.
-
-${numOutputs > 1 ? `IMPORTANT: Use "[---VARIATION_SEPARATOR---]" on a new line with nothing else on it to separate each distinct email variation.'` : ''}
-
-**Purpose:** "${topic}"`,
-    creditCost: 2,
-  },
-  {
-    id: ContentType.BlogIdea,
-    name: "SEO Content Strategist",
-    description: "Generate a complete SEO blueprint: titles, keywords, outline, and more.",
-    icon: BrainCircuitIcon,
-    placeholder: "e.g., 'How to start a successful podcast in 2024'",
-    fields: [
-      { name: "targetAudience", label: "Target Audience", placeholder: "e.g., 'Beginner podcasters and content creators'" },
-      { name: "contentGoal", label: "Content Goal", options: ["Rank on Google (SEO)", "Drive Social Shares", "Convert Readers (Lead Gen)", "Build Thought Leadership"], defaultValue: "Rank on Google (SEO)" },
-      { name: "tone", label: "Tone of Voice", options: tones, defaultValue: "Professional" }
-    ],
-    creditCost: 15,
-  },
-  {
-    id: ContentType.AIAdCreativeStudio,
-    name: "AI Ad Creative Studio",
-    description: "Brainstorm marketing angles and generate complete ad creative packages.",
-    icon: PaintBrushIcon,
-    placeholder: "e.g., 'A high-performance running shoe for trail enthusiasts'",
-    fields: [
-      { name: "platform", label: "Ad Platform", options: ["Facebook/Instagram", "Google Ads", "LinkedIn Ads"], defaultValue: "Facebook/Instagram" },
-      { name: "targetAudience", label: "Target Audience", placeholder: "e.g., 'Millennial urban commuters'" },
-      { name: "tone", label: "Tone of Voice", options: tones, defaultValue: "Professional" },
-    ],
-    isPro: false,
-    creditCost: 15,
-  },
-  {
-    id: ContentType.VideoScriptHook,
-    name: "Viral Video Blueprint",
-    description: "Generate a complete strategic blueprint for a viral short-form video, including hook, script, visuals, and audio.",
-    icon: ViralVideoIdeaIcon,
-    placeholder: "e.g., How to save money on groceries",
-    fields: [
-      { name: "platform", label: "Target Platform", options: ["TikTok", "Instagram Reels", "YouTube Shorts"], defaultValue: "TikTok" },
-      { name: "hookStyle", label: "Hook Style", options: ["Controversial", "Question", "Storytelling", "Problem/Agitator", "Secret/Hack"], defaultValue: "Controversial" },
-      { name: "tone", label: "Tone of Voice", options: tones, defaultValue: "Casual" },
-    ],
-    isPro: false,
-    creditCost: 15,
-  },
-  {
-    id: ContentType.AIImage,
-    name: "AI Image Generator",
-    description: "Generate high-impact images for ads, social media, and websites.",
-    icon: ImageIcon,
-    placeholder: "e.g., A vibrant banner ad for a summer sale on sunglasses, 16:9 aspect ratio",
-    fields: [
-      { name: "aspectRatio", label: "Aspect Ratio", options: ["1:1", "16:9", "9:16", "4:3", "3:4"], defaultValue: "1:1" },
-      { name: "style", label: "Image Style", options: ["Photorealistic", "Studio Level", "3D Render", "Graphic Illustration", "Minimalist"], defaultValue: "Photorealistic" }
-    ],
-    creditCost: 10,
-  },
-   {
-    id: ContentType.AIImageEditor,
-    name: "AI Image Editor",
-    description: "Edit and transform your images with simple text commands.",
-    icon: EditImageIcon,
-    placeholder: "e.g., Add the text '50% OFF' in a bold, modern font to the top left corner",
-    creditCost: 5,
-  },
-  
-  // --- PRO SUITE (Paid) ---
   {
     id: ContentType.Campaign,
     name: "Campaign Builder",
@@ -312,6 +207,53 @@ ${numOutputs > 1 ? `IMPORTANT: Use "[---VARIATION_SEPARATOR---]" on a new line w
     creditCost: 20,
   },
   {
+    id: ContentType.BlogIdea,
+    name: "SEO Content Strategist",
+    description: "Generate a complete SEO blueprint: titles, keywords, outline, and more.",
+    icon: BrainCircuitIcon,
+    placeholder: "e.g., 'How to start a successful podcast in 2024'",
+    fields: [
+      { name: "targetAudience", label: "Target Audience", placeholder: "e.g., 'Beginner podcasters and content creators'" },
+      { name: "contentGoal", label: "Content Goal", options: ["Rank on Google (SEO)", "Drive Social Shares", "Convert Readers (Lead Gen)", "Build Thought Leadership"], defaultValue: "Rank on Google (SEO)" },
+      { name: "tone", label: "Tone of Voice", options: tones, defaultValue: "Professional" }
+    ],
+    creditCost: 15,
+  },
+  {
+    id: ContentType.AIAdCreativeStudio,
+    name: "AI Ad Creative Studio",
+    description: "Brainstorm marketing angles and generate complete ad creative packages.",
+    icon: PaintBrushIcon,
+    placeholder: "e.g., 'A high-performance running shoe for trail enthusiasts'",
+    fields: [
+      { name: "platform", label: "Ad Platform", options: ["Facebook/Instagram", "Google Ads", "LinkedIn Ads"], defaultValue: "Facebook/Instagram" },
+      { name: "targetAudience", label: "Target Audience", placeholder: "e.g., 'Millennial urban commuters'" },
+      { name: "tone", label: "Tone of Voice", options: tones, defaultValue: "Professional" },
+    ],
+    isPro: false,
+    creditCost: 15,
+  },
+  {
+    id: ContentType.AIImage,
+    name: "AI Image Generator",
+    description: "Generate high-impact images for ads, social media, and websites.",
+    icon: ImageIcon,
+    placeholder: "e.g., A vibrant banner ad for a summer sale on sunglasses, 16:9 aspect ratio",
+    fields: [
+      { name: "aspectRatio", label: "Aspect Ratio", options: ["1:1", "16:9", "9:16", "4:3", "3:4"], defaultValue: "1:1" },
+      { name: "style", label: "Image Style", options: ["Photorealistic", "Studio Level", "3D Render", "Graphic Illustration", "Minimalist"], defaultValue: "Photorealistic" }
+    ],
+    creditCost: 10,
+  },
+   {
+    id: ContentType.AIImageEditor,
+    name: "AI Image Editor",
+    description: "Edit and transform your images with simple text commands.",
+    icon: EditImageIcon,
+    placeholder: "e.g., Add the text '50% OFF' in a bold, modern font to the top left corner",
+    creditCost: 5,
+  },
+  {
     id: ContentType.AIVideoGenerator,
     name: "Marketing Video Ad",
     description: "Create compelling video ads that capture attention and drive results.",
@@ -323,6 +265,58 @@ ${numOutputs > 1 ? `IMPORTANT: Use "[---VARIATION_SEPARATOR---]" on a new line w
     ],
     isPro: true,
     creditCost: 50,
+  },
+  {
+    id: ContentType.SocialMediaPost,
+    name: "Social Media Post",
+    description: "Craft engaging social media posts that build your audience.",
+    icon: SocialIcon,
+    placeholder: "e.g., Announcing a new AI-powered productivity app called 'Momentum'",
+    fields: [
+      { name: "platform", label: "Platform", options: ["Twitter", "LinkedIn", "Facebook"], defaultValue: "Twitter" }
+    ],
+    supportsVariations: true,
+    creditCost: 2,
+  },
+  {
+    id: ContentType.VideoScriptHook,
+    name: "Viral Video Blueprint",
+    description: "Generate a complete strategic blueprint for a viral short-form video, including hook, script, visuals, and audio.",
+    icon: ViralVideoIdeaIcon,
+    placeholder: "e.g., How to save money on groceries",
+    fields: [
+      { name: "platform", label: "Target Platform", options: ["TikTok", "Instagram Reels", "YouTube Shorts"], defaultValue: "TikTok" },
+      { name: "hookStyle", label: "Hook Style", options: ["Controversial", "Question", "Storytelling", "Problem/Agitator", "Secret/Hack"], defaultValue: "Controversial" },
+      { name: "tone", label: "Tone of Voice", options: tones, defaultValue: "Casual" },
+    ],
+    isPro: false,
+    creditCost: 15,
+  },
+  {
+    id: ContentType.EmailCopy,
+    name: "Marketing Email",
+    description: "Write powerful, persuasive emails that turn subscribers into customers.",
+    icon: EmailIcon,
+    placeholder: "e.g., A 20% discount offer for returning customers",
+    supportsVariations: true,
+    prompt: ({ topic, tone, numOutputs = 1 }) => `You are an expert marketing copywriter specializing in creating highly engaging and professional emails. Your sole task is to generate the direct email content. Do not include any extra conversational text, introductions, or explanations.
+
+Write ${numOutputs} persuasive marketing email${numOutputs > 1 ? 's' : ''} for the following purpose.
+
+**CRITICAL RULES:**
+1.  **Tone of Voice:** The email's style, language, and feeling MUST strictly reflect the chosen tone: **${tone}**.
+2.  **Emojis:** Incorporate 2-3 relevant emojis naturally within the email body. The emojis you choose must align perfectly with the selected tone. For example:
+    - If the tone is 'Professional', use emojis like ✅, 🚀, 📈.
+    - If the tone is 'Casual' or 'Enthusiastic', use emojis like 👋, 🎉, 😊, 🔥.
+    - If the tone is 'Witty', use emojis like 😉, 💡, 😜.
+3.  **Formatting:**
+    - Start with a heading for the subject line (e.g., '## Subject: ...').
+    - Use **bold text** for the primary call-to-action.
+
+${numOutputs > 1 ? `IMPORTANT: Use "[---VARIATION_SEPARATOR---]" on a new line with nothing else on it to separate each distinct email variation.'` : ''}
+
+**Purpose:** "${topic}"`,
+    creditCost: 2,
   },
 ];
 
@@ -1086,57 +1080,23 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
     }
   }, [templates, addToast, handleTemplateSelect]);
   
-  const ToolsPanel = ({ isMobile = false }) => {
-    const freeTools = templates.filter(t => !t.isPro);
-    const proTools = templates.filter(t => t.isPro);
-
-    return (
+  const ToolsPanel = ({ isMobile = false }) => (
     <aside className={`p-6 flex flex-col flex-shrink-0 bg-slate-900/80 backdrop-blur-sm ${isMobile ? 'w-64' : 'w-64'} h-full`}>
         <h2 className="text-xl font-bold text-white mb-6">Tools</h2>
-        <nav className="flex-1 flex flex-col gap-6 overflow-y-auto pr-2 -mr-2 custom-scrollbar">
-            
-            {/* Free Tools Section */}
-            <div>
-                <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 px-3">Core Tools</h3>
-                <div className="flex flex-col gap-1">
-                    {freeTools.map(template => (
-                        <button
-                            key={template.id}
-                            onClick={() => handleTemplateSelect(template)}
-                            className={`flex items-center w-full p-3 rounded-lg text-left transition-colors duration-200 text-slate-300 hover:bg-slate-800/60 relative ${
-                            selectedTemplate.id === template.id && activeTab === 'tools' ? 'bg-slate-800 text-white' : ''
-                            }`}
-                        >
-                            {selectedTemplate.id === template.id && activeTab === 'tools' && <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-[var(--gradient-start)] to-[var(--gradient-end)] rounded-r-full"></div>}
-                            <template.icon className="w-5 h-5 mr-3 flex-shrink-0" />
-                            <span className="font-medium text-sm flex-grow truncate pr-2">{template.name}</span>
-                        </button>
-                    ))}
-                </div>
-            </div>
-
-             {/* Pro Tools Section */}
-            <div>
-                <h3 className="text-xs font-bold text-[var(--gradient-start)] uppercase tracking-wider mb-3 px-3 flex items-center">
-                    Pro Studio
-                    <ProFeatureBadge className="ml-2 scale-90" />
-                </h3>
-                <div className="flex flex-col gap-1">
-                    {proTools.map(template => (
-                        <button
-                            key={template.id}
-                            onClick={() => handleTemplateSelect(template)}
-                            className={`flex items-center w-full p-3 rounded-lg text-left transition-colors duration-200 text-slate-300 hover:bg-slate-800/60 relative ${
-                            selectedTemplate.id === template.id && activeTab === 'tools' ? 'bg-slate-800 text-white' : ''
-                            }`}
-                        >
-                            {selectedTemplate.id === template.id && activeTab === 'tools' && <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-[var(--gradient-start)] to-[var(--gradient-end)] rounded-r-full"></div>}
-                            <template.icon className="w-5 h-5 mr-3 flex-shrink-0" />
-                            <span className="font-medium text-sm flex-grow truncate pr-2 gradient-text font-semibold">{template.name}</span>
-                        </button>
-                    ))}
-                </div>
-            </div>
+        <nav className="flex-1 flex flex-col gap-2 overflow-y-auto pr-2 -mr-2">
+        {templates.map(template => (
+          <button
+            key={template.id}
+            onClick={() => handleTemplateSelect(template)}
+            className={`flex items-center w-full p-3 rounded-lg text-left transition-colors duration-200 text-slate-300 hover:bg-slate-800/60 relative ${
+              selectedTemplate.id === template.id && activeTab === 'tools' ? 'bg-slate-800 text-white' : ''
+            }`}
+          >
+            {selectedTemplate.id === template.id && activeTab === 'tools' && <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-[var(--gradient-start)] to-[var(--gradient-end)] rounded-r-full"></div>}
+            <template.icon className="w-5 h-5 mr-3 flex-shrink-0" />
+            <span className={`font-medium text-sm flex-grow truncate pr-2 ${template.isPro ? 'gradient-text font-semibold' : ''}`}>{template.name}</span>
+          </button>
+        ))}
         </nav>
         { user && (
             <div className="mt-auto flex-shrink-0 pt-6 border-t border-slate-800">
@@ -1144,8 +1104,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
             </div>
         )}
     </aside>
-    );
-  };
+  );
 
   const renderToolLayout = () => {
     if (!user) return null;
