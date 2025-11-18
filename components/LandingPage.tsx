@@ -157,8 +157,8 @@ const Header: React.FC<LandingPageProps> = ({ onNavigate }) => {
   <header className="absolute top-0 left-0 right-0 z-20 py-4 px-4 sm:px-6 lg:px-8">
     <div className="container mx-auto flex justify-between items-center">
       <div className="flex items-center space-x-3 cursor-pointer">
-        <SynapseLogo className="w-9 h-9" />
-        <span className="text-2xl font-bold text-white">Synapse AI</span>
+        <SynapseLogo className="w-8 h-8 sm:w-9 sm:h-9" />
+        <span className="text-xl sm:text-2xl font-bold text-white">Synapse AI</span>
       </div>
       <nav className="hidden md:flex items-center space-x-8">
         <a href="#features" className="text-slate-300 hover:text-white transition-colors">Features</a>
@@ -167,10 +167,10 @@ const Header: React.FC<LandingPageProps> = ({ onNavigate }) => {
         <a href="#faq" className="text-slate-300 hover:text-white transition-colors">FAQ</a>
       </nav>
       <div className="flex items-center space-x-2">
-        <button onClick={() => onNavigate('login')} className="text-slate-300 hover:text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-300">
+        <button onClick={() => onNavigate('login')} className="text-slate-300 hover:text-white font-semibold py-2 px-3 sm:px-4 text-sm sm:text-base rounded-lg transition-colors duration-300">
             Sign In
         </button>
-        <button onClick={() => onNavigate('signup')} className="bg-gradient-to-r from-[var(--gradient-start)] to-[var(--gradient-end)] hover:opacity-90 text-white font-semibold py-2 px-5 rounded-lg transition-all duration-300 ease-in-out hover:scale-105 shadow-lg shadow-[color:var(--gradient-start)]/20">
+        <button onClick={() => onNavigate('signup')} className="bg-gradient-to-r from-[var(--gradient-start)] to-[var(--gradient-end)] hover:opacity-90 text-white font-semibold py-2 px-4 sm:px-5 text-sm sm:text-base rounded-lg transition-all duration-300 ease-in-out hover:scale-105 shadow-lg shadow-[color:var(--gradient-start)]/20">
             Get Started
         </button>
       </div>
@@ -184,11 +184,11 @@ const FaqItem: React.FC<{ question: string; children: React.ReactNode }> = ({ qu
     return (
         <div className="border-b border-slate-700/50 py-4">
             <button onClick={() => setIsOpen(!isOpen)} className="w-full flex justify-between items-center text-left">
-                <h3 className="font-semibold text-lg">{question}</h3>
-                <ChevronDownIcon className={`w-6 h-6 transition-transform text-slate-400 ${isOpen ? 'rotate-180' : ''}`} />
+                <h3 className="font-semibold text-base sm:text-lg pr-4">{question}</h3>
+                <ChevronDownIcon className={`w-6 h-6 transition-transform text-slate-400 flex-shrink-0 ${isOpen ? 'rotate-180' : ''}`} />
             </button>
             <div className={`overflow-hidden transition-all duration-300 ${isOpen ? 'max-h-96 mt-2' : 'max-h-0'}`}>
-                <div className="pt-2 text-slate-400">{children}</div>
+                <div className="pt-2 text-slate-400 text-sm sm:text-base">{children}</div>
             </div>
         </div>
     );
@@ -240,6 +240,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
   const [activeDemo, setActiveDemo] = useState<DemoTab>('productLaunch');
   const currentDemo = demoContent[activeDemo];
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annually'>('annually');
+  const [brandInput, setBrandInput] = useState('');
   
   const [isDemoVisible, setIsDemoVisible] = useState(false);
   const demoRef = useRef<HTMLDivElement>(null);
@@ -264,31 +265,56 @@ const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
     };
   }, []);
 
+  const handleQuickStart = (e: React.FormEvent) => {
+      e.preventDefault();
+      if (brandInput.trim()) {
+          sessionStorage.setItem('synapse_onboarding_input', brandInput);
+          onNavigate('signup');
+      } else {
+          onNavigate('signup');
+      }
+  };
+
   return (
     <div className="bg-[#0D1117] text-white overflow-x-hidden">
       <Header onNavigate={onNavigate} />
       
       <div className="min-h-screen flex flex-col">
-        <main className="hero-background flex-grow flex items-center justify-center pt-40 pb-20">
+        <main className="hero-background flex-grow flex items-center justify-center pt-32 pb-16 md:pt-40 md:pb-20">
           <div className="relative z-10 container mx-auto px-4 text-center">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight mb-4 opacity-0 animate-fade-in-up" style={{textShadow: '0 2px 10px rgba(0,0,0,0.5)', animationDelay: '0.2s'}}>
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight mb-4 opacity-0 animate-fade-in-up" style={{textShadow: '0 2px 10px rgba(0,0,0,0.5)', animationDelay: '0.2s'}}>
              The AI Command Center for Modern <br className="hidden md:block" /> <DynamicHeadline />
             </h1>
-             <p className="text-lg md:text-xl text-slate-400 max-w-3xl mx-auto mb-8 opacity-0 animate-fade-in-up" style={{textShadow: '0 2px 8px rgba(0,0,0,0.5)', animationDelay: '0.4s'}}>
+             <p className="text-base sm:text-lg md:text-xl text-slate-400 max-w-3xl mx-auto mb-8 opacity-0 animate-fade-in-up px-2" style={{textShadow: '0 2px 8px rgba(0,0,0,0.5)', animationDelay: '0.4s'}}>
               Automate your entire marketing workflow in minutes. From strategy to execution, let your AI co-pilot do the heavy lifting.
             </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 opacity-0 animate-fade-in-up" style={{ animationDelay: '0.6s' }}>
-              <button onClick={() => onNavigate('signup')} className="bg-gradient-to-r from-[var(--gradient-start)] to-[var(--gradient-end)] hover:opacity-90 text-white font-bold py-4 px-8 rounded-lg text-lg transition-transform duration-300 ease-in-out hover:scale-105 shadow-lg animate-button-glow w-full sm:w-auto">
-                Get Started Free
-              </button>
-              <button onClick={() => alert('Playing demo!')} className="bg-transparent border-2 gradient-border text-lg font-bold py-4 px-8 rounded-lg transition-all duration-300 w-full sm:w-auto hover:bg-white/5 flex items-center justify-center">
-                <span className="flex items-center gradient-text">
-                  <VideoIcon className="w-5 h-5 mr-2" />
-                  Watch Demo
-                </span>
-              </button>
+            
+            {/* New Reverse Onboarding Input */}
+            <div className="max-w-2xl mx-auto opacity-0 animate-fade-in-up px-2" style={{ animationDelay: '0.6s' }}>
+                <form onSubmit={handleQuickStart} className="relative group">
+                    <div className="absolute -inset-1 bg-gradient-to-r from-[var(--gradient-start)] to-[var(--gradient-end)] rounded-lg blur opacity-25 group-hover:opacity-50 transition duration-200"></div>
+                    <div className="relative flex flex-col sm:flex-row items-stretch sm:items-center bg-slate-900 rounded-lg p-1.5 border border-slate-700 focus-within:border-[var(--gradient-start)] transition-colors shadow-2xl">
+                        <input 
+                            type="text" 
+                            placeholder="Enter your website URL or what you sell..." 
+                            className="w-full bg-transparent text-white placeholder-slate-400 px-4 py-3 outline-none text-base md:text-lg"
+                            value={brandInput}
+                            onChange={(e) => setBrandInput(e.target.value)}
+                        />
+                        <button 
+                            type="submit"
+                            className="mt-2 sm:mt-0 bg-gradient-to-r from-[var(--gradient-start)] to-[var(--gradient-end)] hover:opacity-90 text-white font-bold py-3 px-6 rounded-md text-sm md:text-base transition-transform duration-200 hover:scale-[1.02] shadow-lg whitespace-nowrap flex-shrink-0"
+                        >
+                            Generate Strategy
+                        </button>
+                    </div>
+                </form>
+                <p className="text-xs text-slate-500 mt-3">
+                    Instant Analysis • No Credit Card Required • Free 50 Credits
+                </p>
             </div>
-             <div className="mt-8 flex justify-center items-center gap-4 text-slate-400 opacity-0 animate-fade-in-up" style={{ animationDelay: '0.8s' }}>
+
+             <div className="mt-12 flex justify-center items-center gap-4 text-slate-400 opacity-0 animate-fade-in-up" style={{ animationDelay: '0.8s' }}>
                 <div className="flex -space-x-2">
                     <img className="w-8 h-8 rounded-full border-2 border-slate-900 object-cover" src="https://randomuser.me/api/portraits/women/68.jpg" alt="User 1" />
                     <img className="w-8 h-8 rounded-full border-2 border-slate-900 object-cover" src="https://randomuser.me/api/portraits/men/75.jpg" alt="User 2" />
@@ -299,13 +325,13 @@ const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
           </div>
         </main>
 
-        <section className="py-16 bg-black/10">
+        <section className="py-16 bg-black/10 border-y border-slate-800/30">
           <div className="container mx-auto px-4 text-center">
-            <h2 className="text-sm font-semibold tracking-widest text-slate-400 uppercase">TRUSTED BY MARKETERS AT</h2>
-            <div className="mt-12 w-full inline-flex flex-nowrap overflow-hidden [mask-image:_linear-gradient(to_right,transparent_0,_black_128px,_black_calc(100%-128px),transparent_100%)]">
+            <h2 className="text-xs sm:text-sm font-semibold tracking-widest text-slate-400 uppercase mb-8">TRUSTED BY MARKETERS AT</h2>
+            <div className="w-full inline-flex flex-nowrap overflow-hidden [mask-image:_linear-gradient(to_right,transparent_0,_black_64px,_black_calc(100%-64px),transparent_100%)] md:[mask-image:_linear-gradient(to_right,transparent_0,_black_128px,_black_calc(100%-128px),transparent_100%)]">
               <ul className="flex items-center justify-center md:justify-start animate-scroll">
                 {[...companyLogos, ...companyLogos].map(({ name, Svg }, index) => (
-                  <li key={index} className="mx-10 flex items-center space-x-4 text-slate-500 hover:text-slate-200 transition-colors duration-300">
+                  <li key={index} className="mx-6 md:mx-10 flex items-center space-x-2 md:space-x-4 text-slate-500 hover:text-slate-200 transition-colors duration-300">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       viewBox="0 0 24 24"
@@ -314,11 +340,11 @@ const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
                       strokeWidth="1.5"
                       strokeLinecap="round"
                       strokeLinejoin="round"
-                      className="w-8 h-8 flex-shrink-0"
+                      className="w-6 h-6 md:w-8 md:h-8 flex-shrink-0"
                     >
                       <Svg />
                     </svg>
-                    <span className="text-2xl font-bold tracking-wider uppercase">{name}</span>
+                    <span className="text-lg md:text-2xl font-bold tracking-wider uppercase">{name}</span>
                   </li>
                 ))}
               </ul>
@@ -328,34 +354,34 @@ const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
       </div>
       
       
-      <section id="features" className="py-20 bg-black/20">
+      <section id="features" className="py-16 md:py-20 bg-black/20">
         <div className="container mx-auto px-4 max-w-6xl">
           <AnimatedSection>
             <div className="text-center mb-12">
               <h2 className="text-3xl md:text-4xl font-bold">A Command Center for Your Growth Strategy</h2>
-              <p className="text-slate-400 mt-2">Go beyond generation. Deploy, analyze, and dominate with our suite of tools.</p>
+              <p className="text-slate-400 mt-2 max-w-2xl mx-auto">Go beyond generation. Deploy, analyze, and dominate with our suite of tools.</p>
             </div>
           </AnimatedSection>
           <div className="grid md:grid-cols-3 gap-8">
             <AnimatedSection delay={0}>
-              <div className="bg-slate-900 p-8 rounded-xl border border-slate-800 transition-all duration-300 hover:border-[var(--gradient-end)]/50 hover:-translate-y-2 group hover:shadow-lg hover:shadow-[color:var(--gradient-end)]/20 h-full">
-                  <SparklesIcon className="w-12 h-12 text-[var(--gradient-end)] mb-4 transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6"/>
-                  <h3 className="text-xl font-bold mb-2">Core Content Tools</h3>
-                  <p className="text-slate-400">Access a rich suite of content generators for social media, blogs, emails, and ad copy to kickstart your creative workflow.</p>
+              <div className="bg-slate-900 p-6 md:p-8 rounded-xl border border-slate-800 transition-all duration-300 hover:border-[var(--gradient-end)]/50 hover:-translate-y-2 group hover:shadow-lg hover:shadow-[color:var(--gradient-end)]/20 h-full">
+                  <SparklesIcon className="w-10 h-10 md:w-12 md:h-12 text-[var(--gradient-end)] mb-4 transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6"/>
+                  <h3 className="text-lg md:text-xl font-bold mb-2">Core Content Tools</h3>
+                  <p className="text-slate-400 text-sm md:text-base">Access a rich suite of content generators for social media, blogs, emails, and ad copy to kickstart your creative workflow.</p>
               </div>
             </AnimatedSection>
             <AnimatedSection delay={150}>
-              <div className="bg-slate-900 p-8 rounded-xl border-2 border-[var(--gradient-start)]/80 transition-all duration-300 hover:-translate-y-2 shadow-2xl shadow-fuchsia-900/20 group hover:shadow-lg hover:shadow-[color:var(--gradient-start)]/30 h-full">
-                  <AgentIcon className="w-12 h-12 text-[var(--gradient-start)] mb-4 transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6" />
-                  <h3 className="text-xl font-bold mb-2">Autonomous Pro Suite</h3>
-                  <p className="text-slate-400">Unlock our flagship Pro Suite to research, plan, and execute with our Resonance Engine, Market Signal Analyzer, Campaign Builder, Autonomous Agents, and more.</p>
+              <div className="bg-slate-900 p-6 md:p-8 rounded-xl border-2 border-[var(--gradient-start)]/80 transition-all duration-300 hover:-translate-y-2 shadow-2xl shadow-fuchsia-900/20 group hover:shadow-lg hover:shadow-[color:var(--gradient-start)]/30 h-full">
+                  <AgentIcon className="w-10 h-10 md:w-12 md:h-12 text-[var(--gradient-start)] mb-4 transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6" />
+                  <h3 className="text-lg md:text-xl font-bold mb-2">Autonomous Pro Suite</h3>
+                  <p className="text-slate-400 text-sm md:text-base">Unlock our flagship Pro Suite to research, plan, and execute with our Resonance Engine, Market Signal Analyzer, Campaign Builder, Autonomous Agents, and more.</p>
               </div>
             </AnimatedSection>
              <AnimatedSection delay={300}>
-               <div className="bg-slate-900 p-8 rounded-xl border border-slate-800 transition-all duration-300 hover:border-[var(--gradient-end)]/50 hover:-translate-y-2 group hover:shadow-lg hover:shadow-[color:var(--gradient-end)]/20 h-full">
-                  <TrendingUpIcon className="w-12 h-12 text-[var(--gradient-end)] mb-4 transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6"/>
-                  <h3 className="text-xl font-bold mb-2">Analytics & Live Guidance</h3>
-                  <p className="text-slate-400">Measure campaign performance with actionable analytics and get real-time strategic advice from your AI co-pilot via voice.</p>
+               <div className="bg-slate-900 p-6 md:p-8 rounded-xl border border-slate-800 transition-all duration-300 hover:border-[var(--gradient-end)]/50 hover:-translate-y-2 group hover:shadow-lg hover:shadow-[color:var(--gradient-end)]/20 h-full">
+                  <TrendingUpIcon className="w-10 h-10 md:w-12 md:h-12 text-[var(--gradient-end)] mb-4 transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6"/>
+                  <h3 className="text-lg md:text-xl font-bold mb-2">Analytics & Live Guidance</h3>
+                  <p className="text-slate-400 text-sm md:text-base">Measure campaign performance with actionable analytics and get real-time strategic advice from your AI co-pilot via voice.</p>
               </div>
             </AnimatedSection>
           </div>
@@ -364,7 +390,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
       
       
       <AnimatedSection>
-      <section id="how-it-works" className="py-20 bg-[#0D1117]">
+      <section id="how-it-works" className="py-16 md:py-20 bg-[#0D1117]">
         <div className="container mx-auto px-4">
            <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold">Witness Your Campaign Come to Life</h2>
@@ -372,32 +398,32 @@ const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
           </div>
           
           <div className="max-w-4xl mx-auto">
-            <div className="flex justify-center gap-2 md:gap-4 mb-8">
-                <button onClick={() => setActiveDemo('productLaunch')} className={`px-4 py-2 text-sm md:text-base font-semibold rounded-lg transition-all duration-300 w-full ${activeDemo === 'productLaunch' ? 'bg-white/10 text-white shadow-inner shadow-white/5' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200'}`}>Launch New Product</button>
-                <button onClick={() => setActiveDemo('webinar')} className={`px-4 py-2 text-sm md:text-base font-semibold rounded-lg transition-all duration-300 w-full ${activeDemo === 'webinar' ? 'bg-white/10 text-white shadow-inner shadow-white/5' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200'}`}>Promote Webinar</button>
-                <button onClick={() => setActiveDemo('sale')} className={`px-4 py-2 text-sm md:text-base font-semibold rounded-lg transition-all duration-300 w-full ${activeDemo === 'sale' ? 'bg-white/10 text-white shadow-inner shadow-white/5' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200'}`}>Announce Sale</button>
+            <div className="flex flex-wrap justify-center gap-2 md:gap-4 mb-8">
+                <button onClick={() => setActiveDemo('productLaunch')} className={`px-3 py-2 md:px-4 text-xs md:text-base font-semibold rounded-lg transition-all duration-300 flex-grow md:flex-grow-0 ${activeDemo === 'productLaunch' ? 'bg-white/10 text-white shadow-inner shadow-white/5' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200'}`}>Launch New Product</button>
+                <button onClick={() => setActiveDemo('webinar')} className={`px-3 py-2 md:px-4 text-xs md:text-base font-semibold rounded-lg transition-all duration-300 flex-grow md:flex-grow-0 ${activeDemo === 'webinar' ? 'bg-white/10 text-white shadow-inner shadow-white/5' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200'}`}>Promote Webinar</button>
+                <button onClick={() => setActiveDemo('sale')} className={`px-3 py-2 md:px-4 text-xs md:text-base font-semibold rounded-lg transition-all duration-300 flex-grow md:flex-grow-0 ${activeDemo === 'sale' ? 'bg-white/10 text-white shadow-inner shadow-white/5' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200'}`}>Announce Sale</button>
             </div>
             
             <div ref={demoRef} className="p-px bg-gradient-to-br from-white/20 to-transparent rounded-xl shadow-2xl shadow-black/30">
                 <div className="bg-slate-900 rounded-[11px] overflow-hidden">
                     <div className="p-3 bg-slate-800/50 border-b border-slate-700/50 flex items-center">
                         <div className="flex gap-2">
-                            <div className={`w-3 h-3 rounded-full bg-red-500 ${isDemoVisible ? 'animate-dot-pulse' : 'opacity-30'}`} style={{ animationDelay: '0s' }}></div>
-                            <div className={`w-3 h-3 rounded-full bg-yellow-500 ${isDemoVisible ? 'animate-dot-pulse' : 'opacity-30'}`} style={{ animationDelay: '0.2s' }}></div>
-                            <div className={`w-3 h-3 rounded-full bg-green-500 ${isDemoVisible ? 'animate-dot-pulse' : 'opacity-30'}`} style={{ animationDelay: '0.4s' }}></div>
+                            <div className={`w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-red-500 ${isDemoVisible ? 'animate-dot-pulse' : 'opacity-30'}`} style={{ animationDelay: '0s' }}></div>
+                            <div className={`w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-yellow-500 ${isDemoVisible ? 'animate-dot-pulse' : 'opacity-30'}`} style={{ animationDelay: '0.2s' }}></div>
+                            <div className={`w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-green-500 ${isDemoVisible ? 'animate-dot-pulse' : 'opacity-30'}`} style={{ animationDelay: '0.4s' }}></div>
                         </div>
-                        <p className="text-sm text-slate-400 mx-auto font-mono">Generated_Campaign_Assets.md</p>
+                        <p className="text-xs md:text-sm text-slate-400 mx-auto font-mono">Generated_Campaign_Assets.md</p>
                     </div>
-                    <div className="p-8 h-96 overflow-y-auto demo-scrollbar relative">
-                      <h4 className="font-bold text-xl mb-6 text-white gradient-text">{currentDemo.title}</h4>
+                    <div className="p-4 md:p-8 h-80 md:h-96 overflow-y-auto demo-scrollbar relative">
+                      <h4 className="font-bold text-lg md:text-xl mb-6 text-white gradient-text">{currentDemo.title}</h4>
                       <div key={activeDemo} className="space-y-8">
                         {currentDemo.assets.map((asset, index) => (
                           <div key={`${activeDemo}-${index}`} className="border-b border-slate-800 pb-8 last:border-b-0 last:pb-0 opacity-0 animate-fade-in-up" style={{ animationDelay: `${index * 150}ms`}}>
                             <div className="flex items-center mb-3">
                               <asset.icon className={`w-5 h-5 mr-3 flex-shrink-0 ${asset.iconClass}`} />
-                              <h5 className="font-semibold text-slate-200">{asset.title}</h5>
+                              <h5 className="font-semibold text-slate-200 text-sm md:text-base">{asset.title}</h5>
                             </div>
-                            <div className="text-sm text-slate-400 pl-8">{asset.content}</div>
+                            <div className="text-xs md:text-sm text-slate-400 pl-8">{asset.content}</div>
                           </div>
                         ))}
                       </div>
@@ -416,7 +442,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
       </AnimatedSection>
 
       <AnimatedSection>
-      <section id="pricing" className="py-20">
+      <section id="pricing" className="py-16 md:py-20">
         <div className="container mx-auto px-4">
             <div className="text-center mb-12">
                 <h2 className="text-3xl md:text-4xl font-bold">Flexible Plans for Every Ambition</h2>
@@ -500,7 +526,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
       </section>
       </AnimatedSection>
       
-      <section className="py-20 bg-black/10">
+      <section className="py-16 md:py-20 bg-black/10">
         <div className="container mx-auto px-4 max-w-6xl">
            <AnimatedSection>
              <div className="text-center mb-12">
@@ -510,7 +536,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
           </AnimatedSection>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             <AnimatedSection delay={0}>
-              <div className="bg-slate-900 p-8 rounded-xl border border-slate-800 flex flex-col h-full transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-black/30">
+              <div className="bg-slate-900 p-6 md:p-8 rounded-xl border border-slate-800 flex flex-col h-full transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-black/30">
                   <div className="flex items-center mb-4">
                       <StarIcon className="w-6 h-6 text-yellow-400" /><StarIcon className="w-6 h-6 text-yellow-400" /><StarIcon className="w-6 h-6 text-yellow-400" /><StarIcon className="w-6 h-6 text-yellow-400" /><StarIcon className="w-6 h-6 text-yellow-400" />
                   </div>
@@ -525,7 +551,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
               </div>
             </AnimatedSection>
             <AnimatedSection delay={150}>
-               <div className="bg-slate-900 p-8 rounded-xl border border-slate-800 flex flex-col h-full transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-black/30">
+               <div className="bg-slate-900 p-6 md:p-8 rounded-xl border border-slate-800 flex flex-col h-full transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-black/30">
                   <div className="flex items-center mb-4">
                       <StarIcon className="w-6 h-6 text-yellow-400" /><StarIcon className="w-6 h-6 text-yellow-400" /><StarIcon className="w-6 h-6 text-yellow-400" /><StarIcon className="w-6 h-6 text-yellow-400" /><StarIcon className="w-6 h-6 text-yellow-400" />
                   </div>
@@ -540,7 +566,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
               </div>
             </AnimatedSection>
             <AnimatedSection delay={300}>
-               <div className="bg-slate-900 p-8 rounded-xl border border-slate-800 flex flex-col h-full transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-black/30">
+               <div className="bg-slate-900 p-6 md:p-8 rounded-xl border border-slate-800 flex flex-col h-full transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-black/30">
                   <div className="flex items-center mb-4">
                       <StarIcon className="w-6 h-6 text-yellow-400" /><StarIcon className="w-6 h-6 text-yellow-400" /><StarIcon className="w-6 h-6 text-yellow-400" /><StarIcon className="w-6 h-6 text-yellow-400" /><StarIcon className="w-6 h-6 text-yellow-400" />
                   </div>
@@ -559,7 +585,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
       </section>
       
       <AnimatedSection>
-      <section id="faq" className="py-20">
+      <section id="faq" className="py-16 md:py-20">
         <div className="container mx-auto px-4 max-w-3xl">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold">Frequently Asked Questions</h2>

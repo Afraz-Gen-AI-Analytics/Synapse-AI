@@ -421,15 +421,15 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
         if (profileIsComplete && !user.brandProfileBonusClaimed) {
             const BONUS_CREDITS = 10;
             
-            await addCredits(user.uid, BONUS_CREDITS);
+            // Explicitly update planCreditLimit to maintain robustness
+            await addCredits(user.uid, BONUS_CREDITS, undefined, user.planCreditLimit + BONUS_CREDITS);
+            
             await updateUserDoc(user.uid, { 
                 onboardingCompleted: true,
                 brandProfileBonusClaimed: true 
             });
             
-            // We can just fetch the updated user or optimistically update here, 
-            // but the auth listener might not pick up custom field changes instantly.
-            // Let's just optimistically update for now.
+            // Optimistic update
              setUser(prev => prev ? ({ 
                 ...prev, 
                 onboardingCompleted: true,
@@ -445,6 +445,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
             addToast("Setup complete! Welcome to your command center.", "success");
         }
     } catch (error) {
+        console.error("Onboarding error:", error);
         addToast("There was an error completing your setup. Please try again.", "error");
     }
   }, [user, setUser, addToast]);
@@ -713,7 +714,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
             let creditsSpentThisTurn = false;
 
             for await (const chunk of stream) {
-                const textChunk = typeof chunk === 'string' ? chunk : chunk.text;
+                const textChunk = chunk;
                 // Spend credits on the first successful chunk with text.
                 if (!creditsSpentThisTurn && textChunk && textChunk.trim()) {
                     if (!await spendCredits(cost)) {

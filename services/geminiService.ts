@@ -1,3 +1,5 @@
+
+
 import { GoogleGenAI, GenerateContentResponse, Type, Modality } from "@google/genai";
 import { BrandProfile, ToolRoute, ResonanceFeedback, MarketSignalReport, SeoContentBlueprint, AdCreativeBlueprint, ViralVideoBlueprint, SocialPostContent } from "../types";
 
@@ -155,12 +157,12 @@ export async function generateContent(prompt: string): Promise<string> {
   }
 }
 
-export async function* generateContentStream(prompt: string) {
+export async function* generateContentStream(prompt: string): AsyncGenerator<string, void, unknown> {
   if (!process.env.API_KEY) throw new SynapseAIError("API Key is not configured.");
   
   try {
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-    const responseStream = await withRetry<AsyncGenerator<GenerateContentResponse>>(() => ai.models.generateContentStream({
+    const responseStream = await withRetry<any>(() => ai.models.generateContentStream({
       model: 'gemini-2.5-flash',
       contents: prompt,
       config: { temperature: 0.7, topP: 1, topK: 1 }
@@ -206,6 +208,39 @@ export async function generateStructuredContent(prompt: string, schema: any): Pr
   } catch (error: any) {
     handleGeminiError(error, 'structured content generation');
   }
+}
+
+export async function analyzeBrandFromInput(input: string): Promise<Partial<BrandProfile>> {
+    const prompt = `
+        You are an expert Brand Strategist. Your task is to analyze the following raw user input, which could be a URL, a business description, or a tagline, and extract a professional Brand Profile.
+
+        **User Input:** "${input}"
+
+        **Analysis Task:**
+        1.  **Brand Name:** Infer the brand name. If not explicitly stated, suggest a professional placeholder or derive it from the context.
+        2.  **Product/Service Description:** Create a concise, compelling 1-2 sentence description of what the business offers.
+        3.  **Target Audience:** specific, detailed description of who the ideal customer is.
+        4.  **Tone of Voice:** Determine the most appropriate tone of voice (e.g., "Professional", "Witty", "Empathetic", "Bold").
+        5.  **Messaging Pillars:** Identify 3 core value propositions or themes.
+
+        **CRITICAL RULES:**
+        - Return ONLY the structured JSON.
+        - Be specific and professional. Avoid generic fluff.
+    `;
+
+    const schema = {
+        type: Type.OBJECT,
+        properties: {
+            brandName: { type: Type.STRING, description: "The inferred name of the brand." },
+            productDescription: { type: Type.STRING, description: "A concise, professional description of the product or service." },
+            targetAudience: { type: Type.STRING, description: "A specific description of the ideal customer persona." },
+            toneOfVoice: { type: Type.STRING, description: "The ideal marketing tone (e.g. Professional, Casual, Witty, Enthusiastic, Bold).", enum: ["Professional", "Casual", "Witty", "Enthusiastic", "Bold"] },
+            messagingPillars: { type: Type.STRING, description: "3 core value props, numbered 1-3." }
+        },
+        required: ["brandName", "productDescription", "targetAudience", "toneOfVoice", "messagingPillars"]
+    };
+
+    return await generateStructuredContent(prompt, schema) as Partial<BrandProfile>;
 }
 
 export async function generateSocialPost(options: { topic: string; tone: string; platform: 'Twitter' | 'LinkedIn' | 'Facebook'; numOutputs: number }): Promise<SocialPostContent[]> {

@@ -1,8 +1,10 @@
+
+
 import React, { useState, useEffect } from 'react';
-import { User } from '../types';
+import { User, BrandProfile } from '../types';
 import { useToast } from '../contexts/ToastContext';
 import { updateBrandProfile } from '../services/firebaseService';
-import { generateContentStream, generateImage } from '../services/geminiService';
+import { generateContentStream, generateImage, analyzeBrandFromInput } from '../services/geminiService';
 import SynapseLogo from './icons/SynapseLogo';
 import TrendingUpIcon from './icons/TrendingUpIcon';
 import RocketIcon from './icons/RocketIcon';
@@ -30,6 +32,15 @@ const loadingMessages = [
     "Polishing the final draft...",
 ];
 
+const analysisMessages = [
+    "Scanning your brand identity...",
+    "Identifying key audience segments...",
+    "Analyzing tone and voice patterns...",
+    "Structuring messaging pillars...",
+    "Building your brand profile...",
+];
+
+
 const GeneratingState: React.FC = () => {
     const [message, setMessage] = useState(loadingMessages[0]);
 
@@ -53,6 +64,32 @@ const GeneratingState: React.FC = () => {
     );
 };
 
+const AnalyzingState: React.FC = () => {
+     const [message, setMessage] = useState(analysisMessages[0]);
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setMessage(prevMessage => {
+                const currentIndex = analysisMessages.indexOf(prevMessage);
+                const nextIndex = (currentIndex + 1) % analysisMessages.length;
+                return analysisMessages[nextIndex];
+            });
+        }, 1500);
+        return () => clearInterval(interval);
+    }, []);
+
+    return (
+        <div className="flex flex-col items-center justify-center h-full text-center text-slate-400 p-6 animate-fade-in-up min-h-[400px]">
+             <div className="relative w-24 h-24 mb-6">
+                <div className="absolute -inset-4 rounded-full bg-gradient-to-br from-[var(--gradient-start)] to-[var(--gradient-end)] opacity-20 animate-ping"></div>
+                <SynapseCoreIcon className="w-24 h-24 relative z-10"/>
+            </div>
+            <h3 className="text-2xl font-bold text-white mb-2">Analyzing Brand Input...</h3>
+            <p className="transition-opacity duration-500 text-lg">{message}</p>
+        </div>
+    );
+}
+
 
 const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ user, onComplete }) => {
     const [step, setStep] = useState(1);
@@ -63,18 +100,52 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ user, onComplete })
     const [productDescription, setProductDescription] = useState('');
     const [targetAudience, setTargetAudience] = useState('');
     const [toneOfVoice, setToneOfVoice] = useState('Professional');
+    const [messagingPillars, setMessagingPillars] = useState(''); 
     const [isSaving, setIsSaving] = useState(false);
 
     // Generation state
     const [prompt, setPrompt] = useState('');
     const [generatedContent, setGeneratedContent] = useState('');
     const [isGenerating, setIsGenerating] = useState(false);
+    
+    // Reverse Onboarding State
+    const [isAnalyzing, setIsAnalyzing] = useState(false);
 
     const { addToast } = useToast();
     const toneOptions = ["Professional", "Encouraging", "Slightly witty", "Casual", "Bold"];
-    
-    const handleGoalSelect = (goal: (typeof goals)[0]) => {
+
+    const handleGoalSelect = async (goal: (typeof goals)[0]) => {
         setSelectedGoal(goal);
+        
+        const input = sessionStorage.getItem('synapse_onboarding_input');
+        
+        if (input) {
+            setIsAnalyzing(true);
+            try {
+                // Delay for effect so user sees the "Analyzing" state
+                await new Promise(resolve => setTimeout(resolve, 800));
+                
+                const profile = await analyzeBrandFromInput(input);
+                
+                setBrandName(profile.brandName || '');
+                setProductDescription(profile.productDescription || '');
+                setTargetAudience(profile.targetAudience || '');
+                
+                const tone = profile.toneOfVoice && toneOptions.includes(profile.toneOfVoice) ? profile.toneOfVoice : 'Professional';
+                setToneOfVoice(tone);
+                setMessagingPillars(profile.messagingPillars || '');
+                
+                addToast("Brand analyzed! Profile pre-filled.", "success");
+                sessionStorage.removeItem('synapse_onboarding_input');
+            } catch (error) {
+                console.error("Analysis failed:", error);
+                addToast("Could not analyze input automatically. Please fill in your details.", "error");
+                // Even if analysis fails, we proceed to step 2 so user can fill manually
+            } finally {
+                setIsAnalyzing(false);
+            }
+        }
+        
         setStep(2);
     };
 
@@ -85,7 +156,7 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ user, onComplete })
         }
         setIsSaving(true);
         try {
-            await updateBrandProfile(user.uid, { brandName, productDescription, targetAudience, toneOfVoice });
+            await updateBrandProfile(user.uid, { brandName, productDescription, targetAudience, toneOfVoice, messagingPillars });
             
             let generatedPrompt = '';
             switch(selectedGoal?.tool) {
@@ -127,7 +198,7 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ user, onComplete })
                 let fullResponse = '';
                 const stream = generateContentStream(prompt);
                 for await (const chunk of stream) {
-                    const textChunk = typeof chunk === 'string' ? chunk : chunk.text;
+                    const textChunk = chunk;
                     if (textChunk) {
                         fullResponse += textChunk;
                         setGeneratedContent(prev => prev + textChunk);
@@ -147,6 +218,14 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ user, onComplete })
             .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
             .replace(/\n/g, '<br />');
     };
+    
+    if (isAnalyzing) {
+        return (
+            <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center p-4">
+                 <AnalyzingState />
+            </div>
+        );
+    }
 
     const renderStep = () => {
         switch (step) {
@@ -157,7 +236,7 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ user, onComplete })
                         <p className="text-slate-300 mt-3 text-lg max-w-xl mx-auto">I'm Synapse, your AI co-pilot. To get started, what's your primary objective?</p>
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mt-10">
                             {goals.map(goal => {
-                                const isSelected = selectedGoal?.name === goal.name; // In this step, nothing is selected, but this pattern is useful for step 2.
+                                const isSelected = selectedGoal?.name === goal.name; 
                                 return (
                                 <button 
                                     key={goal.name} 
@@ -202,7 +281,9 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ user, onComplete })
                 return (
                     <div className="animate-fade-in-up w-full">
                          <h1 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight text-center">Define Your Brand Voice</h1>
-                        <p className="text-slate-300 mt-3 text-lg text-center mb-10 max-w-2xl mx-auto">This is critical for the AI. The more detail you provide, the better your results will be.</p>
+                        <p className="text-slate-300 mt-3 text-lg text-center mb-10 max-w-2xl mx-auto">
+                            {messagingPillars ? "We've analyzed your brand input. Please review and confirm your profile below." : "This is critical for the AI. The more detail you provide, the better your results will be."}
+                        </p>
                         <div className="space-y-6">
                             <div>
                                 <label className="block text-sm font-semibold text-slate-300 mb-2">Brand Name</label>
@@ -216,6 +297,12 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ user, onComplete })
                                 <label className="block text-sm font-semibold text-slate-300 mb-2">Target Audience</label>
                                 <textarea rows={3} value={targetAudience} onChange={e => setTargetAudience(e.target.value)} placeholder="e.g., 'Early-stage startup founders and product managers in the SaaS industry who are struggling with tool overload.'" className="w-full bg-slate-800/50 border border-slate-700 rounded-lg p-4 text-white placeholder-slate-500 focus:ring-2 focus:ring-[var(--gradient-end)] transition"/>
                             </div>
+                            {messagingPillars && (
+                                <div>
+                                    <label className="block text-sm font-semibold text-slate-300 mb-2">Messaging Pillars (Auto-Generated)</label>
+                                    <textarea rows={3} value={messagingPillars} onChange={e => setMessagingPillars(e.target.value)} placeholder="Core value props..." className="w-full bg-slate-800/50 border border-slate-700 rounded-lg p-4 text-white placeholder-slate-500 focus:ring-2 focus:ring-[var(--gradient-end)] transition"/>
+                                </div>
+                            )}
                             <div>
                                 <label className="block text-sm font-semibold text-slate-300 mb-2">Primary Tone of Voice</label>
                                 <div className="relative">
@@ -237,7 +324,7 @@ const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ user, onComplete })
                 return (
                      <div className="animate-fade-in-up w-full">
                         <h1 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight text-center">Your First Masterpiece</h1>
-                        <p className="text-slate-300 mt-3 text-lg text-center mb-10">We've prepared your first piece of content based on your goal. Hit 'Generate' to see the magic!</p>
+                        <p className="text-slate-300 mt-3 text-lg text-center mb-10">We've prepared your first piece of content based on your brand profile. Hit 'Generate' to see the magic!</p>
                         <button onClick={handleGenerate} disabled={isGenerating} className="w-full bg-gradient-to-r from-[var(--gradient-start)] to-[var(--gradient-end)] hover:opacity-90 text-white font-semibold py-4 text-lg rounded-lg disabled:opacity-50 flex items-center justify-center shadow-lg shadow-[color:var(--gradient-start)]/30">
                             {isGenerating ? <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div> : <><SparklesIcon className="w-5 h-5 mr-2" /> Generate Content</>}
                         </button>

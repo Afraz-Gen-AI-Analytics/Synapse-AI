@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { User } from '../types';
 import SparklesIcon from './icons/SparklesIcon';
@@ -17,7 +18,10 @@ const formatCredits = (num: number): string => {
 };
 
 const UsageUpgradeCard: React.FC<UsageUpgradeCardProps> = ({ user, onUpgrade }) => {
-    const usagePercentage = user.planCreditLimit > 0 ? (user.credits / user.planCreditLimit) * 100 : 0;
+    // Calculate percentage, ensuring we handle division by zero
+    const rawPercentage = user.planCreditLimit > 0 ? (user.credits / user.planCreditLimit) * 100 : 0;
+    // Cap visual percentage at 100% to prevent bar overflow
+    const displayPercentage = Math.min(rawPercentage, 100);
 
     if (user.plan === 'pro') {
         return (
@@ -32,10 +36,10 @@ const UsageUpgradeCard: React.FC<UsageUpgradeCardProps> = ({ user, onUpgrade }) 
                     </p>
                 </div>
 
-                <div className="w-full bg-slate-700 rounded-full h-1.5">
+                <div className="w-full bg-slate-700 rounded-full h-1.5 overflow-hidden">
                     <div
                         className="bg-gradient-to-r from-[var(--gradient-start)] to-[var(--gradient-end)] h-1.5 rounded-full"
-                        style={{ width: `${usagePercentage}%`, transition: 'width 0.5s ease-in-out' }}
+                        style={{ width: `${displayPercentage}%`, transition: 'width 0.5s ease-in-out' }}
                     ></div>
                 </div>
 
@@ -54,7 +58,7 @@ const UsageUpgradeCard: React.FC<UsageUpgradeCardProps> = ({ user, onUpgrade }) 
         <div className="p-4 bg-slate-800/50 rounded-lg border border-slate-700/70 flex flex-col space-y-2">
             <div className="flex justify-between items-center text-sm">
                 <p className="font-medium text-slate-300">
-                    Freemium Plan
+                    Credit Balance
                 </p>
                 <p className="font-bold text-white">
                     {user.credits}
@@ -62,10 +66,10 @@ const UsageUpgradeCard: React.FC<UsageUpgradeCardProps> = ({ user, onUpgrade }) 
                 </p>
             </div>
 
-            <div className="w-full bg-slate-700 rounded-full h-1.5">
+            <div className="w-full bg-slate-700 rounded-full h-1.5 overflow-hidden">
                 <div
                     className="bg-gradient-to-r from-[var(--gradient-start)] to-[var(--gradient-end)] h-1.5 rounded-full"
-                    style={{ width: `${usagePercentage}%`, transition: 'width 0.5s ease-in-out' }}
+                    style={{ width: `${displayPercentage}%`, transition: 'width 0.5s ease-in-out' }}
                 ></div>
             </div>
 
