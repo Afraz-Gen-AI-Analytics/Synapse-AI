@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import SynapseLogo from './icons/SynapseLogo';
 import CheckIcon from './icons/CheckIcon';
@@ -443,8 +444,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
                     <p className="text-slate-400 mb-6 flex-grow">For individuals and teams testing the waters of AI-powered creation.</p>
                     <ul className="space-y-4 mb-8">
                         <li className="flex items-center"><CheckIcon className="w-5 h-5 text-green-400 mr-3" /> 50 Credits / month</li>
-                        <li className="flex items-center"><CheckIcon className="w-5 h-5 text-green-400 mr-3" /> Access to all templates</li>
+                        <li className="flex items-center"><CheckIcon className="w-5 h-5 text-green-400 mr-3" /> Access to Core tools</li>
                         <li className="flex items-center"><CheckIcon className="w-5 h-5 text-green-400 mr-3" /> Generation History</li>
+                        <li className="flex items-center text-slate-500 line-through decoration-slate-500"><span className="w-5 h-5 mr-3 inline-block"></span> Autonomous Agents</li>
+                        <li className="flex items-center text-slate-500 line-through decoration-slate-500"><span className="w-5 h-5 mr-3 inline-block"></span> Video & Analysis Tools</li>
                     </ul>
                     <button onClick={() => onNavigate('signup')} className="mt-auto w-full bg-slate-800 hover:bg-slate-700 text-white font-semibold py-3 rounded-lg transition-colors">Get Started</button>
                 </div>
@@ -468,7 +471,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
                             Autonomous AI Agents
                         </li>
                         <li className="flex items-center"><CheckIcon className="w-5 h-5 text-green-400 mr-3" /> Performance Analytics</li>
-                         <li className="flex items-center"><CheckIcon className="w-5 h-5 text-green-400 mr-3" /> All Pro Tools Included</li>
+                         <li className="flex items-center"><CheckIcon className="w-5 h-5 text-green-400 mr-3" /> Pro Templates (Video, Campaign)</li>
                     </ul>
                     <button onClick={() => onNavigate('signup')} className="mt-auto w-full bg-gradient-to-r from-[var(--gradient-start)] to-[var(--gradient-end)] hover:opacity-90 text-white font-semibold py-3 rounded-lg transition-colors">Go Pro</button>
                 </div>

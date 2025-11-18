@@ -125,23 +125,28 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({ user, onClose, onUpgrade, o
         </div>
         
         {/* Credit Pack Option */}
-        <div className="text-left bg-slate-800/40 p-3.5 rounded-lg mb-2 flex items-center justify-between border border-slate-700/70">
-            <div>
-                <h3 className="font-bold text-sm text-white">100 Credit Pack</h3>
-                <p className="text-slate-400 text-[10px]">One-time top up. No subscription.</p>
+        <div className="text-left bg-slate-800/40 p-3.5 rounded-lg mb-2 flex flex-col border border-slate-700/70">
+            <div className="flex items-center justify-between mb-1">
+                <div>
+                    <h3 className="font-bold text-sm text-white">100 Credit Pack</h3>
+                    <p className="text-slate-400 text-[10px]">One-time top up for Core tools.</p>
+                </div>
+                <button 
+                onClick={handleBuyCreditsClick}
+                disabled={isUpgrading || isBuyingCredits}
+                className="flex items-center bg-slate-700 hover:bg-slate-600 border border-slate-600 text-white font-semibold py-1.5 px-3 rounded-md transition-all duration-300 ease-in-out disabled:opacity-50 text-xs"
+                >
+                {isBuyingCredits ? '...' : (
+                    <>
+                    <DiamondIcon className="w-3 h-3 mr-1.5 text-sky-400" />
+                    $10
+                    </>
+                )}
+                </button>
             </div>
-            <button 
-            onClick={handleBuyCreditsClick}
-            disabled={isUpgrading || isBuyingCredits}
-            className="flex items-center bg-slate-700 hover:bg-slate-600 border border-slate-600 text-white font-semibold py-1.5 px-3 rounded-md transition-all duration-300 ease-in-out disabled:opacity-50 text-xs"
-            >
-            {isBuyingCredits ? '...' : (
-                <>
-                <DiamondIcon className="w-3 h-3 mr-1.5 text-sky-400" />
-                $10
-                </>
-            )}
-            </button>
+            <p className="text-red-400/80 text-[9px] italic mt-1 flex items-center">
+                * Does not unlock Pro features (Agents, Video, etc.)
+            </p>
         </div>
 
         <div className="text-center">
