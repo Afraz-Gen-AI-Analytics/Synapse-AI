@@ -59,15 +59,15 @@ const HistorySkeleton: React.FC = () => (
     <div className="space-y-3 sm:space-y-4 animate-pulse">
         {[...Array(5)].map((_, i) => (
             <div key={i} className="bg-slate-800/50 p-3 sm:p-4 rounded-lg border border-slate-700/70 flex items-start space-x-3 sm:space-x-4">
-                <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-md bg-slate-700 flex-shrink-0"></div>
+                <div className="w-10 h-10 sm:w-16 sm:h-16 rounded-md bg-slate-700 flex-shrink-0"></div>
                 <div className="flex-1 overflow-hidden">
                     <div className="flex justify-between items-start">
                         <div className="space-y-1.5 sm:space-y-2">
-                            <div className="h-4 sm:h-5 bg-slate-700 rounded w-24 sm:w-32" /> {/* Template name badge */}
-                            <div className="h-2.5 sm:h-3 bg-slate-700 rounded w-32 sm:w-48" /> {/* Date */}
+                            <div className="h-3 sm:h-5 bg-slate-700 rounded w-24 sm:w-32" /> {/* Template name badge */}
+                            <div className="h-2.5 sm:h-3 bg-slate-700 rounded w-20 sm:w-48" /> {/* Date */}
                         </div>
                         <div className="flex-shrink-0 ml-2 sm:ml-4">
-                             <div className="h-6 sm:h-8 w-24 sm:w-32 bg-slate-700 rounded-md" /> {/* Button group placeholder */}
+                             <div className="h-6 sm:h-8 w-16 sm:w-32 bg-slate-700 rounded-md" /> {/* Button group placeholder */}
                         </div>
                     </div>
                     <div className="h-3 sm:h-4 bg-slate-700 rounded w-3/4 mt-2 sm:mt-3" /> {/* Topic line */}
@@ -223,16 +223,16 @@ const HistoryView: React.FC<HistoryViewProps> = ({ user, onReuse, onCopy, onEdit
                 onConfirm={handleConfirmClearToolsHistory}
                 title="Clear Tool History?"
                 message={<p>This action is irreversible. All your tool-generated content history will be permanently deleted.</p>}
-                confirmButtonText="Yes, Clear Tool History"
+                confirmButtonText="Yes, Clear"
                 isConfirming={isClearingTools}
             />}
             {toolItemToDelete && <ConfirmationModal
                 isOpen={!!toolItemToDelete}
                 onClose={() => setToolItemToDelete(null)}
                 onConfirm={handleConfirmDeleteToolItem}
-                title="Delete History Item?"
-                message={<p>This action is irreversible. This history item will be permanently deleted.</p>}
-                confirmButtonText="Yes, Delete Item"
+                title="Delete Item?"
+                message={<p>This action is irreversible. This item will be permanently deleted.</p>}
+                confirmButtonText="Yes, Delete"
                 isConfirming={isDeletingToolItem}
             />}
             {campaignToDelete && <ConfirmationModal
@@ -240,8 +240,8 @@ const HistoryView: React.FC<HistoryViewProps> = ({ user, onReuse, onCopy, onEdit
                 onClose={() => setCampaignToDelete(null)}
                 onConfirm={handleConfirmDeleteCampaign}
                 title="Delete Campaign?"
-                message={<p>This will permanently delete the campaign from your playbook. This action cannot be undone.</p>}
-                confirmButtonText="Yes, Delete Campaign"
+                message={<p>This will permanently delete the campaign from your playbook.</p>}
+                confirmButtonText="Yes, Delete"
                 isConfirming={isDeletingCampaignItem}
             />}
 
@@ -271,7 +271,7 @@ const HistoryView: React.FC<HistoryViewProps> = ({ user, onReuse, onCopy, onEdit
                 }
             </div>
             
-            <div className="p-4 sm:p-6 flex-1 overflow-y-auto">
+            <div className="p-3 sm:p-6 flex-1 overflow-y-auto">
                 {activeTab === 'tools' && (
                     isToolHistoryLoading ? <HistorySkeleton /> : toolHistory.length > 0 ? (
                         <div className="space-y-3 sm:space-y-4">
@@ -280,30 +280,30 @@ const HistoryView: React.FC<HistoryViewProps> = ({ user, onReuse, onCopy, onEdit
                                 const shouldCopyPrompt = promptCopyTools.includes(item.templateName);
                                 const shouldCopyContent = reportCopyTools.includes(item.templateName);
                                 
-                                const copyButtonText = shouldCopyPrompt ? "Copy Prompt" : (shouldCopyContent ? "Copy Content" : "Copy Content");
+                                const copyButtonText = shouldCopyPrompt ? "Prompt" : (shouldCopyContent ? "Report" : "Copy");
                                 const Icon = templateIcons[item.templateName] || SparklesIcon;
                                 return (
                                 <div key={item.id} className="bg-slate-800/50 p-3 sm:p-4 rounded-lg border border-slate-700/70 flex items-start transition-all hover:border-slate-600">
-                                    <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-md mr-3 sm:mr-4 flex-shrink-0 flex items-center justify-center overflow-hidden bg-gradient-to-br from-[var(--gradient-start)] to-[var(--gradient-end)]">
+                                    <div className="w-10 h-10 sm:w-16 sm:h-16 rounded-md mr-3 sm:mr-4 flex-shrink-0 flex items-center justify-center overflow-hidden bg-gradient-to-br from-[var(--gradient-start)] to-[var(--gradient-end)]">
                                         {(isImageItem && item.content.startsWith('data:image')) ? (
                                             <img src={item.content} alt={item.topic} className="w-full h-full object-cover" />
                                         ) : (
-                                            <Icon className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
+                                            <Icon className="w-5 h-5 sm:w-8 sm:h-8 text-white" />
                                         )}
                                     </div>
                                     <div className="flex-1 min-w-0 overflow-hidden">
                                     <div className="flex justify-between items-start">
-                                        <div className="flex flex-col items-start">
-                                            <span className="text-[10px] sm:text-xs bg-slate-700 text-slate-300 font-semibold px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full truncate max-w-[120px] sm:max-w-none block">{item.templateName}</span>
-                                            <p className="text-[10px] sm:text-xs text-slate-500 mt-1 sm:mt-2">{new Date(item.timestamp).toLocaleString()}</p>
+                                        <div className="flex flex-col items-start pr-2 min-w-0">
+                                            <span className="text-[10px] sm:text-xs bg-slate-700 text-slate-300 font-semibold px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full truncate max-w-[110px] sm:max-w-none block">{item.templateName}</span>
+                                            <p className="text-[10px] sm:text-xs text-slate-500 mt-1 sm:mt-2 whitespace-nowrap">{new Date(item.timestamp).toLocaleDateString()}</p>
                                         </div>
                                         <div className="flex-shrink-0 ml-1 sm:ml-4">
-                                            <div className="flex items-center text-xs sm:text-sm text-slate-400">
+                                            <div className="flex items-center text-[10px] sm:text-sm text-slate-400">
                                                 {/* EDIT BUTTON */}
                                                 {item.content.startsWith('data:image') && (
                                                     <>
                                                         <button onClick={() => onEdit(item)} className="flex items-center p-1.5 sm:p-2 hover:text-white transition-colors" title="Edit Image">
-                                                            <EditIcon className="w-4 h-4 md:mr-1.5" />
+                                                            <EditIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:mr-1.5" />
                                                             <span className="hidden md:inline">Edit</span>
                                                         </button>
                                                         <div className="w-px h-3 sm:h-4 bg-slate-700 mx-0.5 sm:mx-2"></div>
@@ -314,7 +314,7 @@ const HistoryView: React.FC<HistoryViewProps> = ({ user, onReuse, onCopy, onEdit
                                                 {item.templateName !== "Marketing Video Ad" && (
                                                     <>
                                                         <button onClick={() => onReuse(item)} className="flex items-center p-1.5 sm:p-2 hover:text-white transition-colors" title="Reuse">
-                                                            <ReuseIcon className="w-4 h-4 md:mr-1.5" />
+                                                            <ReuseIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:mr-1.5" />
                                                             <span className="hidden md:inline">Reuse</span>
                                                         </button>
                                                         <div className="w-px h-3 sm:h-4 bg-slate-700 mx-0.5 sm:mx-2"></div>
@@ -323,7 +323,7 @@ const HistoryView: React.FC<HistoryViewProps> = ({ user, onReuse, onCopy, onEdit
 
                                                 {/* COPY BUTTON */}
                                                 <button onClick={() => onCopy(item.content, item.templateName, item.topic)} className="flex items-center p-1.5 sm:p-2 hover:text-white transition-colors" title={copyButtonText}>
-                                                    <CopyIcon className="w-4 h-4 md:mr-1.5" />
+                                                    <CopyIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:mr-1.5" />
                                                     <span className="hidden md:inline">{copyButtonText}</span>
                                                 </button>
 
@@ -331,13 +331,13 @@ const HistoryView: React.FC<HistoryViewProps> = ({ user, onReuse, onCopy, onEdit
 
                                                 {/* DELETE BUTTON */}
                                                 <button onClick={() => setToolItemToDelete(item)} className="flex items-center p-1.5 sm:p-2 hover:text-red-400 transition-colors" title="Delete">
-                                                    <TrashIcon className="w-4 h-4 md:mr-1.5" />
+                                                    <TrashIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:mr-1.5" />
                                                     <span className="hidden md:inline">Delete</span>
                                                 </button>
                                             </div>
                                         </div>
                                     </div>
-                                    <p className="text-slate-300 mt-2 sm:mt-3 text-xs sm:text-sm line-clamp-2 pr-1">{item.topic}</p>
+                                    <p className="text-slate-300 mt-1.5 sm:mt-3 text-xs sm:text-sm line-clamp-2 pr-1">{item.topic}</p>
                                     </div>
                                 </div>
                             )})}
@@ -364,7 +364,7 @@ const HistoryView: React.FC<HistoryViewProps> = ({ user, onReuse, onCopy, onEdit
                                         <div className="flex items-center gap-2">
                                             <button 
                                                 onClick={() => setCampaignToDelete(campaign)} 
-                                                className="p-2 text-slate-500 hover:text-red-400 hover:bg-slate-700/50 rounded-full transition-colors opacity-0 group-hover:opacity-100"
+                                                className="p-2 text-slate-500 hover:text-red-400 hover:bg-slate-700/50 rounded-full transition-colors opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
                                                 aria-label="Delete campaign"
                                             >
                                                 <TrashIcon className="w-4 h-4" />
