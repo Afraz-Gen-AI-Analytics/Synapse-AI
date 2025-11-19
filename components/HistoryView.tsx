@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { User, HistoryItem, CampaignHistoryItem } from '../types';
 import { onHistorySnapshot, clearUserHistory, deleteHistoryDoc, onCampaignsSnapshot, deleteCampaignDoc } from '../services/firebaseService';
@@ -55,21 +56,21 @@ const templateIcons: { [key: string]: React.FC<{className?: string}> } = {
 
 
 const HistorySkeleton: React.FC = () => (
-    <div className="space-y-4 animate-pulse">
+    <div className="space-y-3 sm:space-y-4 animate-pulse">
         {[...Array(5)].map((_, i) => (
-            <div key={i} className="bg-slate-800/50 p-4 rounded-lg border border-slate-700/70 flex items-start space-x-4">
-                <div className="w-16 h-16 rounded-md bg-slate-700 flex-shrink-0"></div>
+            <div key={i} className="bg-slate-800/50 p-3 sm:p-4 rounded-lg border border-slate-700/70 flex items-start space-x-3 sm:space-x-4">
+                <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-md bg-slate-700 flex-shrink-0"></div>
                 <div className="flex-1 overflow-hidden">
                     <div className="flex justify-between items-start">
-                        <div className="space-y-2">
-                            <div className="h-5 bg-slate-700 rounded w-32" /> {/* Template name badge */}
-                            <div className="h-3 bg-slate-700 rounded w-48" /> {/* Date */}
+                        <div className="space-y-1.5 sm:space-y-2">
+                            <div className="h-4 sm:h-5 bg-slate-700 rounded w-24 sm:w-32" /> {/* Template name badge */}
+                            <div className="h-2.5 sm:h-3 bg-slate-700 rounded w-32 sm:w-48" /> {/* Date */}
                         </div>
-                        <div className="flex-shrink-0 ml-4">
-                             <div className="h-8 w-32 bg-slate-700 rounded-md" /> {/* Button group placeholder */}
+                        <div className="flex-shrink-0 ml-2 sm:ml-4">
+                             <div className="h-6 sm:h-8 w-24 sm:w-32 bg-slate-700 rounded-md" /> {/* Button group placeholder */}
                         </div>
                     </div>
-                    <div className="h-4 bg-slate-700 rounded w-3/4 mt-3" /> {/* Topic line */}
+                    <div className="h-3 sm:h-4 bg-slate-700 rounded w-3/4 mt-2 sm:mt-3" /> {/* Topic line */}
                 </div>
             </div>
         ))}
@@ -77,17 +78,17 @@ const HistorySkeleton: React.FC = () => (
 );
 
 const CampaignHistorySkeleton: React.FC = () => (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-pulse">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 animate-pulse">
         {[...Array(6)].map((_, i) => (
-            <div key={i} className="bg-slate-800/50 p-5 rounded-lg border border-slate-700/70 flex flex-col justify-between">
-                <div className="space-y-3">
-                    <div className="h-5 bg-slate-700 rounded w-3/4 mb-1" /> {/* title */}
-                    <div className="h-4 bg-slate-700 rounded w-full" /> {/* goal line 1 */}
-                    <div className="h-4 bg-slate-700 rounded w-1/2" /> {/* goal line 2 */}
+            <div key={i} className="bg-slate-800/50 p-4 sm:p-5 rounded-lg border border-slate-700/70 flex flex-col justify-between">
+                <div className="space-y-2 sm:space-y-3">
+                    <div className="h-4 sm:h-5 bg-slate-700 rounded w-3/4 mb-1" /> {/* title */}
+                    <div className="h-3 sm:h-4 bg-slate-700 rounded w-full" /> {/* goal line 1 */}
+                    <div className="h-3 sm:h-4 bg-slate-700 rounded w-1/2" /> {/* goal line 2 */}
                 </div>
-                <div className="flex justify-between items-center mt-6">
-                    <div className="h-3 bg-slate-700 rounded w-24" /> {/* date */}
-                    <div className="h-8 bg-slate-700 rounded-md w-20" /> {/* button */}
+                <div className="flex justify-between items-center mt-4 sm:mt-6">
+                    <div className="h-2.5 sm:h-3 bg-slate-700 rounded w-20 sm:w-24" /> {/* date */}
+                    <div className="h-7 sm:h-8 bg-slate-700 rounded-md w-16 sm:w-20" /> {/* button */}
                 </div>
             </div>
         ))}
@@ -244,36 +245,36 @@ const HistoryView: React.FC<HistoryViewProps> = ({ user, onReuse, onCopy, onEdit
                 isConfirming={isDeletingCampaignItem}
             />}
 
-            <div className="p-6 border-b border-slate-800 flex-shrink-0">
+            <div className="p-4 sm:p-6 border-b border-slate-800 flex-shrink-0">
                 <div className="flex items-center gap-3">
-                    <HistoryIcon className="w-8 h-8 text-[var(--gradient-start)]" />
+                    <HistoryIcon className="w-6 h-6 sm:w-8 sm:h-8 text-[var(--gradient-start)]" />
                     <div>
-                        <h1 className="text-2xl font-bold text-white">Generation History</h1>
-                        <p className="text-slate-400 mt-1">Review, reuse, and manage all your generated content and campaigns.</p>
+                        <h1 className="text-xl sm:text-2xl font-bold text-white">Generation History</h1>
+                        <p className="text-xs sm:text-sm text-slate-400 mt-0.5 sm:mt-1">Review, reuse, and manage all your generated content.</p>
                     </div>
                 </div>
             </div>
 
-            <div className="p-4 border-b border-slate-800 flex justify-between items-center flex-shrink-0">
+            <div className="p-3 sm:p-4 border-b border-slate-800 flex justify-between items-center flex-shrink-0">
                 <div className="flex gap-2">
-                    <button onClick={() => setActiveTab('tools')} className={`flex items-center gap-2 px-3 py-1.5 text-sm font-semibold rounded-md transition-colors ${activeTab === 'tools' ? 'bg-slate-700/80 text-white' : 'text-slate-400 hover:bg-slate-800'}`}>
-                        <SparklesIcon className="w-4 h-4" /> Tools
+                    <button onClick={() => setActiveTab('tools')} className={`flex items-center gap-1.5 sm:gap-2 px-2.5 py-1.5 sm:px-3 sm:py-1.5 text-xs sm:text-sm font-semibold rounded-md transition-colors ${activeTab === 'tools' ? 'bg-slate-700/80 text-white' : 'text-slate-400 hover:bg-slate-800'}`}>
+                        <SparklesIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Tools
                     </button>
-                    <button onClick={() => setActiveTab('campaigns')} className={`flex items-center gap-2 px-3 py-1.5 text-sm font-semibold rounded-md transition-colors ${activeTab === 'campaigns' ? 'bg-slate-700/80 text-white' : 'text-slate-400 hover:bg-slate-800'}`}>
-                        <PlaybookIcon className="w-4 h-4" /> Campaign Playbook
+                    <button onClick={() => setActiveTab('campaigns')} className={`flex items-center gap-1.5 sm:gap-2 px-2.5 py-1.5 sm:px-3 sm:py-1.5 text-xs sm:text-sm font-semibold rounded-md transition-colors ${activeTab === 'campaigns' ? 'bg-slate-700/80 text-white' : 'text-slate-400 hover:bg-slate-800'}`}>
+                        <PlaybookIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> <span className="hidden sm:inline">Campaign </span>Playbook
                     </button>
                 </div>
                 {activeTab === 'tools' && toolHistory.length > 0 && 
-                    <button onClick={() => setShowClearToolsModal(true)} disabled={isClearingTools} className="flex items-center text-sm font-semibold border border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-red-400 hover:border-red-400/50 rounded-lg px-3 py-1.5 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
-                        <TrashIcon className="w-4 h-4 mr-2"/> Clear All
+                    <button onClick={() => setShowClearToolsModal(true)} disabled={isClearingTools} className="flex items-center text-xs sm:text-sm font-semibold border border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-red-400 hover:border-red-400/50 rounded-lg px-2.5 py-1.5 sm:px-3 sm:py-1.5 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
+                        <TrashIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2"/> Clear All
                     </button>
                 }
             </div>
             
-            <div className="p-6 flex-1 overflow-y-auto">
+            <div className="p-4 sm:p-6 flex-1 overflow-y-auto">
                 {activeTab === 'tools' && (
                     isToolHistoryLoading ? <HistorySkeleton /> : toolHistory.length > 0 ? (
-                        <div className="space-y-4">
+                        <div className="space-y-3 sm:space-y-4">
                             {toolHistory.map(item => {
                                 const isImageItem = item.templateName === 'AI Image Generator' || item.templateName === 'AI Image Editor';
                                 const shouldCopyPrompt = promptCopyTools.includes(item.templateName);
@@ -282,84 +283,84 @@ const HistoryView: React.FC<HistoryViewProps> = ({ user, onReuse, onCopy, onEdit
                                 const copyButtonText = shouldCopyPrompt ? "Copy Prompt" : (shouldCopyContent ? "Copy Content" : "Copy Content");
                                 const Icon = templateIcons[item.templateName] || SparklesIcon;
                                 return (
-                                <div key={item.id} className="bg-slate-800/50 p-4 rounded-lg border border-slate-700/70 flex items-start">
-                                    <div className="w-16 h-16 rounded-md mr-4 flex-shrink-0 flex items-center justify-center overflow-hidden bg-gradient-to-br from-[var(--gradient-start)] to-[var(--gradient-end)]">
+                                <div key={item.id} className="bg-slate-800/50 p-3 sm:p-4 rounded-lg border border-slate-700/70 flex items-start transition-all hover:border-slate-600">
+                                    <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-md mr-3 sm:mr-4 flex-shrink-0 flex items-center justify-center overflow-hidden bg-gradient-to-br from-[var(--gradient-start)] to-[var(--gradient-end)]">
                                         {(isImageItem && item.content.startsWith('data:image')) ? (
                                             <img src={item.content} alt={item.topic} className="w-full h-full object-cover" />
                                         ) : (
-                                            <Icon className="w-8 h-8 text-white" />
+                                            <Icon className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
                                         )}
                                     </div>
-                                    <div className="flex-1 overflow-hidden">
+                                    <div className="flex-1 min-w-0 overflow-hidden">
                                     <div className="flex justify-between items-start">
-                                        <div>
-                                        <span className="text-xs bg-slate-700 text-slate-300 font-semibold px-2 py-1 rounded-full">{item.templateName}</span>
-                                        <p className="text-xs text-slate-500 mt-2">{new Date(item.timestamp).toLocaleString()}</p>
+                                        <div className="flex flex-col items-start">
+                                            <span className="text-[10px] sm:text-xs bg-slate-700 text-slate-300 font-semibold px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full truncate max-w-[120px] sm:max-w-none block">{item.templateName}</span>
+                                            <p className="text-[10px] sm:text-xs text-slate-500 mt-1 sm:mt-2">{new Date(item.timestamp).toLocaleString()}</p>
                                         </div>
-                                        <div className="flex-shrink-0 ml-2 md:ml-4">
-                                            <div className="flex items-center text-sm text-slate-400">
+                                        <div className="flex-shrink-0 ml-1 sm:ml-4">
+                                            <div className="flex items-center text-xs sm:text-sm text-slate-400">
                                                 {/* EDIT BUTTON */}
                                                 {item.content.startsWith('data:image') && (
                                                     <>
-                                                        <button onClick={() => onEdit(item)} className="flex items-center p-2 hover:text-white transition-colors" title="Edit Image">
+                                                        <button onClick={() => onEdit(item)} className="flex items-center p-1.5 sm:p-2 hover:text-white transition-colors" title="Edit Image">
                                                             <EditIcon className="w-4 h-4 md:mr-1.5" />
                                                             <span className="hidden md:inline">Edit</span>
                                                         </button>
-                                                        <div className="w-px h-4 bg-slate-700 mx-1 md:mx-2"></div>
+                                                        <div className="w-px h-3 sm:h-4 bg-slate-700 mx-0.5 sm:mx-2"></div>
                                                     </>
                                                 )}
 
                                                 {/* REUSE BUTTON */}
                                                 {item.templateName !== "Marketing Video Ad" && (
                                                     <>
-                                                        <button onClick={() => onReuse(item)} className="flex items-center p-2 hover:text-white transition-colors" title="Reuse">
+                                                        <button onClick={() => onReuse(item)} className="flex items-center p-1.5 sm:p-2 hover:text-white transition-colors" title="Reuse">
                                                             <ReuseIcon className="w-4 h-4 md:mr-1.5" />
                                                             <span className="hidden md:inline">Reuse</span>
                                                         </button>
-                                                        <div className="w-px h-4 bg-slate-700 mx-1 md:mx-2"></div>
+                                                        <div className="w-px h-3 sm:h-4 bg-slate-700 mx-0.5 sm:mx-2"></div>
                                                     </>
                                                 )}
 
                                                 {/* COPY BUTTON */}
-                                                <button onClick={() => onCopy(item.content, item.templateName, item.topic)} className="flex items-center p-2 hover:text-white transition-colors" title={copyButtonText}>
+                                                <button onClick={() => onCopy(item.content, item.templateName, item.topic)} className="flex items-center p-1.5 sm:p-2 hover:text-white transition-colors" title={copyButtonText}>
                                                     <CopyIcon className="w-4 h-4 md:mr-1.5" />
                                                     <span className="hidden md:inline">{copyButtonText}</span>
                                                 </button>
 
-                                                <div className="w-px h-4 bg-slate-700 mx-1 md:mx-2"></div>
+                                                <div className="w-px h-3 sm:h-4 bg-slate-700 mx-0.5 sm:mx-2"></div>
 
                                                 {/* DELETE BUTTON */}
-                                                <button onClick={() => setToolItemToDelete(item)} className="flex items-center p-2 hover:text-red-400 transition-colors" title="Delete">
+                                                <button onClick={() => setToolItemToDelete(item)} className="flex items-center p-1.5 sm:p-2 hover:text-red-400 transition-colors" title="Delete">
                                                     <TrashIcon className="w-4 h-4 md:mr-1.5" />
                                                     <span className="hidden md:inline">Delete</span>
                                                 </button>
                                             </div>
                                         </div>
                                     </div>
-                                    <p className="text-slate-300 mt-3 text-sm line-clamp-2 pr-4">{item.topic}</p>
+                                    <p className="text-slate-300 mt-2 sm:mt-3 text-xs sm:text-sm line-clamp-2 pr-1">{item.topic}</p>
                                     </div>
                                 </div>
                             )})}
                         </div>
                     ) : (
                         <div className="flex flex-col items-center justify-center h-full text-center text-slate-500">
-                            <HistoryIcon className="w-16 h-16 mb-4 text-slate-700"/>
+                            <HistoryIcon className="w-12 h-12 sm:w-16 sm:h-16 mb-4 text-slate-700"/>
                             <h3 className="font-semibold text-slate-400">No history yet</h3>
-                            <p>Your generated content will appear here.</p>
+                            <p className="text-sm">Your generated content will appear here.</p>
                         </div>
                     )
                 )}
                 {activeTab === 'campaigns' && (
                     isCampaignHistoryLoading ? <CampaignHistorySkeleton /> : campaignHistory.length > 0 ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                             {campaignHistory.map(campaign => (
-                                <div key={campaign.id} className="bg-slate-800/50 p-5 rounded-lg border border-slate-700/70 flex flex-col justify-between group">
+                                <div key={campaign.id} className="bg-slate-800/50 p-4 sm:p-5 rounded-lg border border-slate-700/70 flex flex-col justify-between group transition-all hover:border-slate-600">
                                     <div>
-                                        <h3 className="font-bold text-white mb-1 line-clamp-2">{campaign.campaignTitle}</h3>
-                                        <p className="text-sm text-slate-400 line-clamp-3 mb-3">Goal: {campaign.goal}</p>
+                                        <h3 className="font-bold text-white text-base sm:text-lg mb-1 line-clamp-2">{campaign.campaignTitle}</h3>
+                                        <p className="text-xs sm:text-sm text-slate-400 line-clamp-3 mb-3">Goal: {campaign.goal}</p>
                                     </div>
-                                    <div className="flex justify-between items-center">
-                                        <p className="text-xs text-slate-500">{new Date(campaign.timestamp).toLocaleDateString()}</p>
+                                    <div className="flex justify-between items-center pt-2">
+                                        <p className="text-[10px] sm:text-xs text-slate-500">{new Date(campaign.timestamp).toLocaleDateString()}</p>
                                         <div className="flex items-center gap-2">
                                             <button 
                                                 onClick={() => setCampaignToDelete(campaign)} 
@@ -368,7 +369,7 @@ const HistoryView: React.FC<HistoryViewProps> = ({ user, onReuse, onCopy, onEdit
                                             >
                                                 <TrashIcon className="w-4 h-4" />
                                             </button>
-                                            <button onClick={() => setSelectedCampaign(campaign)} className="text-sm font-semibold bg-slate-700 hover:bg-slate-600 text-white px-3 py-1.5 rounded-md transition-colors">
+                                            <button onClick={() => setSelectedCampaign(campaign)} className="text-xs sm:text-sm font-semibold bg-slate-700 hover:bg-slate-600 text-white px-2.5 py-1.5 sm:px-3 sm:py-1.5 rounded-md transition-colors">
                                                 Open
                                             </button>
                                         </div>
@@ -378,9 +379,9 @@ const HistoryView: React.FC<HistoryViewProps> = ({ user, onReuse, onCopy, onEdit
                         </div>
                     ) : (
                         <div className="flex flex-col items-center justify-center h-full text-center text-slate-500">
-                            <PlaybookIcon className="w-16 h-16 mb-4 text-slate-700"/>
+                            <PlaybookIcon className="w-12 h-12 sm:w-16 sm:h-16 mb-4 text-slate-700"/>
                             <h3 className="font-semibold text-slate-400">No campaigns in your playbook</h3>
-                            <p>Campaigns you create with the Campaign Builder will appear here.</p>
+                            <p className="text-sm">Campaigns you create with the Campaign Builder will appear here.</p>
                         </div>
                     )
                 )}
