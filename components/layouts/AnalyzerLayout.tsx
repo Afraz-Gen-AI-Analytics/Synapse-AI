@@ -72,9 +72,11 @@ const LoadingState: React.FC = () => {
 };
 
 const AnalyzerLayout: React.FC<AnalyzerLayoutProps> = ({ selectedTemplate, brandProfile, user, onPrefill, onGenerateImage, onGenerateVideoFromBlueprint, onGenerate, onUpgrade, reusedReportData, onClearReusedData, tones, initialFields, topic, onTopicChange, spendCredits }) => {
-    const [view, setView] = useState<'form' | 'loading' | 'report'>('form');
+    // Initialize state directly from prop to prevent flash of "form" state when reusing history
+    const [view, setView] = useState<'form' | 'loading' | 'report'>(reusedReportData ? 'report' : 'form');
     const [extraFields, setExtraFields] = useState<{ [key: string]: string }>(initialFields);
-    const [reportData, setReportData] = useState<ResonanceFeedback | MarketSignalReportData | SeoContentBlueprint | AdCreativeBlueprint | ViralVideoBlueprint | null>(null);
+    const [reportData, setReportData] = useState<ResonanceFeedback | MarketSignalReportData | SeoContentBlueprint | AdCreativeBlueprint | ViralVideoBlueprint | null>(reusedReportData || null);
+    
     const { addToast } = useToast();
     const [isGenerating, setIsGenerating] = useState(false);
 
