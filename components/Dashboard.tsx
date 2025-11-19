@@ -412,6 +412,19 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
     }
   }, [user]);
 
+  // Effect to pre-fill extraFields when brandProfile loads if they are currently empty
+  useEffect(() => {
+      if (brandProfile) {
+          setExtraFields(prev => {
+               // If targetAudience is missing in the current fields but exists in the profile, add it.
+               if (!prev.targetAudience && brandProfile.targetAudience) {
+                   return { ...prev, targetAudience: brandProfile.targetAudience };
+               }
+               return prev;
+          });
+      }
+  }, [brandProfile]);
+
   const handleOnboardingComplete = useCallback(async () => {
     if (!user || !setUser) return;
     try {
@@ -1172,8 +1185,14 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
 
   const renderToolLayout = () => {
     if (!user) return null;
-    if ((selectedTemplate.id === ContentType.Campaign || selectedTemplate.id === ContentType.MarketSignalAnalyzer || selectedTemplate.id === ContentType.ResonanceEngine || selectedTemplate.id === ContentType.BlogIdea || selectedTemplate.id === ContentType.AIAdCreativeStudio) && isProfileComplete === false) {
-        return <CompleteProfilePrompt featureName={selectedTemplate.name} onNavigate={() => handleNavigateToSettings('tools')} />;
+    // Wait for profile to load before rendering tools that depend on it to avoid race conditions
+    if ((selectedTemplate.id === ContentType.Campaign || selectedTemplate.id === ContentType.MarketSignalAnalyzer || selectedTemplate.id === ContentType.ResonanceEngine || selectedTemplate.id === ContentType.BlogIdea || selectedTemplate.id === ContentType.AIAdCreativeStudio)) {
+        if (isProfileComplete === null) {
+             return <div className="flex-1 flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--gradient-end)]"></div></div>;
+        }
+        if (isProfileComplete === false) {
+            return <CompleteProfilePrompt featureName={selectedTemplate.name} onNavigate={() => handleNavigateToSettings('tools')} />;
+        }
     }
       
     switch (selectedTemplate.id) {

@@ -80,6 +80,16 @@ const AnalyzerLayout: React.FC<AnalyzerLayoutProps> = ({ selectedTemplate, brand
     const { addToast } = useToast();
     const [isGenerating, setIsGenerating] = useState(false);
 
+    // Pre-fill fields if brandProfile loads after initial render
+    useEffect(() => {
+        if (brandProfile && !extraFields.targetAudience && brandProfile.targetAudience) {
+             setExtraFields(prev => ({
+                 ...prev,
+                 targetAudience: brandProfile.targetAudience
+             }));
+        }
+    }, [brandProfile]);
+
     useEffect(() => {
         if (reusedReportData) {
             setReportData(reusedReportData);
