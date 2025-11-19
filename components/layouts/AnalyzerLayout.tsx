@@ -91,31 +91,45 @@ const AnalyzerLayout: React.FC<AnalyzerLayoutProps> = ({ selectedTemplate, brand
         let sampleResult;
         if (selectedTemplate.id === ContentType.ResonanceEngine) {
             sampleResult = {
-                firstImpression: "It feels incredibly polished but a bit impersonal.",
+                firstImpression: "The design is slick, but the copy feels safe and corporate. It reads like a committee wrote it, not a visionary founder. I'm bored within 5 seconds.",
                 clarityScore: 9,
-                clarityReasoning: "The value proposition is crystal clear. I know exactly what you sell.",
+                clarityReasoning: "I know exactly what you sell (an AI marketing tool) within 3 seconds. The value proposition is crystal clear, no jargon confusion.",
                 persuasionScore: 6,
-                persuasionReasoning: "It sounds like every other SaaS tool. It needs more soul to make me click.",
-                keyQuestions: ["Is this just a wrapper around ChatGPT?", "How long does it take to set up?", "Does it integrate with HubSpot?"],
-                suggestedImprovement: "Add a specific case study or a human testimonial in the second paragraph.",
-                goalAlignment: "Aligns well with clarity, but misses the mark on emotional connection.",
-                emotionAnalysis: "Evokes a sense of professionalism but lacks excitement."
+                persuasionReasoning: "It lacks emotional weight. You talk about 'optimization' and 'efficiency' but miss the pain of burnout that your users actually feel. It needs more soul to drive a conversion.",
+                keyQuestions: [
+                    "Is this just a wrapper around ChatGPT, or is there unique proprietary data?",
+                    "How long is the onboarding process? I don't have time for a 2-week setup.",
+                    "Does it integrate natively with HubSpot and Salesforce?",
+                    "What happens if the AI hallucinates and posts something wrong?",
+                    "Can I white-label this for my own agency clients?"
+                ],
+                suggestedImprovement: "Replace the generic 'Trusted by many' section with a specific case study: 'How Agency X saved 20 hours/week'. Also, inject a provocative hook in the first paragraph that challenges the status quo.",
+                goalAlignment: "Aligns perfectly with the goal of 'Clarity', but fails the 'Excitement' goal. It informs, but doesn't inspire action.",
+                emotionAnalysis: "Evokes a sense of safety and professionalism, but completely lacks the 'FOMO' or 'Aha!' moment required for an impulse purchase."
             };
         } else if (selectedTemplate.id === ContentType.MarketSignalAnalyzer) {
             sampleResult = {
                 trendingSubTopics: [
-                    { topic: "AI Agents for SMBs", buzzScore: 9, reason: "Small businesses are actively looking for automation to replace expensive agencies." },
-                    { topic: "Privacy-First AI", buzzScore: 7, reason: "Concerns about data training are spiking." }
+                    { topic: "AI Agents for SMBs", buzzScore: 9.2, reason: "Small businesses are actively looking to replace expensive agencies with autonomous agents." },
+                    { topic: "Privacy-First AI", buzzScore: 7.5, reason: "Concerns about data training are spiking; users want local-first or private LLM solutions." },
+                    { topic: "No-Code Agent Builders", buzzScore: 8.8, reason: "Non-technical founders are desperate to build custom workflows without hiring developers." },
+                    { topic: "Voice AI Support", buzzScore: 9.5, reason: "Real-time voice agents are replacing traditional call centers at rapid speed." }
                 ],
-                audienceQuestions: ["How to automate lead gen without looking like spam?", "Best AI tools for non-technical founders?"],
+                audienceQuestions: [
+                    "How to automate lead gen without looking like spam?",
+                    "Best AI tools for non-technical founders to build an empire?",
+                    "What is the actual ROI of replacing a VA with an AI agent?",
+                    "Can AI agents handle complex negotiations or just basic support?"
+                ],
                 competitorAngles: [
-                    { angle: "Save Time", isUntapped: false },
-                    { angle: "Save Money", isUntapped: false },
-                    { angle: "Turn your solo business into an empire", isUntapped: true }
+                    { angle: "Save Time & Efficiency (Common)", isUntapped: false },
+                    { angle: "Cost Reduction (Common)", isUntapped: false },
+                    { angle: "Turn your solo business into a scalable Empire (Untapped)", isUntapped: true }
                 ],
                 contentRecommendations: [
-                    { format: "Blog Post", title: "Why 'Saving Time' is a Trap: Build an Empire Instead" },
-                    { format: "LinkedIn Carousel", title: "5 AI Agents You Can Hire Today for $0" }
+                    { format: "Blog Post", title: "Why 'Saving Time' is a Trap: Build an Asset Instead" },
+                    { format: "Short Video", title: "POV: You fired your agency and hired an AI (Here are the results)" },
+                    { format: "LinkedIn Carousel", title: "5 Autonomous Agents You Can Hire Today for $0" }
                 ]
             };
         }

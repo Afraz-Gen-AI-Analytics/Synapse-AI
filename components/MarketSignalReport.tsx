@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { MarketSignalReport as MarketSignalReportData, TrendingTopic, CompetitorAngle, ContentRecommendation } from '../types';
 import TrendingUpIcon from './icons/TrendingUpIcon';
@@ -18,6 +19,14 @@ const ReportSection: React.FC<{ title: string; icon: React.FC<{ className?: stri
         <div className="space-y-3">{children}</div>
     </div>
 );
+
+const getDisplayFormat = (format: string) => {
+    const lower = format.toLowerCase();
+    if (lower.includes('linkedin') || lower.includes('twitter') || lower.includes('facebook')) {
+        return "Social Media Post";
+    }
+    return format;
+}
 
 interface MarketSignalReportProps {
     report: MarketSignalReportData;
@@ -84,7 +93,7 @@ const MarketSignalReport: React.FC<MarketSignalReportProps> = ({ report, onPrefi
                     {report.contentRecommendations.map((item, index) => (
                         <div key={index} className="p-3 bg-slate-700/30 rounded-md flex justify-between items-center gap-4">
                             <div className="flex-1">
-                                <p className="text-xs text-slate-400 font-semibold">{item.format}</p>
+                                <p className="text-xs text-slate-400 font-semibold">{getDisplayFormat(item.format)}</p>
                                 <p className="font-semibold text-slate-200">"{item.title}"</p>
                             </div>
                              <button onClick={() => onPrefill(item)} className="flex-shrink-0 flex items-center text-xs bg-slate-700 hover:bg-slate-600 text-slate-200 font-semibold py-1.5 px-3 rounded-md transition-colors">

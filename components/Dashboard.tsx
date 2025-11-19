@@ -1067,16 +1067,24 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
     let targetTemplate: Template | undefined;
     const format = recommendation.format.toLowerCase();
 
-    // Reordered to prioritize more specific keywords over general ones
-    if (format.includes('video')) {
-        targetTemplate = templates.find(t => t.id === ContentType.AIVideoGenerator);
-    } else if (format.includes('social') || format.includes('linkedin') || format.includes('tweet') || format.includes('facebook') || format.includes('carousel')) {
-        targetTemplate = templates.find(t => t.id === ContentType.SocialMediaPost);
-    } else if (format.includes('blog')) {
+    // 1. Blog / Article
+    if (format.includes('blog') || format.includes('article')) {
         targetTemplate = templates.find(t => t.id === ContentType.BlogIdea);
-    } else if (format.includes('email')) {
+    } 
+    // 2. Video
+    else if (format.includes('video') || format.includes('shorts') || format.includes('reel') || format.includes('tiktok')) {
+        targetTemplate = templates.find(t => t.id === ContentType.AIVideoGenerator);
+    } 
+    // 3. Social
+    else if (format.includes('social') || format.includes('linkedin') || format.includes('tweet') || format.includes('facebook') || format.includes('carousel') || format.includes('twitter') || format.includes('thread') || format.includes('post')) {
+        targetTemplate = templates.find(t => t.id === ContentType.SocialMediaPost);
+    } 
+    // 4. Email
+    else if (format.includes('email')) {
         targetTemplate = templates.find(t => t.id === ContentType.EmailCopy);
-    } else if (format.includes('ad')) {
+    } 
+    // 5. Ad
+    else if (format.includes('ad')) {
          targetTemplate = templates.find(t => t.id === ContentType.AIAdCreativeStudio);
     }
 
@@ -1084,23 +1092,50 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
         handleTemplateSelect(targetTemplate);
         // Use timeout to ensure state update after template selection re-render
         setTimeout(() => {
-            setTopic(recommendation.title);
+            let prefillTopic = recommendation.title;
+
             if (targetTemplate?.id === ContentType.SocialMediaPost) {
-                if (format.includes('linkedin')) {
-                    setExtraFields(prev => ({ ...prev, platform: 'LinkedIn' }));
-                } else if (format.includes('facebook')) {
-                    setExtraFields(prev => ({ ...prev, platform: 'Facebook' }));
+                 let platformName = 'LinkedIn'; // Default fallback
+                 let promptPlatform = 'Social Media';
+                 
+                 // Smart detection
+                 if (format.includes('twitter') || format.includes('tweet') || format.includes('thread') || format.includes('x')) {
+                     platformName = 'Twitter';
+                     promptPlatform = 'Twitter';
+                 } else if (format.includes('facebook')) {
+                     platformName = 'Facebook';
+                     promptPlatform = 'Facebook';
+                 } else if (format.includes('linkedin') || format.includes('carousel')) {
+                     platformName = 'LinkedIn';
+                     promptPlatform = 'LinkedIn';
+                 } else {
+                     // Generic "Social Media Post" - default to LinkedIn for professional context but keep prompt generic
+                     platformName = 'LinkedIn';
+                     promptPlatform = 'social media';
+                 }
+
+                 prefillTopic = `Write a professional ${promptPlatform} post about "${recommendation.title}"`;
+                 if (context?.audience) {
+                     prefillTopic += ` targeting ${context.audience}`;
+                 }
+
+                 setExtraFields(prev => ({ ...prev, platform: platformName }));
+            } 
+            else if (targetTemplate?.id === ContentType.BlogIdea) {
+                // Professional prompt for SEO Content Strategist
+                prefillTopic = `Create a comprehensive SEO content blueprint for a blog post about "${recommendation.title}"`;
+                if (context?.audience) {
+                    setExtraFields(prev => ({ ...prev, targetAudience: context.audience }));
                 }
             }
-            
-            // "Professionally prefill" the SEO Content Strategist
-            if (targetTemplate?.id === ContentType.BlogIdea && context?.audience) {
-                setExtraFields(prev => ({
-                    ...prev,
-                    targetAudience: context.audience,
-                }));
-                addToast("Audience from Market Signal analysis has been pre-filled!", "info");
+            else if (targetTemplate?.id === ContentType.AIVideoGenerator) {
+                // Professional prompt for Marketing Video Ad
+                 prefillTopic = `Create a high-energy, professional marketing video about "${recommendation.title}". Visual style: Cinematic, clean, and engaging for social media.`;
             }
+
+            setTopic(prefillTopic);
+            
+            // Audience toast is handled implicitly by the context passing now if used
 
         }, 50);
         addToast(`Switched to ${targetTemplate.name} and pre-filled topic!`, "info");

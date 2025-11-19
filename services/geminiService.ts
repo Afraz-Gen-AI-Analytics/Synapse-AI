@@ -1,5 +1,4 @@
 
-
 import { GoogleGenAI, GenerateContentResponse, Type, Modality } from "@google/genai";
 import { BrandProfile, ToolRoute, ResonanceFeedback, MarketSignalReport, SeoContentBlueprint, AdCreativeBlueprint, ViralVideoBlueprint, SocialPostContent } from "../types";
 
@@ -370,7 +369,10 @@ export async function getMarketSignalAnalysis(topic: string, targetAudience: str
         1.  **Trending Sub-Topics:** Identify 3-4 niche sub-topics that are currently gaining traction online. For each topic, provide a 'buzzScore' from 1-10 indicating its current level of online discussion (1=very niche, 10=mainstream buzz). Explain *why* each is relevant now.
         2.  **Audience Questions:** List 3-4 real, specific questions the target audience is asking on platforms like Google, Reddit, or Quora. These should be "long-tail" questions.
         3.  **Competitor Angles:** Analyze 2 common angles competitors are taking on this topic. Then, identify 1 unique, "Untapped Angle" that provides a fresh perspective. You MUST provide exactly three angles in total, and one MUST be marked as untapped.
-        4.  **Content Recommendations:** Suggest 3 concrete content ideas (e.g., Blog Post, Short Video, LinkedIn Carousel) with catchy, SEO-friendly titles that directly leverage your findings and align with the primary analysis goal.
+        4.  **Content Recommendations:** Suggest exactly 3 concrete content ideas. 
+            - The first recommendation MUST be a 'Blog Post'.
+            - The second recommendation MUST be a 'Short Video'.
+            - The third recommendation MUST be a 'Social Media Post' specifically for LinkedIn, Twitter, or Facebook. Use the format name (e.g., 'LinkedIn Post', 'Twitter Thread', 'Facebook Update').
     `;
 
     const schema = {
@@ -409,7 +411,7 @@ export async function getMarketSignalAnalysis(topic: string, targetAudience: str
                 items: {
                     type: Type.OBJECT,
                     properties: {
-                        format: { type: Type.STRING, description: "The recommended content format (e.g., Blog Post, Short Video)." },
+                        format: { type: Type.STRING, description: "The recommended content format (e.g., Blog Post, Short Video, LinkedIn Post)." },
                         title: { type: Type.STRING, description: "A catchy, SEO-friendly title for the content piece." }
                     },
                     required: ["format", "title"]
