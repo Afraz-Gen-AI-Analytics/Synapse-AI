@@ -77,8 +77,9 @@ const AgentManager: React.FC<AgentManagerProps> = ({ user, onUpgrade, onNavigate
     }, [user.uid]);
 
     const handleDeployAgent = () => {
-        // Allow ONE free agent deployment to solve the "Black Box" problem
-        if (user.plan === 'freemium' && agents.length > 0) {
+        // Strict check: If freemium AND they have ever deployed a free agent, force upgrade.
+        // This prevents the loop of deleting and recreating an agent.
+        if (user.plan === 'freemium' && user.hasDeployedFreeAgent) {
             onUpgrade();
         } else {
             setIsConfiguring(true);
@@ -177,7 +178,10 @@ const AgentManager: React.FC<AgentManagerProps> = ({ user, onUpgrade, onNavigate
         );
     }
 
-    const canDeployFree = user.plan === 'freemium' && agents.length === 0;
+    // Logic to determine button text. 
+    // If plan is freemium and they have NEVER deployed one, show "Free".
+    // Otherwise, show "Deploy New Agent" (which will trigger upgrade modal on click if freemium).
+    const canDeployFree = user.plan === 'freemium' && !user.hasDeployedFreeAgent;
 
     return (
         <div className="flex-1 flex flex-col">

@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { AgentPersona, User, Agent, AgentTask, BrandProfile } from '../types';
-import { addAgentDoc, addAgentLogDoc, addAgentTaskDoc, updateAgentDoc, getBrandProfile } from '../services/firebaseService';
+import { addAgentDoc, addAgentLogDoc, addAgentTaskDoc, updateAgentDoc, getBrandProfile, updateUserDoc } from '../services/firebaseService';
 import { generateAgentPlan } from '../services/geminiService';
 import AgentIcon from './icons/AgentIcon';
+import { AuthContext } from '../App';
 
 interface AgentConfigurationModalProps {
   user: User;
@@ -17,6 +18,7 @@ const AgentConfigurationModal: React.FC<AgentConfigurationModalProps> = ({ user,
     const [error, setError] = useState('');
     const [isDeploying, setIsDeploying] = useState(false);
     const [deployMessage, setDeployMessage] = useState('Deploy Agent');
+    const { setUser } = useContext(AuthContext);
 
     const handleSubmit = async () => {
         if (!name || !goal) {
@@ -30,6 +32,13 @@ const AgentConfigurationModal: React.FC<AgentConfigurationModalProps> = ({ user,
             const brandProfile = await getBrandProfile(user.uid);
             if (!brandProfile) {
                 throw new Error("Could not find brand profile. Please configure it in Settings.");
+            }
+
+            // If user is freemium and hasn't deployed a free agent yet, mark it now
+            if (user.plan === 'freemium' && !user.hasDeployedFreeAgent) {
+                await updateUserDoc(user.uid, { hasDeployedFreeAgent: true });
+                // Optimistic update for local state
+                setUser(prev => prev ? ({ ...prev, hasDeployedFreeAgent: true }) : null);
             }
 
             const newAgentData: Omit<Agent, 'id'> = {

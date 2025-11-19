@@ -11,6 +11,7 @@ export interface User {
   theme?: string; // e.g., 'Twilight', 'Sunrise'
   onboardingCompleted?: boolean;
   brandProfileBonusClaimed?: boolean;
+  hasDeployedFreeAgent?: boolean; // Tracks if the user has ever deployed their one free agent
 }
 
 export enum ContentType {
