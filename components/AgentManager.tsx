@@ -67,13 +67,28 @@ const AgentManager: React.FC<AgentManagerProps> = ({ user, onUpgrade, onNavigate
     const { addToast } = useToast();
     
     useEffect(() => {
+        const startTime = Date.now();
+        const MIN_LOADING_TIME = 600; // milliseconds
+
         const unsubscribe = onAgentsSnapshot(user.uid,
             (userAgents) => {
-                setAgents(userAgents);
-                setIsInitialLoading(false);
+                if (isInitialLoading) {
+                    const elapsedTime = Date.now() - startTime;
+                    const delay = Math.max(0, MIN_LOADING_TIME - elapsedTime);
+
+                    setTimeout(() => {
+                        setAgents(userAgents);
+                        setIsInitialLoading(false);
+                    }, delay);
+                } else {
+                    setAgents(userAgents);
+                }
             }
         );
-        return () => unsubscribe();
+        return () => {
+            unsubscribe();
+            setIsInitialLoading(true);
+        };
     }, [user.uid]);
 
     const handleDeployAgent = () => {
