@@ -44,6 +44,7 @@ async function withRetry<T>(apiCall: () => Promise<T>, maxRetries = 3, initialDe
                                      errorStr.includes('internal') ||
                                      errorStr.includes('503') ||
                                      errorStr.includes('unavailable') ||
+                                     errorStr.includes('overloaded') ||
                                      errorStr.includes('network error') ||
                                      errorStr.includes('timeout');
 
@@ -123,6 +124,11 @@ function handleGeminiError(error: any, context: string): never {
     if (errorMessage.includes('requested entity was not found')) {
          throw new SynapseAIError(VEO_KEY_ERROR_MESSAGE);
     }
+    // Specific handling for Overloaded/503 errors
+    if (errorMessage.includes('503') || errorMessage.includes('overloaded') || errorMessage.includes('unavailable')) {
+        throw new SynapseAIError("System busy: Our AI engines are experiencing high traffic. Please try again in a moment.");
+    }
+
     if (error instanceof SyntaxError && context.includes('structured content')) {
         throw new SynapseAIError("The AI returned a malformed JSON response that could not be understood. Please try generating again.");
     }

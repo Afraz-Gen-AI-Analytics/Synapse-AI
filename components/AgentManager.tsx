@@ -72,14 +72,15 @@ const AgentManager: React.FC<AgentManagerProps> = ({ user, onUpgrade, onNavigate
 
         const unsubscribe = onAgentsSnapshot(user.uid,
             (userAgents) => {
+                // Check if this is the first load
                 if (isInitialLoading) {
                     const elapsedTime = Date.now() - startTime;
-                    const delay = Math.max(0, MIN_LOADING_TIME - elapsedTime);
+                    const remainingTime = Math.max(0, MIN_LOADING_TIME - elapsedTime);
 
                     setTimeout(() => {
                         setAgents(userAgents);
                         setIsInitialLoading(false);
-                    }, delay);
+                    }, remainingTime);
                 } else {
                     setAgents(userAgents);
                 }
