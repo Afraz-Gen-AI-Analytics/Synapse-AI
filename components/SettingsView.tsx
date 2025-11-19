@@ -1,11 +1,10 @@
+
 import React, { useState, useEffect } from 'react';
 import { User, BrandProfile } from '../types';
 import { getBrandProfile, updateBrandProfile, isBrandProfileComplete, updateUserDoc } from '../services/firebaseService';
 import SettingsIcon from './icons/SettingsIcon';
 import { useToast } from '../contexts/ToastContext';
 import ThemeSwitcher from './ThemeSwitcher';
-import Tooltip from './Tooltip';
-import InfoIcon from './icons/InfoIcon';
 import ChevronDownIcon from './icons/ChevronDownIcon';
 
 interface SettingsViewProps {
@@ -110,23 +109,17 @@ const SettingsView: React.FC<SettingsViewProps> = ({ user, onUserUpdate, onSaveS
                                 className="w-full bg-slate-800/50 border border-slate-700 rounded-lg p-3 text-white placeholder-slate-500 focus:ring-2 focus:ring-[var(--gradient-end)]" />
                         </div>
                          <div>
-                            <label htmlFor="targetAudience" className="block text-sm font-medium text-slate-300 mb-2 flex items-center">
+                            <label htmlFor="targetAudience" className="block text-sm font-medium text-slate-300 mb-2">
                                 Target Audience
-                                <Tooltip text="Describe your ideal customer. E.g., 'Tech-savvy project managers in startups' or 'Eco-conscious millennials who love hiking'.">
-                                    <InfoIcon className="w-4 h-4 ml-2 text-slate-500" />
-                                </Tooltip>
                             </label>
-                            <textarea id="targetAudience" name="targetAudience" rows={3} value={profile.targetAudience} onChange={handleInputChange} placeholder="e.g., 'Early-stage startup founders and product managers in the SaaS industry who are struggling with tool overload.'"
+                            <textarea id="targetAudience" name="targetAudience" rows={3} value={profile.targetAudience} onChange={handleInputChange} placeholder="Describe your ideal customer. e.g., 'Tech-savvy project managers in startups' or 'Eco-conscious millennials who love hiking'."
                                 className="w-full bg-slate-800/50 border border-slate-700 rounded-lg p-3 text-white placeholder-slate-500 focus:ring-2 focus:ring-[var(--gradient-end)]" />
                         </div>
                         <div>
-                            <label htmlFor="messagingPillars" className="block text-sm font-medium text-slate-300 mb-2 flex items-center">
+                            <label htmlFor="messagingPillars" className="block text-sm font-medium text-slate-300 mb-2">
                                 Core Messaging Pillars (1-3)
-                                <Tooltip text="List the main value propositions or themes you want to emphasize in your marketing.">
-                                    <InfoIcon className="w-4 h-4 ml-2 text-slate-500" />
-                                </Tooltip>
                             </label>
-                            <textarea id="messagingPillars" name="messagingPillars" rows={3} value={profile.messagingPillars} onChange={handleInputChange} placeholder="e.g., '1. Unify Your Workflow. 2. Reclaim Your Focus. 3. Achieve More, Faster.'"
+                            <textarea id="messagingPillars" name="messagingPillars" rows={3} value={profile.messagingPillars} onChange={handleInputChange} placeholder="List your main value propositions. e.g., '1. Unify Your Workflow. 2. Reclaim Your Focus. 3. Achieve More, Faster.'"
                                 className="w-full bg-slate-800/50 border border-slate-700 rounded-lg p-3 text-white placeholder-slate-500 focus:ring-2 focus:ring-[var(--gradient-end)]" />
                         </div>
                         <div>
