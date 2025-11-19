@@ -612,8 +612,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
 
       <footer className="border-t border-slate-800 pt-16 pb-8 bg-[#0A0C12]">
         <div className="container mx-auto px-4">
-            <div className="grid grid-cols-3 md:grid-cols-4 gap-4 md:gap-8 mb-12">
-                <div className="col-span-3 md:col-span-1 mb-8 md:mb-0">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
+                <div className="col-span-2 md:col-span-1">
                     <div className="flex items-center space-x-2 mb-4">
                         <SynapseLogo className="w-6 h-6" />
                         <span className="text-lg font-bold text-white">Synapse AI</span>
@@ -625,7 +625,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
                     <ul className="space-y-2 text-sm text-slate-400">
                         <li><a href="#features" className="hover:text-white transition-colors">Features</a></li>
                         <li><a href="#pricing" className="hover:text-white transition-colors">Pricing</a></li>
-                        <li><button onClick={() => alert("Demo request sent!")} className="hover:text-white transition-colors text-left">Request Demo</button></li>
+                        <li><button onClick={() => alert("Demo request sent!")} className="hover:text-white transition-colors">Request Demo</button></li>
                     </ul>
                 </div>
                 <div>
@@ -640,8 +640,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
                     <h4 className="text-white font-semibold mb-4">Company</h4>
                     <ul className="space-y-2 text-sm text-slate-400">
                         <li><a href="#" className="hover:text-white transition-colors">About</a></li>
-                        <li><button onClick={() => onNavigate('terms')} className="hover:text-white transition-colors text-left">Terms</button></li>
-                        <li><button onClick={() => onNavigate('privacy')} className="hover:text-white transition-colors text-left">Privacy</button></li>
+                        <li><button onClick={() => onNavigate('terms')} className="hover:text-white transition-colors">Terms</button></li>
+                        <li><button onClick={() => onNavigate('privacy')} className="hover:text-white transition-colors">Privacy</button></li>
                     </ul>
                 </div>
             </div>
