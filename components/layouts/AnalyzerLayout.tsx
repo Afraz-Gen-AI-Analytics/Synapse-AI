@@ -476,14 +476,17 @@ const AnalyzerLayout: React.FC<AnalyzerLayoutProps> = ({ selectedTemplate, brand
                     )}
                 </div>
 
-                <div className="flex flex-col sm:flex-row gap-4 mt-8">
-                    <button onClick={handleGenerate} disabled={isGenerating} className="flex-1 flex items-center justify-center bg-gradient-to-r from-[var(--gradient-start)] to-[var(--gradient-end)] hover:opacity-90 text-white font-semibold py-3 px-6 rounded-lg transition-all text-lg disabled:opacity-50 shadow-lg shadow-[color:var(--gradient-start)]/30">
-                        <ButtonIcon className="w-5 h-5 mr-2" />
-                        {buttonText} ({cost} <DiamondIcon className="w-4 h-4 ml-1 inline-block" />)
+                <div className="flex flex-row gap-3 mt-8 w-full">
+                    <button onClick={handleGenerate} disabled={isGenerating} className="flex-1 flex items-center justify-center bg-gradient-to-r from-[var(--gradient-start)] to-[var(--gradient-end)] hover:opacity-90 text-white font-semibold py-3 px-3 sm:px-6 rounded-lg transition-all text-base sm:text-lg disabled:opacity-50 shadow-lg shadow-[color:var(--gradient-start)]/30 whitespace-nowrap">
+                        <ButtonIcon className="w-5 h-5 mr-1.5 sm:mr-2 flex-shrink-0" />
+                        <span className="truncate">{buttonText}</span> 
+                        <span className="ml-1.5 flex items-center opacity-90 text-sm sm:text-base">
+                            ({cost} <DiamondIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4 ml-0.5" />)
+                        </span>
                     </button>
                      {(selectedTemplate.id === ContentType.ResonanceEngine || selectedTemplate.id === ContentType.MarketSignalAnalyzer) && (
-                        <button onClick={loadSampleData} className="flex items-center justify-center bg-slate-700 hover:bg-slate-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors">
-                           <EyeIcon className="w-5 h-5 mr-2" /> View Sample
+                        <button onClick={loadSampleData} className="flex-shrink-0 flex items-center justify-center bg-slate-700 hover:bg-slate-600 text-white font-semibold py-3 px-4 sm:px-6 rounded-lg transition-colors" title="View Sample">
+                           <EyeIcon className="w-5 h-5 sm:mr-2" /> <span className="hidden sm:inline">View Sample</span>
                         </button>
                     )}
                 </div>
