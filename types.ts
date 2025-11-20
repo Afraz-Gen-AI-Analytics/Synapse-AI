@@ -1,3 +1,4 @@
+
 import type React from 'react';
 
 export interface User {
@@ -12,6 +13,10 @@ export interface User {
   onboardingCompleted?: boolean;
   brandProfileBonusClaimed?: boolean;
   hasDeployedFreeAgent?: boolean; // Tracks if the user has ever deployed their one free agent
+  videoUsage?: {
+    date: string; // Format: YYYY-MM-DD
+    count: number;
+  };
 }
 
 export enum ContentType {

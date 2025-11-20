@@ -20,7 +20,8 @@ import {
     getBrandProfile,
     isBrandProfileComplete,
     deductCredits,
-    addCredits
+    addCredits,
+    checkAndIncrementVideoUsage
 } from '../services/firebaseService';
 import { useToast } from '../contexts/ToastContext';
 import { AuthContext } from '../App';
@@ -404,8 +405,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
   // State for reusing analyzer reports
   const [reusedReportData, setReusedReportData] = useState<any | null>(null);
 
-  // State for Daily Video Limits
-  const [dailyVideoCount, setDailyVideoCount] = useState(0);
+  // Constant for Daily Video Limit
   const VIDEO_DAILY_LIMIT = 3;
 
   const spendCredits = useCallback(async (amount: number): Promise<boolean> => {
@@ -413,6 +413,12 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
       
       // 1. Immediate client-side check
       if (user.credits < amount) {
+          // Context-aware notification based on plan
+          if (user.plan === 'pro') {
+              addToast("You've used all your credits. Top up to continue creating.", "info");
+          } else {
+              addToast("Not enough credits. Please upgrade your plan to continue.", "error");
+          }
           setShowUpgradeModal(true);
           return false;
       }
@@ -436,8 +442,12 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
           setUser(prev => prev ? ({ ...prev, credits: previousCredits }) : null);
           
           if (error.message === 'Insufficient credits') {
+             if (user.plan === 'pro') {
+                addToast("You've used all your credits. Top up to continue creating.", "info");
+             } else {
+                addToast("Not enough credits. Please upgrade your plan to continue.", "error");
+             }
              setShowUpgradeModal(true);
-             addToast("Not enough credits. Please top up.", "error");
           } else {
              addToast("Transaction failed. Please try again.", "error");
           }
@@ -468,20 +478,6 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
       }
   }, [brandProfile]);
 
-    // --- DAILY VIDEO LIMIT LOGIC ---
-    const getDailyVideoKey = (uid: string) => {
-        const today = new Date().toDateString();
-        return `video_usage_${uid}_${today}`;
-    };
-
-    useEffect(() => {
-        if (user) {
-            const key = getDailyVideoKey(user.uid);
-            const stored = localStorage.getItem(key);
-            // Reset if not present (implicitly handles new day since key changes)
-            setDailyVideoCount(stored ? parseInt(stored, 10) : 0);
-        }
-    }, [user]);
 
   const handleOnboardingComplete = useCallback(async () => {
     if (!user || !setUser) return;
@@ -706,7 +702,11 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
     
     // Check credits without spending them yet.
     if (user.credits < cost) {
-        addToast(`Not enough credits. This action costs ${cost} credits.`, "error");
+        if (user.plan === 'pro') {
+            addToast(`Not enough credits. This costs ${cost}. Top up to continue.`, "info");
+        } else {
+            addToast(`Not enough credits. This costs ${cost}. Please upgrade to continue.`, "error");
+        }
         setShowUpgradeModal(true);
         return;
     }
@@ -714,14 +714,6 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
     if (selectedTemplate.id === ContentType.AIImageEditor && !uploadedImage) {
         addToast("Please upload an image to edit.", "error");
         return;
-    }
-
-    // Daily Video Limit Check
-    if (selectedTemplate.id === ContentType.AIVideoGenerator) {
-        if (dailyVideoCount >= VIDEO_DAILY_LIMIT) {
-            addToast("You have reached your daily limit of 3 marketing videos. Your quota will reset automatically at 12:00 AM tomorrow.", "info");
-            return;
-        }
     }
 
     setIsLoading(true);
@@ -747,9 +739,26 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
             await handleGenerationResult(fullResponse, topic, selectedTemplate.name, uploadedImage.dataUrl);
             break;
         case ContentType.AIVideoGenerator:
+             // 1. Server-side limit check and atomic increment
+             const { allowed, newCount } = await checkAndIncrementVideoUsage(user.uid, VIDEO_DAILY_LIMIT);
+             
+             if (!allowed) {
+                 setIsLoading(false);
+                 addToast(`You've reached your daily limit of ${VIDEO_DAILY_LIMIT} videos. Limit resets tomorrow at 12:00 AM.`, "error");
+                 return;
+             }
+             
+             // Update local state to reflect the count increment immediately
+             // The backend handles resetting 'tomorrow', but for UI consistency we assume same day for now.
+             const today = new Date().toISOString().split('T')[0];
+             setUser(prev => prev ? ({ ...prev, videoUsage: { date: today, count: newCount } }) : null);
+
             setVideoStatus('Initializing...');
             const videoConfig = { aspectRatio: extraFields.aspectRatio, resolution: extraFields.resolution };
             let operation = await generateVideo(topic, uploadedImage, videoConfig);
+            
+            // Note: 'burn limit' policy - we consumed the slot on attempt start.
+            // We also consume credits here.
             if (!await spendCredits(cost)) throw new Error("Credit deduction failed.");
             
             setVideoStatus('Processing request...');
@@ -784,11 +793,6 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
                     }
 
                     await handleGenerationResult(thumbnailDataUrl, topic, selectedTemplate.name, undefined, { videoUri: downloadLink });
-                    
-                    // Increment Daily Video Counter on success
-                    const newCount = dailyVideoCount + 1;
-                    setDailyVideoCount(newCount);
-                    localStorage.setItem(getDailyVideoKey(user.uid), newCount.toString());
 
                 } catch (fetchError: any) {
                      throw new Error(fetchError.message || "Video generated but download failed.");
@@ -852,14 +856,20 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
           }
       }
     } catch (e: any) {
-        // No refund logic needed, as credits are only spent after a successful step.
-        const errorMessage = e.message || "An unknown error occurred during generation.";
+        let errorMessage = e.message || "An unknown error occurred during generation.";
+        
+        // Intercept specific "quota" messages from geminiService for PRO users
+        // to provide a churn-reducing, friendly message instead of "Upgrade".
+        if (user.plan === 'pro' && errorMessage.includes("reached your current generation limit")) {
+            errorMessage = "System busy. Please try again shortly.";
+        }
+
         addToast(errorMessage, 'error');
     } finally {
       setIsLoading(false);
       setVideoStatus('');
     }
-  }, [topic, tone, selectedTemplate, extraFields, user, handleGenerationResult, uploadedImage, numOutputs, addToast, spendCredits, dailyVideoCount]);
+  }, [topic, tone, selectedTemplate, extraFields, user, handleGenerationResult, uploadedImage, numOutputs, addToast, spendCredits, setUser]);
 
   const generatedContent = useMemo(() => generatedContents[activeVariation] || '', [generatedContents, activeVariation]);
 
@@ -1482,7 +1492,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
                 activeVariation={activeVariation}
                 setActiveVariation={setActiveVariation}
                 contentStats={contentStats}
-                dailyVideoCount={dailyVideoCount}
+                dailyVideoCount={user.videoUsage?.count || 0}
                 dailyLimit={VIDEO_DAILY_LIMIT}
             />;
         case ContentType.Campaign:
