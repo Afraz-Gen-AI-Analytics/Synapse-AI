@@ -65,13 +65,13 @@ const VideoGeneratorLayout: React.FC<VideoGeneratorLayoutProps> = (props) => {
             {/* Input Column */}
             <div className="bg-gradient-to-br from-slate-900 to-slate-950 rounded-xl border border-slate-800/80 shadow-2xl shadow-black/30 flex flex-col p-6">
                 <div className="mb-6">
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between flex-wrap gap-2">
                         <div className="flex items-center gap-2">
                             <h1 className={`text-2xl font-bold ${selectedTemplate.isPro ? 'gradient-text' : 'text-white'}`}>{selectedTemplate.name}</h1>
                             {selectedTemplate.isPro && <ProFeatureBadge />}
                         </div>
                         {/* Daily Limit Counter */}
-                        <div className="flex items-center gap-2 text-xs font-medium bg-slate-800 text-slate-400 px-3 py-1.5 rounded-full border border-slate-700">
+                        <div className="ml-auto flex items-center gap-2 text-xs font-medium bg-[#0A0C12] text-slate-400 px-3 py-1.5 rounded-full border border-slate-800 whitespace-nowrap">
                            <span>{dailyVideoCount} / {dailyLimit} Daily</span>
                         </div>
                     </div>

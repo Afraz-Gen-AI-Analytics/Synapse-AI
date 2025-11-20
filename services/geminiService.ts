@@ -121,9 +121,13 @@ function handleGeminiError(error: any, context: string): never {
     if (errorMessage.includes('api key not valid')) {
         throw new SynapseAIError(INVALID_API_KEY_MESSAGE);
     }
-    if (errorMessage.includes('requested entity was not found') || errorMessage.includes('404')) {
-         throw new SynapseAIError(`The AI model is currently busy or unavailable in this region. Please try again in a few minutes.`);
+    
+    // Handle 404 / Not Found / Requested entity was not found errors
+    // These are common with Veo (video generation) when the service is overloaded or the operation ID is invalid.
+    if (errorMessage.includes('requested entity was not found') || errorMessage.includes('404') || errorMessage.includes('not_found')) {
+         throw new SynapseAIError(`The video generation service is currently busy or the resource was not found. Please try again in a few moments.`);
     }
+    
     // Specific handling for Overloaded/503 errors
     if (errorMessage.includes('503') || errorMessage.includes('overloaded') || errorMessage.includes('unavailable')) {
         throw new SynapseAIError("System busy: Our AI engines are experiencing high traffic. Please try again in a moment.");
@@ -140,7 +144,7 @@ function handleGeminiError(error: any, context: string): never {
     }
     
     // Fallback for any other unexpected errors.
-    throw new SynapseAIError(`An unexpected error occurred during ${context}. Please try again. (Details: ${error.message || 'Unknown error'})`);
+    throw new SynapseAIError(`An unexpected error occurred during ${context}. Please try again.`);
 }
 
 
