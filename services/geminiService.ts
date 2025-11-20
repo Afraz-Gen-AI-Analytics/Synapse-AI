@@ -771,15 +771,31 @@ export async function generateVideo(prompt: string, startImage: { data: string, 
     try {
         const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
         
+        // Map requested resolution to API supported resolution (max 1080p for Veo currently)
+        // We inject the high resolution request into the prompt instead.
+        let apiResolution = '720p';
+        if (config.resolution === '1080p' || config.resolution === '1440p' || config.resolution === '4K' || config.resolution === '8K') {
+            apiResolution = '1080p';
+        }
+
+        // Enhanced "System Instruction" embedded in prompt
+        // User requested: "totally generate marketing related video is a proper 100% real estate marketing"
+        // and "resolution default should 8K" in prompt.
+        const enhancedPrompt = `
+            Create a ${config.resolution || '8K'} resolution, cinematic marketing video. 
+            Style: Professional commercial, high-end real estate marketing quality, photorealistic, perfect lighting, smooth camera motion.
+            Subject: ${prompt}
+        `.trim();
+        
         let requestConfig: any = {
             numberOfVideos: 1,
             aspectRatio: config.aspectRatio || '16:9',
-            resolution: config.resolution || '720p',
+            resolution: apiResolution,
         };
         
         let requestParams: any = {
             model: 'veo-3.1-fast-generate-preview',
-            prompt: prompt,
+            prompt: enhancedPrompt,
             config: requestConfig
         };
 

@@ -97,24 +97,26 @@ const VideoGeneratorLayout: React.FC<VideoGeneratorLayoutProps> = (props) => {
                     </div>
                     <div className="space-y-4">
                          <h3 className="text-sm font-semibold text-slate-300">3. Settings</h3>
-                        {selectedTemplate.fields?.map(field => (
-                            <div key={field.name}>
-                                <label htmlFor={field.name} className="block text-sm font-medium text-slate-400 mb-1">{field.label}</label>
-                                <div className="relative">
-                                    <select 
-                                        id={field.name} 
-                                        value={extraFields[field.name] || ''} 
-                                        onChange={(e) => handleFieldChange(field.name, e.target.value)} 
-                                        className="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white focus:ring-2 focus:ring-[var(--gradient-end)] transition appearance-none"
-                                    >
-                                        {field.options?.map(option => <option key={option} value={option}>{option}</option>)}
-                                    </select>
-                                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-400">
-                                        <ChevronDownIcon className="w-5 h-5" />
+                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {selectedTemplate.fields?.map(field => (
+                                <div key={field.name}>
+                                    <label htmlFor={field.name} className="block text-sm font-medium text-slate-400 mb-1">{field.label}</label>
+                                    <div className="relative">
+                                        <select 
+                                            id={field.name} 
+                                            value={extraFields[field.name] || ''} 
+                                            onChange={(e) => handleFieldChange(field.name, e.target.value)} 
+                                            className="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white focus:ring-2 focus:ring-[var(--gradient-end)] transition appearance-none"
+                                        >
+                                            {field.options?.map(option => <option key={option} value={option}>{option}</option>)}
+                                        </select>
+                                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-400">
+                                            <ChevronDownIcon className="w-5 h-5" />
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        ))}
+                            ))}
+                        </div>
                     </div>
                 </div>
                 <div className="mt-auto pt-6 border-t border-slate-800">

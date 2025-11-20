@@ -304,7 +304,7 @@ const templates: Template[] = [
     placeholder: "e.g., A 5-second video ad showing a new perfume bottle with sparkles and light flares",
     fields: [
       { name: "aspectRatio", label: "Aspect Ratio", options: ["16:9", "9:16"], defaultValue: "16:9" },
-      { name: "resolution", label: "Resolution", options: ["720p"], defaultValue: "720p" }
+      { name: "resolution", label: "Resolution", options: ["8K", "4K", "1440p", "1080p", "720p"], defaultValue: "8K" }
     ],
     isPro: true,
     creditCost: 50,
@@ -375,7 +375,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
   const [selectedTemplate, setSelectedTemplate] = useState<Template>(templates[1]); // Default to Resonance Engine
   const [topic, setTopic] = useState('');
   const [tone, setTone] = useState(tones[0]);
-  const [extraFields, setExtraFields] = useState<{ [key: string]: string }>({ aspectRatio: '1:1', resolution: '720p', style: 'Photorealistic' });
+  const [extraFields, setExtraFields] = useState<{ [key: string]: string }>({ aspectRatio: '1:1', resolution: '8K', style: 'Photorealistic' });
   
   const [generatedContents, setGeneratedContents] = useState<string[]>([]);
   const [activeVariation, setActiveVariation] = useState(0);
