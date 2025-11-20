@@ -349,7 +349,7 @@ Write ${numOutputs} persuasive marketing email${numOutputs > 1 ? 's' : ''} for t
 1.  **Tone of Voice:** The email's style, language, and feeling MUST strictly reflect the chosen tone: **${tone}**.
 2.  **Emojis:** Incorporate 2-3 relevant emojis naturally within the email body. The emojis you choose must align perfectly with the selected tone. For example:
     - If the tone is 'Professional', use emojis like ✅, 🚀, 📈.
-    - If the tone is 'Casual' or 'Enthusiastic', use emojis like 👋, 🎉, 😊, 🔥.
+    - If the tone is 'Casual' or 'Enthusiastic', use emojis like 😉, 🎉, 😊, 🔥.
     - If the tone is 'Witty', use emojis like 😉, 💡, 😜.
 3.  **Formatting:**
     - Start with a heading for the subject line (e.g., '## Subject: ...').
@@ -604,7 +604,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
     setExtraFields(prev => ({ ...prev, [fieldName]: value }));
   };
   
-  const handleGenerationResult = useCallback(async (result: string, genTopic: string, templateName: string, originalContentDataUrl?: string) => {
+  const handleGenerationResult = useCallback(async (result: string, genTopic: string, templateName: string, originalContentDataUrl?: string, additionalMetadata?: { [key: string]: string }) => {
     if (!user) return;
     try {
         const isImageTemplate = templateName === "AI Image Generator" || templateName === "AI Image Editor" || templateName === "Marketing Video Ad";
@@ -647,7 +647,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
         };
 
         if (isAnalyzerOrVideo) {
-            historyItem.fields = extraFields;
+            historyItem.fields = { ...extraFields, ...(additionalMetadata || {}) };
         }
 
         if (templateName === "AI Image Editor" && originalContentDataUrl) {
@@ -751,7 +751,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
                     thumbnailDataUrl = `Generated video for prompt: "${topic}"`; 
                 }
 
-                await handleGenerationResult(thumbnailDataUrl, topic, selectedTemplate.name);
+                await handleGenerationResult(thumbnailDataUrl, topic, selectedTemplate.name, undefined, { videoUri: downloadLink });
             } else {
                 throw new Error("Video generation completed, but no video URI was found.");
             }
@@ -1001,6 +1001,28 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
         // Restore extraFields which contain resolution/aspectRatio
         if (item.fields) {
              setExtraFields(prev => ({ ...prev, ...item.fields }));
+
+             // NEW LOGIC: Restore video if URI exists
+             if (item.fields.videoUri) {
+                 setVideoStatus('Restoring video...');
+                 // Use the API key to fetch the video blob
+                 const apiKey = process.env.API_KEY;
+                 const uri = item.fields.videoUri;
+                 
+                 fetch(`${uri}&key=${apiKey}`)
+                    .then(async (res) => {
+                        if (!res.ok) throw new Error(`Failed to fetch video: ${res.statusText}`);
+                        const blob = await res.blob();
+                        const url = URL.createObjectURL(blob);
+                        setVideoUrl(url);
+                        setVideoStatus('');
+                    })
+                    .catch(err => {
+                        console.warn("Could not restore video from history:", err);
+                        setVideoStatus(''); // Clear status so thumbnail shows
+                        addToast("Video link expired. Showing thumbnail.", "info");
+                    });
+             }
         }
         // Show thumbnail if available as a placeholder content
         if (item.content && item.content.startsWith('data:image')) {
