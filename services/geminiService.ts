@@ -121,8 +121,8 @@ function handleGeminiError(error: any, context: string): never {
     if (errorMessage.includes('api key not valid')) {
         throw new SynapseAIError(INVALID_API_KEY_MESSAGE);
     }
-    if (errorMessage.includes('requested entity was not found')) {
-         throw new SynapseAIError(`The AI model required for ${context} is currently unavailable or not supported in your region/key configuration. (Error: Not Found)`);
+    if (errorMessage.includes('requested entity was not found') || errorMessage.includes('404')) {
+         throw new SynapseAIError(`The AI model is currently busy or unavailable in this region. Please try again in a few minutes.`);
     }
     // Specific handling for Overloaded/503 errors
     if (errorMessage.includes('503') || errorMessage.includes('overloaded') || errorMessage.includes('unavailable')) {

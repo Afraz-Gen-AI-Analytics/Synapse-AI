@@ -404,6 +404,10 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
   // State for reusing analyzer reports
   const [reusedReportData, setReusedReportData] = useState<any | null>(null);
 
+  // State for Daily Video Limits
+  const [dailyVideoCount, setDailyVideoCount] = useState(0);
+  const VIDEO_DAILY_LIMIT = 3;
+
   const spendCredits = useCallback(async (amount: number): Promise<boolean> => {
       if (!user || !setUser) return false;
       
@@ -463,6 +467,21 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
           });
       }
   }, [brandProfile]);
+
+    // --- DAILY VIDEO LIMIT LOGIC ---
+    const getDailyVideoKey = (uid: string) => {
+        const today = new Date().toDateString();
+        return `video_usage_${uid}_${today}`;
+    };
+
+    useEffect(() => {
+        if (user) {
+            const key = getDailyVideoKey(user.uid);
+            const stored = localStorage.getItem(key);
+            // Reset if not present (implicitly handles new day since key changes)
+            setDailyVideoCount(stored ? parseInt(stored, 10) : 0);
+        }
+    }, [user]);
 
   const handleOnboardingComplete = useCallback(async () => {
     if (!user || !setUser) return;
@@ -697,6 +716,14 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
         return;
     }
 
+    // Daily Video Limit Check
+    if (selectedTemplate.id === ContentType.AIVideoGenerator) {
+        if (dailyVideoCount >= VIDEO_DAILY_LIMIT) {
+            addToast("Daily Limit Reached. You've used your 3 video generations for today. Please check back tomorrow for more!", "info");
+            return;
+        }
+    }
+
     setIsLoading(true);
     setGeneratedContents([]);
     setActiveVariation(0);
@@ -736,22 +763,36 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
 
             if (operation.response?.generatedVideos?.[0]?.video?.uri) {
                 const downloadLink = operation.response.generatedVideos[0].video.uri;
-                const videoResponse = await fetch(`${downloadLink}&key=${process.env.API_KEY}`);
-                const videoBlob = await videoResponse.blob();
-                const localUrl = URL.createObjectURL(videoBlob);
-                setVideoUrl(localUrl);
-                
-                // Generate a thumbnail to save to history
-                let thumbnailDataUrl = "";
+                // Ensure we handle potential 404s from CDN fetch with user-friendly messaging
                 try {
-                    thumbnailDataUrl = await generateVideoThumbnail(localUrl);
-                } catch (e) {
-                    console.error("Failed to generate thumbnail for video history", e);
-                    // Fallback to a placeholder text if thumbnail fails
-                    thumbnailDataUrl = `Generated video for prompt: "${topic}"`; 
-                }
+                    const videoResponse = await fetch(`${downloadLink}&key=${process.env.API_KEY}`);
+                    if (!videoResponse.ok) {
+                         throw new Error("Failed to retrieve the generated video from the server. Please try again later.");
+                    }
+                    const videoBlob = await videoResponse.blob();
+                    const localUrl = URL.createObjectURL(videoBlob);
+                    setVideoUrl(localUrl);
+                    
+                    // Generate a thumbnail to save to history
+                    let thumbnailDataUrl = "";
+                    try {
+                        thumbnailDataUrl = await generateVideoThumbnail(localUrl);
+                    } catch (e) {
+                        console.error("Failed to generate thumbnail for video history", e);
+                        // Fallback to a placeholder text if thumbnail fails
+                        thumbnailDataUrl = `Generated video for prompt: "${topic}"`; 
+                    }
 
-                await handleGenerationResult(thumbnailDataUrl, topic, selectedTemplate.name, undefined, { videoUri: downloadLink });
+                    await handleGenerationResult(thumbnailDataUrl, topic, selectedTemplate.name, undefined, { videoUri: downloadLink });
+                    
+                    // Increment Daily Video Counter on success
+                    const newCount = dailyVideoCount + 1;
+                    setDailyVideoCount(newCount);
+                    localStorage.setItem(getDailyVideoKey(user.uid), newCount.toString());
+
+                } catch (fetchError: any) {
+                     throw new Error(fetchError.message || "Video generated but download failed.");
+                }
             } else {
                 throw new Error("Video generation completed, but no video URI was found.");
             }
@@ -818,7 +859,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
       setIsLoading(false);
       setVideoStatus('');
     }
-  }, [topic, tone, selectedTemplate, extraFields, user, handleGenerationResult, uploadedImage, numOutputs, addToast, spendCredits]);
+  }, [topic, tone, selectedTemplate, extraFields, user, handleGenerationResult, uploadedImage, numOutputs, addToast, spendCredits, dailyVideoCount]);
 
   const generatedContent = useMemo(() => generatedContents[activeVariation] || '', [generatedContents, activeVariation]);
 
@@ -998,12 +1039,19 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
     } else if (template.id === ContentType.AIVideoGenerator) {
         setVideoStatus('');
         setVideoUrl(null);
+        
+        // Show thumbnail immediately as placeholder
+        if (item.content && item.content.startsWith('data:image')) {
+             setGeneratedContents([item.content]);
+        }
+
         // Restore extraFields which contain resolution/aspectRatio
         if (item.fields) {
              setExtraFields(prev => ({ ...prev, ...item.fields }));
 
              // NEW LOGIC: Restore video if URI exists
              if (item.fields.videoUri) {
+                 setIsLoading(true); // Show loading state explicitly
                  setVideoStatus('Restoring video...');
                  // Use the API key to fetch the video blob
                  const apiKey = process.env.API_KEY;
@@ -1020,13 +1068,12 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
                     .catch(err => {
                         console.warn("Could not restore video from history:", err);
                         setVideoStatus(''); // Clear status so thumbnail shows
-                        addToast("Video link expired. Showing thumbnail.", "info");
+                        addToast("Video link expired or unavailable. Showing thumbnail.", "info");
+                    })
+                    .finally(() => {
+                        setIsLoading(false);
                     });
              }
-        }
-        // Show thumbnail if available as a placeholder content
-        if (item.content && item.content.startsWith('data:image')) {
-             setGeneratedContents([item.content]);
         }
     } else {
         const isTextTemplate = template.prompt !== undefined || template.id === ContentType.SocialMediaPost;
@@ -1435,6 +1482,8 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
                 activeVariation={activeVariation}
                 setActiveVariation={setActiveVariation}
                 contentStats={contentStats}
+                dailyVideoCount={dailyVideoCount}
+                dailyLimit={VIDEO_DAILY_LIMIT}
             />;
         case ContentType.Campaign:
              return <CampaignBuilder 
