@@ -719,7 +719,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
     // Daily Video Limit Check
     if (selectedTemplate.id === ContentType.AIVideoGenerator) {
         if (dailyVideoCount >= VIDEO_DAILY_LIMIT) {
-            addToast("Daily limit reached (3/3). Your quota resets at 12:00 AM tomorrow.", "info");
+            addToast("You have reached your daily limit of 3 marketing videos. Your quota will reset automatically at 12:00 AM tomorrow.", "info");
             return;
         }
     }
