@@ -224,7 +224,7 @@ const templates: Template[] = [
   {
     id: ContentType.ResonanceEngine,
     name: "Resonance Engine",
-    description: "Don't guess. Predict exactly how your audience will react before you hit publish.",
+    description: "Don't guess. Predict how your audience will react before you hit publish.",
     icon: ResonanceIcon,
     isPro: true,
     placeholder: "Paste your social media post, email, or ad copy here to test its resonance with your target audience...",
@@ -238,7 +238,7 @@ const templates: Template[] = [
    {
     id: ContentType.MarketSignalAnalyzer,
     name: "Market Signal Analyzer",
-    description: "Stop guessing topics. See exactly what your customers are searching for right now.",
+    description: "Stop guessing topics. See what your customers are searching for right now.",
     icon: SignalIcon,
     isPro: true,
     placeholder: "Enter a topic to find trends, audience questions & content gaps. e.g., 'sustainable travel in Southeast Asia'",
@@ -252,7 +252,7 @@ const templates: Template[] = [
   {
     id: ContentType.BlogIdea,
     name: "SEO Content Strategist",
-    description: "Get a full plan to rank #1 on Google: keywords, titles, and outlines in seconds.",
+    description: "Get a plan to rank #1 on Google: keywords, titles, and outlines in seconds.",
     icon: BrainCircuitIcon,
     placeholder: "e.g., 'How to start a successful podcast in 2024'",
     fields: [
@@ -324,7 +324,7 @@ const templates: Template[] = [
   {
     id: ContentType.VideoScriptHook,
     name: "Viral Video Blueprint",
-    description: "Get the exact hook, script, and visual plan needed to make your videos go viral.",
+    description: "Get the hook, script, and visual plan needed to make your videos go viral.",
     icon: ViralVideoIdeaIcon,
     placeholder: "e.g., How to save money on groceries",
     fields: [
