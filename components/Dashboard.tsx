@@ -216,7 +216,7 @@ const templates: Template[] = [
   {
     id: ContentType.Campaign,
     name: "Campaign Builder",
-    description: "Deploy a complete, multi-channel marketing strategy from a single goal.",
+    description: "Turn one goal into a full marketing strategy with ready-to-use posts and emails.",
     icon: CampaignIcon,
     isPro: true,
     creditCost: 25,
@@ -224,7 +224,7 @@ const templates: Template[] = [
   {
     id: ContentType.ResonanceEngine,
     name: "Resonance Engine",
-    description: "Simulate audience reactions and get predictive feedback before publishing.",
+    description: "Don't guess. Predict exactly how your audience will react before you hit publish.",
     icon: ResonanceIcon,
     isPro: true,
     placeholder: "Paste your social media post, email, or ad copy here to test its resonance with your target audience...",
@@ -238,7 +238,7 @@ const templates: Template[] = [
    {
     id: ContentType.MarketSignalAnalyzer,
     name: "Market Signal Analyzer",
-    description: "Research trends, audience questions, and competitor angles for any topic.",
+    description: "Stop guessing topics. See exactly what your customers are searching for right now.",
     icon: SignalIcon,
     isPro: true,
     placeholder: "Enter a topic to find trends, audience questions & content gaps. e.g., 'sustainable travel in Southeast Asia'",
@@ -252,7 +252,7 @@ const templates: Template[] = [
   {
     id: ContentType.BlogIdea,
     name: "SEO Content Strategist",
-    description: "Generate a complete SEO blueprint: titles, keywords, outline, and more.",
+    description: "Get a full plan to rank #1 on Google: keywords, titles, and outlines in seconds.",
     icon: BrainCircuitIcon,
     placeholder: "e.g., 'How to start a successful podcast in 2024'",
     fields: [
@@ -265,7 +265,7 @@ const templates: Template[] = [
   {
     id: ContentType.AIAdCreativeStudio,
     name: "AI Ad Creative Studio",
-    description: "Brainstorm marketing angles and generate complete ad creative packages.",
+    description: "Instantly generate high-converting ad copy, visuals, and targeting that sells.",
     icon: PaintBrushIcon,
     placeholder: "e.g., 'A high-performance running shoe for trail enthusiasts'",
     fields: [
@@ -324,7 +324,7 @@ const templates: Template[] = [
   {
     id: ContentType.VideoScriptHook,
     name: "Viral Video Blueprint",
-    description: "Generate a complete strategic blueprint for a viral short-form video, including hook, script, visuals, and audio.",
+    description: "Get the exact hook, script, and visual plan needed to make your videos go viral.",
     icon: ViralVideoIdeaIcon,
     placeholder: "e.g., How to save money on groceries",
     fields: [
