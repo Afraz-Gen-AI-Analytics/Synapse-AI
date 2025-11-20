@@ -240,145 +240,82 @@ export async function analyzeBrandFromInput(input: string): Promise<Partial<Bran
             productDescription: { type: Type.STRING, description: "A concise, professional description of the product or service." },
             targetAudience: { type: Type.STRING, description: "A specific description of the ideal customer persona." },
             toneOfVoice: { type: Type.STRING, description: "The ideal marketing tone (e.g. Professional, Casual, Witty, Enthusiastic, Bold).", enum: ["Professional", "Casual", "Witty", "Enthusiastic", "Bold"] },
-            messagingPillars: { type: Type.STRING, description: "3 core value props, numbered 1-3." }
-        },
-        required: ["brandName", "productDescription", "targetAudience", "toneOfVoice", "messagingPillars"]
+            messagingPillars: { type: Type.STRING, description: "3 core value props." }
+        }
     };
 
-    return await generateStructuredContent(prompt, schema) as Partial<BrandProfile>;
+    return await generateStructuredContent(prompt, schema);
 }
 
-export async function generateSocialPost(options: { topic: string; tone: string; platform: 'Twitter' | 'LinkedIn' | 'Facebook'; numOutputs: number }): Promise<SocialPostContent[]> {
-    const { topic, tone, platform, numOutputs } = options;
-    let platformInstruction = '';
-    switch (platform) {
-        case 'LinkedIn':
-            platformInstruction = `The post should be professional, insightful, and ${tone}, approximately 4-6 sentences. It should be suitable for a professional audience, encourage discussion, and use strategic hashtags.`;
-            break;
-        case 'Facebook':
-            platformInstruction = `The post should be engaging, conversational, and ${tone}, 2-3 short paragraphs. It should be designed to spark conversation, include 1-2 relevant emojis, and use popular hashtags.`;
-            break;
-        case 'Twitter':
-        default:
-            platformInstruction = `The post must be a concise, impactful, and ${tone} tweet (under 280 characters). It must be attention-grabbing and include 2-3 highly relevant hashtags.`;
-            break;
-    }
-
+export async function getResonanceFeedback(content: string, brandProfile: BrandProfile, context: { contentGoal?: string, platform?: string, emotion?: string } = {}): Promise<ResonanceFeedback> {
     const prompt = `
-        You are an expert social media manager and visual strategist. Your task is to generate complete social media post packages.
-        
-        **Platform & Tone:**
-        - Platform: ${platform}
-        - Tone: ${tone}
-        - Instructions: ${platformInstruction}
+        You are an expert Audience Psychology Analyst. Your job is to predict how a specific target audience will react to a piece of marketing content.
 
-        **Core Task:**
-        Based on the topic below, generate ${numOutputs} distinct post variation(s). For EACH variation, you must provide:
-        1.  **copy**: The main body text of the post, adhering to platform constraints and tone.
-        2.  **hashtags**: A string of 3-4 relevant hashtags, starting with '#'.
-        3.  **imagePrompt**: A detailed, professional prompt for an AI image generator. The prompt should describe a visually stunning and contextually relevant image that would capture the target audience's attention and complement the ad copy. The image should be photorealistic and high-quality.
+        **Target Audience:** ${brandProfile.targetAudience}
+        **Brand Voice:** ${brandProfile.toneOfVoice}
+        **Goal:** ${context.contentGoal || 'Raise Awareness'}
+        **Platform:** ${context.platform || 'General'}
+        **Desired Emotion:** ${context.emotion || 'Curiosity'}
 
-        **CRITICAL RULES:**
-        1.  Adhere strictly to the JSON schema.
-        2.  The \`platform\` field in the response MUST be exactly "${platform}".
-        3.  The \`type\` field MUST be exactly "social".
+        **Content to Analyze:**
+        "${content}"
 
-        **Topic:** "${topic}"
-    `;
-
-    const singlePostSchema = {
-        type: Type.OBJECT,
-        properties: {
-            type: { type: Type.STRING, description: "Must be 'social'" },
-            platform: { type: Type.STRING, enum: ['Twitter', 'LinkedIn', 'Facebook'] },
-            copy: { type: Type.STRING, description: "The main body of the post." },
-            hashtags: { type: Type.STRING, description: "3-4 relevant hashtags." },
-            imagePrompt: { type: Type.STRING, description: "A detailed prompt for an AI image generator to create an accompanying visual." }
-        },
-        required: ["type", "platform", "copy", "hashtags", "imagePrompt"]
-    };
-    
-    const schema = numOutputs > 1 
-        ? { type: Type.ARRAY, items: singlePostSchema } 
-        : singlePostSchema;
-
-    const result = await generateStructuredContent(prompt, schema);
-    
-    if (numOutputs === 1) {
-        return [result as SocialPostContent];
-    } else {
-        return result as SocialPostContent[];
-    }
-}
-
-
-export async function getResonanceFeedback(content: string, brandProfile: BrandProfile, options: { contentGoal: string; platform: string; emotion: string; }): Promise<ResonanceFeedback> {
-    const prompt = `
-        You are an AI embodiment of a specific target audience. Your personality, skepticism, and needs perfectly match this description: "${brandProfile.targetAudience}".
-        Your task is to analyze the following piece of marketing content based on a specific set of objectives.
-
-        **Marketing Content to Analyze:**
-        ---
-        ${content}
-        ---
-
-        **Content Objectives:**
-        - **Goal:** This content is intended to **${options.contentGoal}**.
-        - **Platform:** It will be published as a **${options.platform}**.
-        - **Desired Emotion:** It should make the audience feel **${options.emotion}**.
-
-        Based on your persona and these objectives, provide structured feedback.
-
-        **CRITICAL RULES:**
-        1.  **Evaluate Against Objectives:** Your entire analysis must be through the lens of the stated Goal, Platform, and Desired Emotion.
-        2.  **Score honestly (1-10):** 1 is terrible, 10 is perfect for achieving the goal.
-        3.  **Be specific in your reasoning:** Don't just say "it's good," explain *why* from your persona's perspective.
-        4.  **Provide actionable suggestions.**
+        Provide a detailed resonance analysis with the following structured feedback:
+        1.  **First Impresion:** What is the immediate, gut-level reaction of the audience?
+        2.  **Clarity Score (0-10):** How easy is it to understand?
+        3.  **Clarity Reasoning:** Why did you give that score?
+        4.  **Persuasion Score (0-10):** How likely are they to take action?
+        5.  **Persuasion Reasoning:** Why did you give that score?
+        6.  **Key Questions:** What doubts or questions will the audience have?
+        7.  **Suggested Improvement:** One concrete way to make it better.
+        8.  **Goal Alignment:** Does it achieve the stated goal?
+        9.  **Emotion Analysis:** Does it evoke the desired emotion?
     `;
 
     const schema = {
         type: Type.OBJECT,
         properties: {
-            firstImpression: { type: Type.STRING, description: "Your immediate, gut reaction in one sentence." },
-            clarityScore: { type: Type.NUMBER, description: "On a scale of 1-10, how clear is the message?" },
-            clarityReasoning: { type: Type.STRING, description: "Explain your clarity score. What was confusing or clear?" },
-            persuasionScore: { type: Type.NUMBER, description: "On a scale of 1-10, how likely are you to take the action defined by the 'Goal'?" },
-            persuasionReasoning: { type: Type.STRING, description: "Explain your persuasion score. What made it effective or ineffective for the goal?" },
-            keyQuestions: { type: Type.ARRAY, items: { type: Type.STRING }, description: "List 2-3 questions or doubts that immediately come to mind." },
-            suggestedImprovement: { type: Type.STRING, description: "What is the single most important change that would make this more compelling?" },
-            goalAlignment: { type: Type.STRING, description: "In 1-2 sentences, analyze how well the content aligns with its stated Goal. Provide specific reasons." },
-            emotionAnalysis: { type: Type.STRING, description: "In 1-2 sentences, analyze if the content successfully evokes the Desired Emotion. Explain why or why not." }
-        },
-        required: ["firstImpression", "clarityScore", "clarityReasoning", "persuasionScore", "persuasionReasoning", "keyQuestions", "suggestedImprovement", "goalAlignment", "emotionAnalysis"]
+            firstImpression: { type: Type.STRING },
+            clarityScore: { type: Type.NUMBER },
+            clarityReasoning: { type: Type.STRING },
+            persuasionScore: { type: Type.NUMBER },
+            persuasionReasoning: { type: Type.STRING },
+            keyQuestions: { type: Type.ARRAY, items: { type: Type.STRING } },
+            suggestedImprovement: { type: Type.STRING },
+            goalAlignment: { type: Type.STRING },
+            emotionAnalysis: { type: Type.STRING }
+        }
     };
 
-    return await generateStructuredContent(prompt, schema) as ResonanceFeedback;
+    return await generateStructuredContent(prompt, schema);
 }
 
 export async function getMarketSignalAnalysis(topic: string, targetAudience: string, industry: string, analysisGoal: string, brandProfile: BrandProfile): Promise<MarketSignalReport> {
+    if (!process.env.API_KEY) throw new SynapseAIError("API Key is not configured.");
+
     const prompt = `
-        You are an expert market research analyst for a leading marketing intelligence firm. Your task is to analyze a given topic and target audience to uncover actionable insights for content creation.
-
-        **Brand Context:**
+        You are an expert Market Research Analyst. Perform a deep-dive analysis on the topic: "${topic}".
+        
+        Context:
+        - Target Audience: ${targetAudience}
+        - Industry: ${industry}
+        - Analysis Goal: ${analysisGoal}
+        
+        Brand Context:
         - Brand Name: ${brandProfile.brandName}
-        - Product/Service: ${brandProfile.productDescription}
+        - Product: ${brandProfile.productDescription}
 
-        **Analysis Request:**
-        - **Topic:** "${topic}"
-        - **Target Audience:** "${targetAudience}"
-        - **Industry/Niche:** "${industry}"
-        - **Primary Goal of this Analysis:** "${analysisGoal}"
+        Generate a comprehensive market signal report with the following sections:
 
-        Based on this, generate a structured report. Your analysis and recommendations should be highly relevant to the specified Industry and tailored to achieve the Primary Goal.
+        1.  **Trending Sub-Topics:** Identify 4 specific, high-momentum sub-topics related to the main topic that are currently buzzing. Assign a "Buzz Score" (0-10) based on estimated current interest.
+        2.  **Audience Questions:** List 5 specific, burning questions the target audience is asking about this topic right now.
+        3.  **Competitor Angles:** Analyze 3 common angles competitors are using, and identify 1 "Untapped Angle" that represents a blue-ocean opportunity.
+        4.  **Content Playbook:** Recommend 3 specific pieces of content to create immediately to capitalize on these signals. varied formats (e.g., Blog Post, Short Video, Social Media Post).
 
-        **CRITICAL RULES:**
-        1.  **Trending Sub-Topics:** Identify 3-4 niche sub-topics that are currently gaining traction online. For each topic, provide a 'buzzScore' from 1-10 indicating its current level of online discussion (1=very niche, 10=mainstream buzz). Explain *why* each is relevant now.
-        2.  **Audience Questions:** List 3-4 real, specific questions the target audience is asking on platforms like Google, Reddit, or Quora. These should be "long-tail" questions.
-        3.  **Competitor Angles:** Analyze 2 common angles competitors are taking on this topic. Then, identify 1 unique, "Untapped Angle" that provides a fresh perspective. You MUST provide exactly three angles in total, and one MUST be marked as untapped.
-        4.  **Content Recommendations:** Suggest exactly 3 concrete content ideas. 
-            - The first recommendation MUST be a 'Blog Post'.
-            - The second recommendation MUST be a 'Short Video'.
-            - The third recommendation MUST be a 'Social Media Post' specifically for LinkedIn, Twitter, or Facebook. Use the format name (e.g., 'LinkedIn Post', 'Twitter Thread', 'Facebook Update').
+        **CRITICAL INSTRUCTION FOR 'Content Playbook':**
+        - For 'Social Media Post', the 'title' must be a **short topic description** (e.g., "The impact of AI on agency margins"), NOT the actual post copy. **Do NOT include hashtags.**
+        - For 'Blog Post', the 'title' should be a headline.
+        - For 'Short Video', the 'title' should be the video concept.
     `;
 
     const schema = {
@@ -389,27 +326,21 @@ export async function getMarketSignalAnalysis(topic: string, targetAudience: str
                 items: {
                     type: Type.OBJECT,
                     properties: {
-                        topic: { type: Type.STRING, description: "The specific trending sub-topic." },
-                        reason: { type: Type.STRING, description: "A brief explanation of why this sub-topic is currently relevant." },
-                        buzzScore: { type: Type.NUMBER, description: "A score from 1-10 representing the current online buzz." }
-                    },
-                    required: ["topic", "reason", "buzzScore"]
+                        topic: { type: Type.STRING, description: "The sub-topic name." },
+                        reason: { type: Type.STRING, description: "Why it is trending now." },
+                        buzzScore: { type: Type.NUMBER, description: "0-10 score." }
+                    }
                 }
             },
-            audienceQuestions: {
-                type: Type.ARRAY,
-                items: { type: Type.STRING },
-                description: "A list of questions the target audience is asking online."
-            },
+            audienceQuestions: { type: Type.ARRAY, items: { type: Type.STRING } },
             competitorAngles: {
                 type: Type.ARRAY,
                 items: {
                     type: Type.OBJECT,
                     properties: {
-                        angle: { type: Type.STRING, description: "A common or untapped content angle." },
-                        isUntapped: { type: Type.BOOLEAN, description: "True if this is the unique, untapped angle." }
-                    },
-                    required: ["angle", "isUntapped"]
+                        angle: { type: Type.STRING },
+                        isUntapped: { type: Type.BOOLEAN }
+                    }
                 }
             },
             contentRecommendations: {
@@ -417,101 +348,86 @@ export async function getMarketSignalAnalysis(topic: string, targetAudience: str
                 items: {
                     type: Type.OBJECT,
                     properties: {
-                        format: { type: Type.STRING, description: "The recommended content format (e.g., Blog Post, Short Video, LinkedIn Post)." },
-                        title: { type: Type.STRING, description: "A catchy, SEO-friendly title for the content piece." }
-                    },
-                    required: ["format", "title"]
+                        format: { type: Type.STRING, description: "e.g., Blog Post, Short Video, Social Media Post" },
+                        title: { type: Type.STRING, description: "The TOPIC or CONCEPT or HEADLINE. Do NOT include hashtags or full body copy." }
+                    }
                 }
             }
-        },
-        required: ["trendingSubTopics", "audienceQuestions", "competitorAngles", "contentRecommendations"]
+        }
     };
 
-    return await generateStructuredContent(prompt, schema) as MarketSignalReport;
+    return await generateStructuredContent(prompt, schema);
 }
 
-export async function generateSeoContentBlueprint(options: { topic: string, targetAudience: string, contentGoal: string, tone: string }): Promise<SeoContentBlueprint> {
+export async function generateSeoContentBlueprint(params: { topic: string, targetAudience: string, contentGoal: string, tone: string }): Promise<SeoContentBlueprint> {
     const prompt = `
-        You are an expert SEO Content Strategist. Your task is to generate a comprehensive, actionable content blueprint for a blog post based on the user's requirements.
+        You are an expert SEO Strategist and Content Architect. Create a comprehensive content blueprint for the topic: "${params.topic}".
 
-        **Request Details:**
-        - **Main Topic:** "${options.topic}"
-        - **Target Audience:** "${options.targetAudience}"
-        - **Primary Content Goal:** "${options.contentGoal}"
-        - **Tone of Voice:** "${options.tone}"
+        Target Audience: ${params.targetAudience}
+        Content Goal: ${params.contentGoal}
+        Tone of Voice: ${params.tone}
 
-        Generate a structured JSON response following these critical rules.
-
-        **CRITICAL RULES:**
-        1.  **Title Suggestions:** Provide exactly three distinct title options. Each title must have a 'category' explaining its strategic angle (e.g., 'SEO-Optimized', 'Click-Worthy', 'Question-Based').
-        2.  **Target Keywords:** Identify one clear 'primaryKeyword' that the article should rank for. Also provide 3-5 'secondaryKeywords' (LSI keywords) that should be naturally included.
-        3.  **The Hook:** Write a compelling, fully-formed opening paragraph (the 'hook') designed to immediately grab the reader's attention and reduce bounce rate. It must align with the specified tone.
-        4.  **Full Article Outline:** Create a hierarchical outline with at least three main sections, each with a suggested H2 heading. Under each heading, provide 3-5 specific 'talkingPoints' (as a bulleted list or array of strings) that should be covered in that section.
-        5.  **Call to Action (CTA):** Suggest a short, powerful call-to-action for the end of the article that is directly aligned with the user's stated 'Content Goal'.
+        The blueprint must include:
+        1.  **Title Suggestions:** 3 SEO-optimized titles with different angles (e.g., How-to, Listicle, Contrarian).
+        2.  **Target Keywords:** 1 Primary Keyword and 4 Secondary Keywords.
+        3.  **Hook:** A compelling opening paragraph (hook) that grabs attention immediately.
+        4.  **Article Outline:** A detailed outline with H2 headings and bullet points for each section.
+        5.  **Call to Action:** A strong closing CTA relevant to the goal.
     `;
-    
+
     const schema = {
         type: Type.OBJECT,
         properties: {
             titleSuggestions: {
                 type: Type.ARRAY,
-                description: "An array of 3 distinct title suggestions.",
                 items: {
                     type: Type.OBJECT,
                     properties: {
-                        title: { type: Type.STRING, description: "A compelling, SEO-friendly title." },
-                        category: { type: Type.STRING, description: "The strategic angle of the title (e.g., 'SEO-Optimized', 'Click-Worthy')." }
-                    },
-                    required: ["title", "category"]
+                        title: { type: Type.STRING },
+                        category: { type: Type.STRING, description: "e.g., 'Guide', 'Listicle', 'Opinion'" }
+                    }
                 }
             },
             targetKeywords: {
                 type: Type.OBJECT,
                 properties: {
-                    primaryKeyword: { type: Type.STRING, description: "The main keyword to target." },
-                    secondaryKeywords: { type: Type.ARRAY, items: { type: Type.STRING }, description: "A list of related LSI keywords." }
-                },
-                required: ["primaryKeyword", "secondaryKeywords"]
+                    primaryKeyword: { type: Type.STRING },
+                    secondaryKeywords: { type: Type.ARRAY, items: { type: Type.STRING } }
+                }
             },
-            hook: { type: Type.STRING, description: "A powerful, fully-written opening paragraph." },
+            hook: { type: Type.STRING },
             fullArticleOutline: {
                 type: Type.ARRAY,
-                description: "A complete article outline with H2 headings and talking points.",
                 items: {
                     type: Type.OBJECT,
                     properties: {
-                        heading: { type: Type.STRING, description: "The suggested H2 heading for the section." },
-                        talkingPoints: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Bullet points to cover in this section." }
-                    },
-                    required: ["heading", "talkingPoints"]
+                        heading: { type: Type.STRING },
+                        talkingPoints: { type: Type.ARRAY, items: { type: Type.STRING } }
+                    }
                 }
             },
-            callToAction: { type: Type.STRING, description: "A suggested call-to-action aligned with the content goal." }
-        },
-        required: ["titleSuggestions", "targetKeywords", "hook", "fullArticleOutline", "callToAction"]
+            callToAction: { type: Type.STRING }
+        }
     };
 
-    return await generateStructuredContent(prompt, schema) as SeoContentBlueprint;
+    return await generateStructuredContent(prompt, schema);
 }
 
-export async function generateAdCreativeBlueprint(options: { productDescription: string; targetAudience: string; platform: string; tone: string; }): Promise<AdCreativeBlueprint> {
-    const prompt = `
-        You are an expert direct-response copywriter and ad strategist. Your task is to generate a complete ad creative package for a specific platform.
 
-        **Request Details:**
-        - **Product/Service:** "${options.productDescription}"
-        - **Target Audience:** "${options.targetAudience}"
-        - **Ad Platform:** "${options.platform}"
-        - **Tone of Voice:** "${options.tone}"
+export async function generateAdCreativeBlueprint(params: { productDescription: string, targetAudience: string, platform: string, tone: string }): Promise<AdCreativeBlueprint> {
+     const prompt = `
+        You are an expert Creative Director. Develop a complete Ad Creative Blueprint for the following product:
+        
+        Product: "${params.productDescription}"
+        Target Audience: ${params.targetAudience}
+        Platform: ${params.platform}
+        Tone: ${params.tone}
 
-        Generate a structured JSON response containing a complete creative package.
-
-        **CRITICAL RULES:**
-        1.  **Copy Variations:** Provide exactly three distinct copy variations. Each variation must have a unique 'angle' (e.g., "Problem/Solution", "Benefit-Driven", "Social Proof"), a compelling 'headline', and benefit-focused 'body' text.
-        2.  **Platform Specificity:** Headlines and body text must be appropriate for the specified **Ad Platform**. E.g., concise for Google Ads, professional for LinkedIn.
-        3.  **Image Prompt:** Create one highly detailed, professional prompt for an AI image generator. The prompt should describe a visually stunning and contextually relevant image that would capture the target audience's attention and complement the ad copy.
-        4.  **Targeting Suggestions:** Provide three specific, actionable audience targeting recommendations suitable for the chosen **Ad Platform**.
-        5.  **CTA Suggestions:** List three short, punchy, and relevant Call-to-Action phrases.
+        The blueprint must include:
+        1.  **Copy Variations:** 3 distinct ad copy variations (Headline + Body), each focusing on a different marketing angle (e.g., Pain Point, Benefit, Social Proof).
+        2.  **Visual Concept:** A detailed, descriptive prompt for an AI image generator to create the perfect visual for this ad.
+        3.  **Targeting:** 3 suggested interest groups or demographics to target.
+        4.  **CTA Ideas:** 3 short, punchy Call-to-Action button text options.
     `;
 
     const schema = {
@@ -519,412 +435,401 @@ export async function generateAdCreativeBlueprint(options: { productDescription:
         properties: {
             copyVariations: {
                 type: Type.ARRAY,
-                description: "An array of 3 distinct ad copy variations, each with a strategic angle.",
                 items: {
                     type: Type.OBJECT,
                     properties: {
-                        angle: { type: Type.STRING, description: "The marketing angle for this copy (e.g., 'Problem/Solution')." },
-                        headline: { type: Type.STRING, description: "A compelling, platform-appropriate headline." },
-                        body: { type: Type.STRING, description: "Benefit-focused body text." }
-                    },
-                    required: ["angle", "headline", "body"]
-                }
-            },
-            imagePrompt: {
-                type: Type.STRING,
-                description: "A detailed prompt for an AI image generator to create the ad visual."
-            },
-            targetingSuggestions: {
-                type: Type.ARRAY,
-                items: { type: Type.STRING },
-                description: "A list of 3 specific audience targeting recommendations for the ad platform."
-            },
-            ctaSuggestions: {
-                type: Type.ARRAY,
-                items: { type: Type.STRING },
-                description: "A list of 3 compelling Call-to-Action phrases."
-            }
-        },
-        required: ["copyVariations", "imagePrompt", "targetingSuggestions", "ctaSuggestions"]
-    };
-
-    return await generateStructuredContent(prompt, schema) as AdCreativeBlueprint;
-}
-
-export async function generateViralVideoBlueprint(options: { topic: string, hookStyle: string, tone: string, platform: string }): Promise<ViralVideoBlueprint> {
-    const prompt = `
-        You are an expert viral video strategist for short-form content on platforms like TikTok, Instagram Reels, and YouTube Shorts.
-        Your task is to create a complete, actionable blueprint for a viral video based on the user's requirements.
-
-        **Request Details:**
-        - **Main Topic:** "${options.topic}"
-        - **Hook Style:** "${options.hookStyle}"
-        - **Tone of Voice:** "${options.tone}"
-        - **Target Platform:** "${options.platform}"
-
-        Generate a structured JSON response following these critical rules:
-
-        **CRITICAL RULES:**
-        1.  **Hook Text:** Create one powerful, scroll-stopping opening line that fits the requested style and tone. It must be concise and attention-grabbing.
-        2.  **Script Outline:** Provide a sequence of 3-5 brief, clear steps for the video's narrative flow. This should guide the creator from start to finish.
-        3.  **Visual Concept:** Describe the overall visual style in one sentence. E.g., "Fast-paced cuts with energetic text overlays," or "A cinematic, slow-motion shot with a moody color grade."
-        4.  **Pacing and Style:** Provide 1-2 sentences of actionable advice on editing style. E.g., "Use quick, dynamic cuts. Add text overlays to emphasize key points. A zoom effect can highlight the final reveal."
-        5.  **Audio Suggestion:** Suggest a type of audio that would pair well. Be descriptive, not specific to a copyrighted song. E.g., "Upbeat trending pop song with a strong beat," or "Dramatic, royalty-free cinematic music."
-        6.  **Call to Action (CTA):** Write a short, powerful call-to-action for the end of the video that encourages engagement. E.g., "Follow for more life hacks!" or "Comment your thoughts below!".
-    `;
-
-    const schema = {
-        type: Type.OBJECT,
-        properties: {
-            hookText: { type: Type.STRING, description: "The single, powerful opening line for the video." },
-            scriptOutline: { type: Type.ARRAY, items: { type: Type.STRING }, description: "An array of 3-5 strings, describing the script's step-by-step narrative flow." },
-            visualConcept: { type: Type.STRING, description: "A one-sentence description of the video's visual style." },
-            pacingAndStyle: { type: Type.STRING, description: "1-2 sentences of advice on editing, pacing, and visual style." },
-            audioSuggestion: { type: Type.STRING, description: "A suggestion for the type of background audio or music." },
-            callToAction: { type: Type.STRING, description: "A short, engaging call-to-action for the end of the video." },
-        },
-        required: ["hookText", "scriptOutline", "visualConcept", "pacingAndStyle", "audioSuggestion", "callToAction"]
-    };
-
-    return await generateStructuredContent(prompt, schema) as ViralVideoBlueprint;
-}
-
-
-export async function generateAgentPlan(goal: string, persona: string, brandProfile: BrandProfile): Promise<any> {
-    const prompt = `
-        You are an expert marketing strategist tasked with creating a detailed, actionable plan.
-        **Brand Context:**
-        - Brand Name: ${brandProfile.brandName}
-        - Product/Service: ${brandProfile.productDescription}
-        - Target Audience: ${brandProfile.targetAudience}
-        - Tone of Voice: ${brandProfile.toneOfVoice}
-        **Agent Persona:** ${persona}
-        **Primary Goal:** "${goal}"
-        Based on the goal and brand, generate a strategic plan of EXACTLY 4 tasks.
-        CRITICAL RULE: Each task MUST have a different and unique 'contentType' from 'Social Media Post', 'Marketing Email', 'Ad Copy', 'Blog Post Ideas'.
-    `;
-
-    const schema = {
-        type: Type.OBJECT,
-        properties: {
-            plan: {
-                type: Type.ARRAY,
-                description: "An array of 4 distinct strategic marketing tasks.",
-                items: {
-                    type: Type.OBJECT,
-                    properties: {
-                        description: { type: Type.STRING, description: "A clear, concise description of the task." },
-                        contentType: { type: Type.STRING, description: "The type of content to produce. Must be one of: 'Social Media Post', 'Marketing Email', 'Ad Copy', 'Blog Post Ideas'." },
-                    },
-                    required: ["description", "contentType"]
-                }
-            }
-        },
-        required: ["plan"]
-    };
-
-    const structuredResult = await generateStructuredContent(prompt, schema);
-    return structuredResult.plan;
-}
-
-export async function generateCampaignStrategy(goal: string, brandProfile: BrandProfile): Promise<any> {
-    const prompt = `
-        You are an expert marketing strategist. Create a high-level, multi-phase campaign strategy. Do not generate the content itself, only the plan.
-        **Brand Context:**
-        - Brand: ${brandProfile.brandName}, Product: ${brandProfile.productDescription}, Audience: ${brandProfile.targetAudience}, Tone: ${brandProfile.toneOfVoice}
-        **Primary Campaign Goal:** "${goal}"
-        Generate a strategic plan with 2-3 logical phases. For each phase, provide a name, objective, and a list of 3 diverse marketing assets to be created.
-        Ensure asset variety. If suggesting multiple 'Social Media Post' assets in a phase, they MUST be for different platforms (e.g., Twitter, LinkedIn).
-        For each asset, provide a 'contentType' and a concise, actionable 'description' for an AI to generate the content.
-    `;
-
-    const schema = {
-        type: Type.OBJECT,
-        properties: {
-            strategy: {
-                type: Type.OBJECT, properties: {
-                    campaignTitle: { type: Type.STRING, description: "A creative title for the campaign." },
-                    phases: {
-                        type: Type.ARRAY, items: {
-                            type: Type.OBJECT, properties: {
-                                name: { type: Type.STRING, description: "Name of the phase (e.g., 'Phase 1: Pre-Launch Hype')." },
-                                description: { type: Type.STRING, description: "The phase's objective." },
-                                assets: {
-                                    type: Type.ARRAY, items: {
-                                        type: Type.OBJECT, properties: {
-                                            contentType: { type: Type.STRING, description: "Must be one of: 'Social Media Post', 'Marketing Email', 'Ad Copy', 'Blog Post Ideas'." },
-                                            description: { type: Type.STRING, description: "An actionable instruction for an AI to generate this asset." }
-                                        }, required: ["contentType", "description"]
-                                    }
-                                }
-                            }, required: ["name", "description", "assets"]
-                        }
+                        angle: { type: Type.STRING, description: "The marketing angle used." },
+                        headline: { type: Type.STRING },
+                        body: { type: Type.STRING }
                     }
-                }, required: ["campaignTitle", "phases"]
-            }
-        }, required: ["strategy"]
+                }
+            },
+            imagePrompt: { type: Type.STRING, description: "Detailed prompt for AI image generator." },
+            targetingSuggestions: { type: Type.ARRAY, items: { type: Type.STRING } },
+            ctaSuggestions: { type: Type.ARRAY, items: { type: Type.STRING } }
+        }
     };
 
-    const structuredResult = await generateStructuredContent(prompt, schema);
-    return structuredResult.strategy;
+    return await generateStructuredContent(prompt, schema);
 }
 
-export async function generateCampaignAsset(taskDescription: string, contentType: string, brandProfile: BrandProfile): Promise<any> {
-    let prompt = `
-        You are an AI Agent with the persona of a skilled marketer. Your task is: "${taskDescription}".
-        Brand info:
-        - Brand Name: ${brandProfile.brandName}, Tone: ${brandProfile.toneOfVoice}, Product: ${brandProfile.productDescription}
-        Generate the required content in a structured JSON format.
+export async function generateViralVideoBlueprint(params: { topic: string, hookStyle: string, tone: string, platform: string }): Promise<ViralVideoBlueprint> {
+    const prompt = `
+       You are a Viral Content Strategist for short-form video (TikTok/Reels/Shorts). Create a blueprint for a video about: "${params.topic}".
+
+       Platform: ${params.platform}
+       Hook Style: ${params.hookStyle} (e.g., "Stop doing this", "Here's a secret", "Storytime")
+       Tone: ${params.tone}
+
+       The blueprint must include:
+       1.  **Hook Text:** The exact text to display/say in the first 3 seconds. Must be scroll-stopping.
+       2.  **Script Outline:** A step-by-step bulleted list of what happens in the video (visuals + narration).
+       3.  **Visual Concept:** Description of the setting, lighting, and main subject.
+       4.  **Pacing & Style:** Description of the editing style (e.g., "Fast cuts", "Slow zoom", "Chaos edit").
+       5.  **Audio Suggestion:** Type of background music or sound effect vibe.
+       6.  **Call to Action:** What the viewer should do at the end.
+   `;
+
+   const schema = {
+       type: Type.OBJECT,
+       properties: {
+           hookText: { type: Type.STRING },
+           scriptOutline: { type: Type.ARRAY, items: { type: Type.STRING } },
+           visualConcept: { type: Type.STRING },
+           pacingAndStyle: { type: Type.STRING },
+           audioSuggestion: { type: Type.STRING },
+           callToAction: { type: Type.STRING }
+       }
+   };
+
+   return await generateStructuredContent(prompt, schema);
+}
+
+
+export async function routeUserIntent(command: string): Promise<ToolRoute> {
+    // This function acts as a router, deciding which tool to use based on natural language.
+    const prompt = `
+        You are an intelligent intent router for a marketing AI platform. 
+        Map the user's command to the most appropriate tool ID from the list below.
+        Also, extract the core "topic" and any "platform" preferences to pre-fill the tool.
+
+        **Available Tools:**
+        - "SocialMediaPost": For writing posts for Twitter, LinkedIn, Facebook.
+        - "MarketingEmail": For writing emails, newsletters, cold outreach.
+        - "AIImageGenerator": For generating images from scratch.
+        - "AIImageEditor": For editing existing images.
+        - "CampaignBuilder": For planning full marketing campaigns.
+        - "MarketSignalAnalyzer": For research, trends, and competitor analysis.
+        - "SeoContentBlueprint": For blog post outlines and SEO strategy.
+        - "AIAdCreativeStudio": For ad copy and ad visuals.
+        - "ViralVideoBlueprint": For short-form video scripts (TikTok/Reels).
+        - "MarketingVideoAd": For generating actual video files (mp4).
+        - "ResonanceEngine": For analyzing/grading existing copy (if user pastes text to check).
+
+        **User Command:** "${command}"
+
+        **Output JSON Schema:**
+        {
+            "toolId": "string",
+            "prefill": {
+                "topic": "string", // The core subject matter extracted from command
+                "platform": "string" // Optional: "Twitter", "LinkedIn", "Facebook" if relevant
+            }
+        }
     `;
-    let schema;
 
-    if (contentType === 'Social Media Post') {
-        prompt = `
-            You are an AI social media manager executing a single task from a larger campaign.
-            **Task:** "${taskDescription}"
-            **Brand Info:**
-            - Tone: ${brandProfile.toneOfVoice}
-            - Product: ${brandProfile.productDescription}
-            
-            Based on the task, choose the MOST appropriate platform ('Twitter', 'LinkedIn', 'Facebook') and generate the content for it.
-
-            **PLATFORM-SPECIFIC CONTENT RULES:**
-            - If you choose **Twitter**, the 'copy' must be concise and under 280 characters.
-            - If you choose **LinkedIn**, the 'copy' must be professional and longer, around 4-6 sentences.
-            - If you choose **Facebook**, the 'copy' must be engaging and conversational, 2-3 short paragraphs.
-            
-            Generate the required content in the structured JSON format.
-        `;
-         schema = {
-            type: Type.OBJECT, properties: {
-                type: { type: Type.STRING, description: "Must be 'social'" }, platform: { type: Type.STRING, enum: ['Twitter', 'LinkedIn', 'Facebook'] },
-                copy: { type: Type.STRING, description: "The main body of the post." }, hashtags: { type: Type.STRING, description: "3-4 relevant hashtags." },
-                imagePrompt: { type: Type.STRING, description: "A detailed prompt for an AI image generator." }
-            }, required: ["type", "platform", "copy", "hashtags", "imagePrompt"]
-        };
-    } else if (contentType === 'Marketing Email') {
-         schema = {
-            type: Type.OBJECT, properties: {
-                type: { type: Type.STRING, description: "Must be 'email'" }, subject: { type: Type.STRING, description: "A catchy email subject line." },
-                body: { type: Type.STRING, description: "The full email body text, formatted with newlines (\\n)." },
-                cta: { type: Type.STRING, description: "A short call-to-action phrase." }
-            }, required: ["type", "subject", "body", "cta"]
-        };
-    } else if (contentType === 'Ad Copy') {
-        schema = {
-           type: Type.OBJECT, properties: {
-               type: { type: Type.STRING, description: "Must be 'ad'" }, headline: { type: Type.STRING, description: "A short, punchy headline." },
-               body: { type: Type.STRING, description: "The main description/body text." },
-           }, required: ["type", "headline", "body"]
-       };
-   } else if (contentType === 'Blog Post Ideas') {
-        schema = {
-           type: Type.OBJECT, properties: {
-               type: { type: Type.STRING, description: "Must be 'blog'" },
-               ideas: {
-                   type: Type.ARRAY, items: {
-                       type: Type.OBJECT, properties: {
-                           title: { type: Type.STRING, description: "A creative and SEO-friendly title." },
-                           description: { type: Type.STRING, description: "A one-sentence summary." }
-                       }, required: ["title", "description"]
-                   }
-               }
-           }, required: ["type", "ideas"]
-       };
-   } else {
-       throw new SynapseAIError(`Unsupported content type for structured generation: ${contentType}`);
-   }
+    const schema = {
+        type: Type.OBJECT,
+        properties: {
+            toolId: { type: Type.STRING },
+            prefill: {
+                type: Type.OBJECT,
+                properties: {
+                    topic: { type: Type.STRING },
+                    platform: { type: Type.STRING }
+                }
+            }
+        }
+    };
     
     return await generateStructuredContent(prompt, schema);
 }
 
-export async function generateImage(prompt: string, aspectRatio: '1:1' | '16:9' | '9:16' | '4:3' | '3:4', style: string): Promise<string> {
+
+export async function generateCampaignStrategy(goal: string, brandProfile: BrandProfile): Promise<any> {
+    const prompt = `
+        You are a Senior Marketing Strategist. Develop a multi-phase marketing campaign strategy to achieve the following goal: "${goal}".
+
+        **Brand Context:**
+        - Brand: ${brandProfile.brandName}
+        - Product: ${brandProfile.productDescription}
+        - Audience: ${brandProfile.targetAudience}
+        - Tone: ${brandProfile.toneOfVoice}
+
+        **Requirements:**
+        1.  **Campaign Title:** A creative name for the campaign.
+        2.  **Phases:** Break the campaign into 3 logical phases (e.g., "Tease", "Launch", "Sustain" OR "Awareness", "Consideration", "Conversion").
+        3.  **Assets per Phase:** For each phase, define 2-3 specific marketing assets to create.
+            - Allowed Asset Types: 'Social Media Post', 'Marketing Email', 'Ad Copy', 'Blog Post Ideas'.
+            - For each asset, provide a specific 'description' of what that piece of content should be about (e.g., "A tweet announcing the 50% discount", "An email explaining the new feature").
+    `;
+
+    const schema = {
+        type: Type.OBJECT,
+        properties: {
+            campaignTitle: { type: Type.STRING },
+            phases: {
+                type: Type.ARRAY,
+                items: {
+                    type: Type.OBJECT,
+                    properties: {
+                        name: { type: Type.STRING },
+                        description: { type: Type.STRING },
+                        assets: {
+                            type: Type.ARRAY,
+                            items: {
+                                type: Type.OBJECT,
+                                properties: {
+                                    contentType: { type: Type.STRING, enum: ['Social Media Post', 'Marketing Email', 'Ad Copy', 'Blog Post Ideas'] },
+                                    description: { type: Type.STRING, description: "Specific instruction for what this asset is." }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    };
+
+    return await generateStructuredContent(prompt, schema);
+}
+
+
+export async function generateCampaignAsset(description: string, contentType: string, brandProfile: BrandProfile): Promise<any> {
+    const prompt = `
+        You are an expert content creator. Generate the content for the following campaign asset.
+
+        **Asset Type:** ${contentType}
+        **Task:** ${description}
+
+        **Brand Context:**
+        - Brand: ${brandProfile.brandName}
+        - Tone: ${brandProfile.toneOfVoice}
+        - Product: ${brandProfile.productDescription}
+
+        **Requirements:**
+        - Return a structured JSON object appropriate for the content type.
+    `;
+    
+    let schema;
+    if (contentType === 'Social Media Post') {
+         schema = {
+            type: Type.OBJECT,
+            properties: {
+                type: { type: Type.STRING, description: "Must be 'social'" },
+                platform: { type: Type.STRING, description: "Twitter, LinkedIn, or Facebook" },
+                copy: { type: Type.STRING },
+                hashtags: { type: Type.STRING },
+                imagePrompt: { type: Type.STRING }
+            },
+            required: ["type", "platform", "copy", "hashtags", "imagePrompt"]
+        };
+    } else if (contentType === 'Marketing Email') {
+        schema = {
+            type: Type.OBJECT,
+            properties: {
+                type: { type: Type.STRING, description: "Must be 'email'" },
+                subject: { type: Type.STRING },
+                body: { type: Type.STRING },
+                cta: { type: Type.STRING }
+            },
+            required: ["type", "subject", "body", "cta"]
+        };
+    } else if (contentType === 'Ad Copy') {
+        schema = {
+             type: Type.OBJECT,
+            properties: {
+                type: { type: Type.STRING, description: "Must be 'ad'" },
+                headline: { type: Type.STRING },
+                body: { type: Type.STRING }
+            },
+            required: ["type", "headline", "body"]
+        };
+    } else if (contentType === 'Blog Post Ideas') {
+         schema = {
+             type: Type.OBJECT,
+            properties: {
+                type: { type: Type.STRING, description: "Must be 'blog'" },
+                ideas: {
+                    type: Type.ARRAY,
+                    items: {
+                         type: Type.OBJECT,
+                        properties: {
+                            title: { type: Type.STRING },
+                            description: { type: Type.STRING }
+                        }
+                    }
+                }
+            },
+            required: ["type", "ideas"]
+        };
+    } else {
+        // Fallback for unknown types, though the UI limits this.
+         return { type: 'unknown', content: "Error: Unsupported content type." };
+    }
+
+    return await generateStructuredContent(prompt, schema);
+}
+
+export async function generateAgentPlan(goal: string, persona: string, brandProfile: BrandProfile): Promise<any> {
+    const prompt = `
+        You are an Autonomous Marketing Agent with the persona: "${persona}".
+        Your high-level goal is: "${goal}".
+
+        **Brand Context:**
+        - Product: ${brandProfile.productDescription}
+        - Audience: ${brandProfile.targetAudience}
+
+        Create a tactical plan consisting of 3-5 concrete tasks to achieve this goal.
+        Each task must result in a specific content asset (Social Post, Email, Ad Copy, Blog Ideas).
+    `;
+
+    const schema = {
+        type: Type.ARRAY,
+        items: {
+            type: Type.OBJECT,
+            properties: {
+                description: { type: Type.STRING, description: "e.g. 'Draft a LinkedIn announcement post'" },
+                contentType: { type: Type.STRING, enum: ['Social Media Post', 'Marketing Email', 'Ad Copy', 'Blog Post Ideas'] }
+            },
+            required: ["description", "contentType"]
+        }
+    };
+
+    return await generateStructuredContent(prompt, schema);
+}
+
+export async function generateImage(prompt: string, aspectRatio: '1:1' | '16:9' | '9:16' | '4:3' | '3:4' = '1:1', style: string = 'Photorealistic'): Promise<string> {
   if (!process.env.API_KEY) throw new SynapseAIError("API Key is not configured.");
+
+  // Enhance the prompt with style instructions
+  const enhancedPrompt = `${prompt} . Style: ${style}, high resolution, professional quality.`;
 
   try {
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     
-    let styleInstruction = `**Style:** Embody a ${style.toLowerCase()} aesthetic.`;
-    if (style.toLowerCase() === 'studio level') {
-        styleInstruction = `
-      **Style: Studio Level Product Photography**
-      - **Goal:** Create a premium "hero shot" suitable for a high-end advertisement or product landing page.
-      - **Lighting:** Employ professional studio lighting techniques. Think softboxes for clean highlights, rim lighting to define edges, and controlled, soft shadows to create depth. Avoid flat, boring light.
-      - **Background:** Use a clean, professional studio background. This could be a solid color (often light gray, white, or black), a subtle gradient, or a simple, elegant texture. The background must not distract from the subject.
-      - **Focus & Detail:** The subject must be in sharp, perfect focus, with every detail rendered crisply. Use a shallow depth of field if appropriate to make the subject pop.
-      - **Composition:** The subject should be the undeniable focal point. Use classic composition rules (like rule of thirds) to create a visually pleasing and impactful image.
-        `;
+    const response = await withRetry<any>(() => ai.models.generateImages({
+      model: 'imagen-3.0-generate-001',
+      prompt: enhancedPrompt,
+      config: {
+        numberOfImages: 1,
+        aspectRatio: aspectRatio,
+        outputMimeType: 'image/jpeg', // Changed to image/jpeg as per documentation recommendation for general use
+      }
+    }), 2, 2000); // Fewer retries for image gen as it's more expensive/slower
+
+    if (response.generatedImages && response.generatedImages.length > 0) {
+         const base64Image = response.generatedImages[0].image.imageBytes;
+         return `data:image/jpeg;base64,${base64Image}`;
+    } else {
+        throw new SynapseAIError("No image was returned by the generator.");
     }
+  } catch (error: any) {
+      handleGeminiError(error, 'image generation');
+  }
+}
 
-    const fullPrompt = `
-      You are a world-class AI visual designer and commercial photographer specializing in creating stunning, high-impact marketing imagery. Your goal is to transform user prompts into professional, high-quality visuals ready for a major campaign.
+export async function editImage(imageBase64: string, mimeType: string, editInstruction: string): Promise<string> {
+  if (!process.env.API_KEY) throw new SynapseAIError("API Key is not configured.");
 
-      **Core Principles:**
-      - **Professionalism:** Generate images that look like they were made by a top-tier advertising agency.
-      - **Marketing Focus:** The final image must be compelling and suitable for use in an ad, on a website, or in a social media campaign.
-      - **Creativity:** If the prompt is simple (e.g., "a watch"), creatively interpret it as a luxury product photoshoot. Add appropriate context to elevate the subject.
-      - **Clarity:** Ensure the subject is clearly and attractively presented.
-
-      ${styleInstruction}
-
-      **User Request:**
-      "${prompt}"
-
-      **General Execution Details:**
-      - **Quality:** Ultra-high resolution, photorealistic details, cinematic lighting, sharp focus.
-      - **Composition:** Apply principles of professional photography and graphic design.
-    `;
-    
+  try {
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     const response = await withRetry<GenerateContentResponse>(() => ai.models.generateContent({
       model: 'gemini-2.5-flash-image',
-      contents: { parts: [{ text: fullPrompt }] },
-      config: { responseModalities: [Modality.IMAGE] },
-    }));
+      contents: {
+        parts: [
+          {
+            inlineData: {
+              data: imageBase64,
+              mimeType: mimeType,
+            },
+          },
+          {
+            text: editInstruction,
+          },
+        ],
+      },
+      config: {
+          responseModalities: [Modality.IMAGE],
+      },
+    }), 2, 2000);
 
-    validateGenerateContentResponse(response, "Image generation");
-
-    const part = response.candidates?.[0]?.content?.parts?.find(p => p.inlineData);
-    if (part?.inlineData) {
-        return `data:image/png;base64,${part.inlineData.data}`;
+    const candidate = response.candidates?.[0];
+    const imagePart = candidate?.content?.parts?.find(part => part.inlineData);
+    
+    if (imagePart && imagePart.inlineData) {
+         return `data:${imagePart.inlineData.mimeType};base64,${imagePart.inlineData.data}`;
+    } else {
+         // Sometimes the model refuses to edit and returns text explaining why.
+         if (response.text) {
+             throw new SynapseAIError(`The AI could not edit the image. Message: ${response.text}`);
+         }
+         throw new SynapseAIError("No edited image was returned.");
     }
-
-    throw new SynapseAIError("Image generation succeeded, but no image data was found in the response.");
   } catch (error: any) {
-    handleGeminiError(error, 'image generation');
+      handleGeminiError(error, 'image editing');
   }
 }
 
-export async function editImage(base64ImageData: string, mimeType: string, prompt: string): Promise<string> {
-  if (!process.env.API_KEY) throw new SynapseAIError("API Key is not configured.");
-
-  try {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-    const fullPrompt = `
-      You are an expert AI photo editor and retoucher. Your task is to apply professional-level edits to the provided image based on the user's request. Always aim for a clean, high-quality result suitable for marketing materials.
-
-      **User's Edit Request:**
-      "${prompt}"
-    `;
-    
-    const response = await withRetry<GenerateContentResponse>(() => ai.models.generateContent({
-        model: 'gemini-2.5-flash-image',
-        contents: { parts: [{ inlineData: { data: base64ImageData, mimeType } }, { text: fullPrompt }] },
-        config: { responseModalities: [Modality.IMAGE] },
-    }));
-
-    validateGenerateContentResponse(response, "Image editing");
-    
-    const part = response.candidates?.[0]?.content?.parts?.find(p => p.inlineData);
-    if (part?.inlineData) {
-        return `data:image/png;base64,${part.inlineData.data}`;
-    }
-    
-    throw new SynapseAIError("Image editing succeeded, but no new image was returned.");
-  } catch (error: any) {
-    handleGeminiError(error, 'image editing');
-  }
-}
-
-export async function generateVideo(prompt: string, image: { data: string; mimeType: string; } | null, config: any): Promise<any> {
+export async function generateVideo(prompt: string, startImage: { data: string, mimeType: string } | null, config: { aspectRatio: string, resolution: string }): Promise<any> {
     if (!process.env.API_KEY) throw new SynapseAIError("API Key is not configured.");
     
     try {
         const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-        const operation = await withRetry(() => ai.models.generateVideos({
+        
+        let requestConfig: any = {
+            numberOfVideos: 1,
+            aspectRatio: config.aspectRatio || '16:9',
+            resolution: config.resolution || '720p',
+        };
+        
+        let requestParams: any = {
             model: 'veo-3.1-fast-generate-preview',
-            prompt,
-            image: image ? { imageBytes: image.data, mimeType: image.mimeType } : undefined,
-            config: { numberOfVideos: 1, ...config }
-        }), 2, 5000); // Fewer retries for long-running ops
+            prompt: prompt,
+            config: requestConfig
+        };
+
+        if (startImage) {
+             requestParams.image = {
+                imageBytes: startImage.data,
+                mimeType: startImage.mimeType,
+            };
+        }
+        
+        const operation = await withRetry<any>(() => ai.models.generateVideos(requestParams), 2, 2000);
         return operation;
+
     } catch (error: any) {
-        handleGeminiError(error, 'video generation');
+         handleGeminiError(error, 'video generation');
     }
 }
 
 export async function getVideosOperation(operation: any): Promise<any> {
     if (!process.env.API_KEY) throw new SynapseAIError("API Key is not configured.");
-    
-    try {
-        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-        return await withRetry(() => ai.operations.getVideosOperation({ operation }), 3, 3000);
-    } catch (error: any) {
-        handleGeminiError(error, 'video status check');
-    }
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    return await ai.operations.getVideosOperation({ operation });
 }
 
-export async function routeUserIntent(command: string): Promise<ToolRoute> {
-  const prompt = `
-    You are an intelligent routing system for a powerful AI marketing platform named Synapse. Your primary function is to analyze a user's natural language command and accurately map it to the most appropriate tool within the platform. You must also extract the core topic or subject from the command to pre-fill the tool's input field.
+export async function generateSocialPost(params: { topic: string, tone: string, platform: 'Twitter' | 'LinkedIn' | 'Facebook', numOutputs: number }): Promise<SocialPostContent[]> {
+    const prompt = `
+        You are an expert Social Media Manager. Create ${params.numOutputs} distinct social media post variations for the following topic.
 
-    **TOOL MANIFEST & ROUTING LOGIC:**
-    Carefully review the user's command and choose the BEST matching 'toolId' from the list below.
+        Topic: "${params.topic}"
+        Platform: ${params.platform}
+        Tone: ${params.tone}
 
-    - toolId: 'CampaignBuilder'
-      - Description: Plans a complete, multi-phase, multi-channel marketing campaign from a single high-level goal.
-      - Keywords: "plan a campaign", "marketing strategy", "launch plan", "campaign for", "create a strategy".
+        Each variation must include:
+        1.  **Copy:** The main text of the post, optimized for the platform's best practices (length, style, formatting).
+        2.  **Hashtags:** 3-5 relevant hashtags.
+        3.  **Image Prompt:** A detailed description to generate a matching image for this post.
+    `;
 
-    - toolId: 'ResonanceEngine'
-      - Description: Analyzes and scores existing marketing copy by simulating a target audience's reaction. Provides feedback on clarity, persuasion, and emotional impact.
-      - Keywords: "analyze my copy", "get feedback on this post", "test this email", "review this ad", "will this resonate".
-
-    - toolId: 'MarketSignalAnalyzer'
-      - Description: Conducts market research on a topic to find trending sub-topics, audience questions, competitor angles, and content recommendations.
-      - Keywords: "market research", "trending topics for", "analyze the topic of", "what are people asking about", "competitor analysis for".
-      
-    - toolId: 'SEOContentStrategist'
-      - Description: Generates a complete SEO content blueprint for a blog post, including title suggestions, target keywords, a compelling hook, a full article outline, and a call-to-action.
-      - Keywords: "blog post", "article idea", "SEO content", "content strategy", "outline for a blog", "keyword research", "write an article about".
-
-    - toolId: 'AIAdCreativeStudio'
-      - Description: Brainstorms multiple marketing angles and generates a complete ad creative package, including several copy variations (headline/body), a detailed AI image prompt, targeting suggestions, and CTA ideas.
-      - Keywords: "ad copy", "Facebook ad", "Google ad", "ad creative", "marketing angles", "write an ad for".
-
-    - toolId: 'AIImageGenerator'
-      - Description: Generates a new, high-quality image from a descriptive text prompt.
-      - Keywords: "generate an image of", "create a photo of", "picture of a", "graphic for", "make an image".
-
-    - toolId: 'AIImageEditor'
-      - Description: Modifies an existing image based on text commands. This tool is for editing, not creation. Do NOT select this if the user wants a new image.
-      - Keywords: "edit this image", "change the background", "add text to my photo", "remove object from image".
-
-    - toolId: 'MarketingVideoAd'
-      - Description: Generates a short video ad from a text prompt or a starting image.
-      - Keywords: "create a video ad", "make a commercial for", "video of a", "product video".
-
-    - toolId: 'SocialMediaPost'
-      - Description: Generates a post for a specific social media platform like Twitter/X, LinkedIn, or Facebook.
-      - Keywords: "write a tweet", "create a LinkedIn post", "draft a Facebook update", "post about".
-
-    - toolId: 'ViralVideoBlueprint'
-      - Description: Creates a strategic blueprint for a short-form viral video (TikTok, Reels, Shorts). Includes a scroll-stopping hook, script outline, visual concepts, and audio suggestions.
-      - Keywords: "video hook", "TikTok idea", "Reel idea", "viral video", "script for a short video", "opening line for a video".
+    const schema = {
+        type: Type.ARRAY,
+        items: {
+            type: Type.OBJECT,
+            properties: {
+                type: { type: Type.STRING, enum: ['social'] },
+                platform: { type: Type.STRING, enum: ['Twitter', 'LinkedIn', 'Facebook'] },
+                copy: { type: Type.STRING },
+                hashtags: { type: Type.STRING },
+                imagePrompt: { type: Type.STRING }
+            },
+            required: ["type", "platform", "copy", "hashtags", "imagePrompt"]
+        }
+    };
     
-    - toolId: 'MarketingEmail'
-      - Description: Writes a complete marketing email, including the subject line and body.
-      - Keywords: "write an email", "draft a newsletter", "promo email for", "email copy".
-
-    **INSTRUCTIONS:**
-    1.  **Analyze Command:** User command is: "${command}".
-    2.  **Select Tool:** Choose the single most appropriate 'toolId' from the manifest above. If a command is ambiguous, prioritize the most specific tool. For example, 'write a hook for a tiktok video' should route to 'ViralVideoBlueprint', not the more general 'MarketingVideoAd'.
-    3.  **Extract Prefill Topic:** Identify the core subject matter or the complete descriptive phrase from the command. This should serve as a comprehensive and useful prefill for the tool's main input field. For example, in 'write a tweet about sustainable fashion', the topic should be 'a tweet about sustainable fashion'. In 'create an SEO blog post about intermittent fasting', the topic should be 'an SEO blog post about intermittent fasting'. Remove initial imperatives like 'write', 'create', 'generate' where it makes sense to create a natural-sounding prefill.
-    4.  **Extract Platform (if applicable):** If the command mentions a specific social media platform (e.g., 'LinkedIn post', 'tweet', 'Facebook update'), extract it as the 'platform'.
-
-    Your output MUST be a JSON object matching the provided schema. Do not include any other text.
-  `;
-
-  const schema = {
-    type: Type.OBJECT,
-    properties: {
-      toolId: { type: Type.STRING, description: "The ID of the best tool for the user's command.", enum: ['CampaignBuilder', 'ResonanceEngine', 'MarketSignalAnalyzer', 'SEOContentStrategist', 'AIAdCreativeStudio', 'AIImageGenerator', 'AIImageEditor', 'MarketingVideoAd', 'SocialMediaPost', 'ViralVideoBlueprint', 'MarketingEmail'] },
-      prefill: {
-        type: Type.OBJECT, properties: {
-          topic: { type: Type.STRING, description: "The core subject matter or full descriptive phrase extracted from the command to be used as a prefill." },
-          platform: { type: Type.STRING, description: "The social media platform if specified (e.g., 'Twitter', 'LinkedIn', 'Facebook').", nullable: true }
-        }, required: ["topic"]
-      }
-    }, required: ["toolId", "prefill"]
-  };
-
-  return await generateStructuredContent(prompt, schema) as ToolRoute;
+    // Ensure the type is forced to 'social' and platform matches input in the response
+    const results = await generateStructuredContent(prompt, schema);
+    return results.map((r: any) => ({ ...r, type: 'social', platform: params.platform }));
 }
