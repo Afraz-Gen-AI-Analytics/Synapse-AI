@@ -398,10 +398,25 @@ const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
           </div>
           
           <div className="max-w-4xl mx-auto">
-            <div className="flex flex-wrap justify-center gap-2 md:gap-4 mb-8">
-                <button onClick={() => setActiveDemo('productLaunch')} className={`px-3 py-2 md:px-4 text-xs md:text-base font-semibold rounded-lg transition-all duration-300 flex-grow md:flex-grow-0 ${activeDemo === 'productLaunch' ? 'bg-white/10 text-white shadow-inner shadow-white/5' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200'}`}>Launch New Product</button>
-                <button onClick={() => setActiveDemo('webinar')} className={`px-3 py-2 md:px-4 text-xs md:text-base font-semibold rounded-lg transition-all duration-300 flex-grow md:flex-grow-0 ${activeDemo === 'webinar' ? 'bg-white/10 text-white shadow-inner shadow-white/5' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200'}`}>Promote Webinar</button>
-                <button onClick={() => setActiveDemo('sale')} className={`px-3 py-2 md:px-4 text-xs md:text-base font-semibold rounded-lg transition-all duration-300 flex-grow md:flex-grow-0 ${activeDemo === 'sale' ? 'bg-white/10 text-white shadow-inner shadow-white/5' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200'}`}>Announce Sale</button>
+            <div className="flex flex-nowrap justify-center gap-1 sm:gap-2 md:gap-4 mb-8 w-full px-2 sm:px-0">
+                <button 
+                    onClick={() => setActiveDemo('productLaunch')} 
+                    className={`flex-1 md:flex-none px-2 py-2 md:px-4 text-[10px] sm:text-xs md:text-base font-semibold rounded-lg transition-all duration-300 whitespace-nowrap ${activeDemo === 'productLaunch' ? 'bg-white/10 text-white shadow-inner shadow-white/5' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200'}`}
+                >
+                    Launch New Product
+                </button>
+                <button 
+                    onClick={() => setActiveDemo('webinar')} 
+                    className={`flex-1 md:flex-none px-2 py-2 md:px-4 text-[10px] sm:text-xs md:text-base font-semibold rounded-lg transition-all duration-300 whitespace-nowrap ${activeDemo === 'webinar' ? 'bg-white/10 text-white shadow-inner shadow-white/5' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200'}`}
+                >
+                    Promote Webinar
+                </button>
+                <button 
+                    onClick={() => setActiveDemo('sale')} 
+                    className={`flex-1 md:flex-none px-2 py-2 md:px-4 text-[10px] sm:text-xs md:text-base font-semibold rounded-lg transition-all duration-300 whitespace-nowrap ${activeDemo === 'sale' ? 'bg-white/10 text-white shadow-inner shadow-white/5' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200'}`}
+                >
+                    Announce Sale
+                </button>
             </div>
             
             <div ref={demoRef} className="p-px bg-gradient-to-br from-white/20 to-transparent rounded-xl shadow-2xl shadow-black/30">
