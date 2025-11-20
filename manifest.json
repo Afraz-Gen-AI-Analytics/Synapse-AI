@@ -1,7 +1,8 @@
 {
   "short_name": "Synapse AI",
   "name": "Synapse AI - Your Content Co-pilot",
-  "description": "An AI-powered content co-pilot to supercharge your marketing. Generate high-quality social media posts, blog ideas, and email copy in seconds, designed to solve modern content creation challenges and scale your business.",
+  "description": "An AI-powered content co-pilot to supercharge your marketing. Generate high-quality social media posts, blog ideas, and email copy in seconds.",
+  "id": "/",
   "icons": [
     {
       "src": "icon.svg",
@@ -13,7 +14,19 @@
       "src": "icon-192.svg",
       "sizes": "192x192",
       "type": "image/svg+xml",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
       "purpose": "any"
+    },
+    {
+      "src": "icon-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
     },
     {
       "src": "icon-512.svg",
@@ -25,6 +38,27 @@
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
+  "orientation": "any",
   "background_color": "#0D1117",
-  "theme_color": "#0D1117"
+  "theme_color": "#0D1117",
+  "categories": ["productivity", "business", "utilities", "artificial-intelligence"],
+  "launch_handler": {
+    "client_mode": "focus-existing"
+  },
+  "shortcuts": [
+    {
+      "name": "Create Content",
+      "short_name": "Create",
+      "description": "Start a new generation",
+      "url": "/?action=create",
+      "icons": [{ "src": "icon-192.svg", "sizes": "192x192" }]
+    },
+    {
+      "name": "My Agents",
+      "short_name": "Agents",
+      "description": "Manage your AI workforce",
+      "url": "/?action=agents",
+      "icons": [{ "src": "icon-192.svg", "sizes": "192x192" }]
+    }
+  ]
 }
