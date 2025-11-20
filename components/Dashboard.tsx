@@ -719,7 +719,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
     // Daily Video Limit Check
     if (selectedTemplate.id === ContentType.AIVideoGenerator) {
         if (dailyVideoCount >= VIDEO_DAILY_LIMIT) {
-            addToast("Daily limit reached: 3 videos per day. Please try again tomorrow!", "info");
+            addToast("Daily limit reached (3/3). Your quota resets at 12:00 AM tomorrow.", "info");
             return;
         }
     }
@@ -885,7 +885,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
                      textToCopy += `Clarity: ${data.clarityScore}/10 - ${data.clarityReasoning}\n`;
                      textToCopy += `Persuasion: ${data.persuasionScore}/10 - ${data.persuasionReasoning}\n`;
                      textToCopy += `Goal Alignment: ${data.goalAlignment}\n`;
-                     textToCopy += `Key Questions:\n${data.keyQuestions?.map((q:string) => `- ${q}`).join('\n')}\n`;
+                     textToCopy += `Key Questions:\n${data.keyQuestions?.map((q:string) => `- ${q}`).join('\n')}\n\n`;
                      textToCopy += `Suggestion: ${data.suggestedImprovement}`;
                 } else if (templateName === "Market Signal Analyzer") {
                      textToCopy += `MARKET SIGNAL REPORT\nTopic: ${currentTopic}\n\n`;

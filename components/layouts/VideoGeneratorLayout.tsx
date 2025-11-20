@@ -70,10 +70,7 @@ const VideoGeneratorLayout: React.FC<VideoGeneratorLayoutProps> = (props) => {
                             <h1 className={`text-2xl font-bold ${selectedTemplate.isPro ? 'gradient-text' : 'text-white'}`}>{selectedTemplate.name}</h1>
                             {selectedTemplate.isPro && <ProFeatureBadge />}
                         </div>
-                        {/* Daily Limit Counter */}
-                        <div className="ml-auto flex items-center gap-2 text-xs font-medium bg-[#0A0C12] text-slate-400 px-3 py-1.5 rounded-full border border-slate-800 whitespace-nowrap">
-                           <span>{dailyVideoCount} / {dailyLimit} Daily</span>
-                        </div>
+                        {/* Daily limit badge removed as per request */}
                     </div>
                     <p className="text-slate-400 mt-1">{selectedTemplate.description}</p>
                 </div>
