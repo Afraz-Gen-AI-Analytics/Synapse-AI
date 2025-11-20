@@ -282,10 +282,14 @@ const HistoryView: React.FC<HistoryViewProps> = ({ user, onReuse, onCopy, onEdit
                                 
                                 const copyButtonText = shouldCopyPrompt ? "Prompt" : (shouldCopyContent ? "Report" : "Copy");
                                 const Icon = templateIcons[item.templateName] || SparklesIcon;
+                                
+                                // Treat data:image as visual content regardless of tool (including videos with thumbnails)
+                                const hasVisualThumbnail = item.content.startsWith('data:image');
+
                                 return (
                                 <div key={item.id} className="bg-slate-800/50 p-3 sm:p-4 rounded-lg border border-slate-700/70 flex items-start transition-all hover:border-slate-600">
                                     <div className="w-10 h-10 sm:w-16 sm:h-16 rounded-md mr-3 sm:mr-4 flex-shrink-0 flex items-center justify-center overflow-hidden bg-gradient-to-br from-[var(--gradient-start)] to-[var(--gradient-end)]">
-                                        {(isImageItem && item.content.startsWith('data:image')) ? (
+                                        {hasVisualThumbnail ? (
                                             <img src={item.content} alt={item.topic} className="w-full h-full object-cover" />
                                         ) : (
                                             <Icon className="w-5 h-5 sm:w-8 sm:h-8 text-white" />
@@ -300,7 +304,7 @@ const HistoryView: React.FC<HistoryViewProps> = ({ user, onReuse, onCopy, onEdit
                                         <div className="flex-shrink-0 ml-1 sm:ml-4">
                                             <div className="flex items-center text-[10px] sm:text-sm text-slate-400">
                                                 {/* EDIT BUTTON */}
-                                                {item.content.startsWith('data:image') && (
+                                                {isImageItem && item.content.startsWith('data:image') && (
                                                     <>
                                                         <button onClick={() => onEdit(item)} className="flex items-center p-1.5 sm:p-2 hover:text-white transition-colors" title="Edit Image">
                                                             <EditIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:mr-1.5" />
@@ -311,15 +315,11 @@ const HistoryView: React.FC<HistoryViewProps> = ({ user, onReuse, onCopy, onEdit
                                                 )}
 
                                                 {/* REUSE BUTTON */}
-                                                {item.templateName !== "Marketing Video Ad" && (
-                                                    <>
-                                                        <button onClick={() => onReuse(item)} className="flex items-center p-1.5 sm:p-2 hover:text-white transition-colors" title="Reuse">
-                                                            <ReuseIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:mr-1.5" />
-                                                            <span className="hidden md:inline">Reuse</span>
-                                                        </button>
-                                                        <div className="w-px h-3 sm:h-4 bg-slate-700 mx-0.5 sm:mx-2"></div>
-                                                    </>
-                                                )}
+                                                <button onClick={() => onReuse(item)} className="flex items-center p-1.5 sm:p-2 hover:text-white transition-colors" title="Reuse">
+                                                    <ReuseIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:mr-1.5" />
+                                                    <span className="hidden md:inline">Reuse</span>
+                                                </button>
+                                                <div className="w-px h-3 sm:h-4 bg-slate-700 mx-0.5 sm:mx-2"></div>
 
                                                 {/* COPY BUTTON */}
                                                 <button onClick={() => onCopy(item.content, item.templateName, item.topic)} className="flex items-center p-1.5 sm:p-2 hover:text-white transition-colors" title={copyButtonText}>

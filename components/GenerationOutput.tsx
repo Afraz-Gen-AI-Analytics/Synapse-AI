@@ -166,7 +166,8 @@ const GenerationOutput: React.FC<GenerationOutputProps> = (props) => {
             if (isImageEditTool && originalImageUrl) {
                 return <ImageSliderComparator before={originalImageUrl} after={generatedContent} />;
             }
-            if (isImageTool || isImageEditTool) {
+            // Handle both standard image tools AND video thumbnails (when reusing history)
+            if (isImageTool || isImageEditTool || (isVideoTool && generatedContent.startsWith('data:image'))) {
                 return <img src={generatedContent} alt={topic} className="object-contain max-w-full max-h-full rounded-md animate-fade-in-up" />;
             }
              if (selectedTemplate.id === ContentType.SocialMediaPost) {

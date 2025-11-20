@@ -170,6 +170,45 @@ const compressImageForHistory = (base64DataUrl: string, maxSizeInBytes: number =
     });
 };
 
+const generateVideoThumbnail = (videoUrl: string): Promise<string> => {
+    return new Promise((resolve, reject) => {
+        const video = document.createElement('video');
+        video.preload = 'metadata';
+        video.src = videoUrl;
+        video.muted = true;
+        video.currentTime = 0.5; // Capture slightly into the video to avoid black frames
+        video.crossOrigin = "anonymous"; // Important for capturing from blob/external
+
+        video.onloadeddata = () => {
+           // Ready state check handled in seeked
+        };
+        
+        video.onseeked = () => {
+            try {
+                const canvas = document.createElement('canvas');
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                const ctx = canvas.getContext('2d');
+                if (ctx) {
+                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                    // Compress thumbnail
+                    const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+                    resolve(dataUrl);
+                } else {
+                    reject(new Error("Canvas context failed"));
+                }
+            } catch (e) {
+                console.error("Thumbnail generation failed:", e);
+                // Fallback: Just resolve with a flag or empty
+                reject(e);
+            }
+        };
+
+        video.onerror = (e) => reject(e);
+    });
+};
+
+
 const tones = ["Professional", "Casual", "Witty", "Enthusiastic", "Bold"];
 
 const templates: Template[] = [
@@ -568,7 +607,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
   const handleGenerationResult = useCallback(async (result: string, genTopic: string, templateName: string, originalContentDataUrl?: string) => {
     if (!user) return;
     try {
-        const isImageTemplate = templateName === "AI Image Generator" || templateName === "AI Image Editor";
+        const isImageTemplate = templateName === "AI Image Generator" || templateName === "AI Image Editor" || templateName === "Marketing Video Ad";
         let contentToSave = result;
 
         if (isImageTemplate && result.startsWith('data:image')) {
@@ -598,7 +637,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
             }
         }
 
-        const isAnalyzer = ["Resonance Engine", "Market Signal Analyzer", "SEO Content Strategist", "AI Ad Creative Studio", "Viral Video Blueprint"].includes(templateName);
+        const isAnalyzerOrVideo = ["Resonance Engine", "Market Signal Analyzer", "SEO Content Strategist", "AI Ad Creative Studio", "Viral Video Blueprint", "Marketing Video Ad"].includes(templateName);
         const historyItem: Omit<HistoryItem, 'id'> = {
             userId: user.uid,
             templateName: templateName,
@@ -607,7 +646,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
             timestamp: new Date().toISOString(),
         };
 
-        if (isAnalyzer) {
+        if (isAnalyzerOrVideo) {
             historyItem.fields = extraFields;
         }
 
@@ -701,7 +740,18 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
                 const videoBlob = await videoResponse.blob();
                 const localUrl = URL.createObjectURL(videoBlob);
                 setVideoUrl(localUrl);
-                await handleGenerationResult(`Generated video for prompt: "${topic}"`, topic, selectedTemplate.name);
+                
+                // Generate a thumbnail to save to history
+                let thumbnailDataUrl = "";
+                try {
+                    thumbnailDataUrl = await generateVideoThumbnail(localUrl);
+                } catch (e) {
+                    console.error("Failed to generate thumbnail for video history", e);
+                    // Fallback to a placeholder text if thumbnail fails
+                    thumbnailDataUrl = `Generated video for prompt: "${topic}"`; 
+                }
+
+                await handleGenerationResult(thumbnailDataUrl, topic, selectedTemplate.name);
             } else {
                 throw new Error("Video generation completed, but no video URI was found.");
             }
@@ -774,7 +824,6 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
 
   const handleCopy = useCallback((content: string, templateName: string, itemTopic?: string) => {
     const currentTopic = itemTopic || topic;
-    
     const isAssetGenerationTool = templateName === "AI Image Generator" || templateName === "AI Image Editor" || templateName === "Marketing Video Ad";
 
     if (isAssetGenerationTool) {
@@ -783,24 +832,92 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
             addToast('Prompt copied to clipboard!');
         }
     } else if (content) {
-      if (["Resonance Engine", "Market Signal Analyzer", "SEO Content Strategist", "AI Ad Creative Studio", "Viral Video Blueprint"].includes(templateName)) {
-          try {
-              const data = JSON.parse(content);
-              // Simple stringify for now, a more complex report can be built
-              const reportText = JSON.stringify(data, null, 2);
-              navigator.clipboard.writeText(reportText);
-              addToast('Report data copied to clipboard!');
-          } catch(e) {
-              navigator.clipboard.writeText(content);
-              addToast('Content copied to clipboard!');
-          }
-      } else {
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = markdownToHtml(content).replace(/<br\s*\/?>/gi, '\n');
-        const plainText = tempDiv.textContent || tempDiv.innerText || '';
-        navigator.clipboard.writeText(plainText);
-        addToast('Content copied to clipboard!');
-      }
+        let textToCopy = '';
+        
+        // 1. Check for Report / Analyzer Tools
+        if (["Resonance Engine", "Market Signal Analyzer", "SEO Content Strategist", "AI Ad Creative Studio", "Viral Video Blueprint"].includes(templateName)) {
+            try {
+                const data = JSON.parse(content);
+                if (templateName === "Resonance Engine") {
+                     textToCopy += `RESONANCE REPORT\nTopic: ${currentTopic}\n\n`;
+                     textToCopy += `First Impression: "${data.firstImpression}"\n`;
+                     textToCopy += `Clarity: ${data.clarityScore}/10 - ${data.clarityReasoning}\n`;
+                     textToCopy += `Persuasion: ${data.persuasionScore}/10 - ${data.persuasionReasoning}\n`;
+                     textToCopy += `Goal Alignment: ${data.goalAlignment}\n`;
+                     textToCopy += `Key Questions:\n${data.keyQuestions?.map((q:string) => `- ${q}`).join('\n')}\n`;
+                     textToCopy += `Suggestion: ${data.suggestedImprovement}`;
+                } else if (templateName === "Market Signal Analyzer") {
+                     textToCopy += `MARKET SIGNAL REPORT\nTopic: ${currentTopic}\n\n`;
+                     textToCopy += `Trending Sub-Topics:\n${data.trendingSubTopics?.map((t:any) => `- ${t.topic} (Buzz: ${t.buzzScore}): ${t.reason}`).join('\n')}\n\n`;
+                     textToCopy += `Audience Questions:\n${data.audienceQuestions?.map((q:string) => `- ${q}`).join('\n')}\n\n`;
+                     textToCopy += `Competitor Angles:\n${data.competitorAngles?.map((a:any) => `- ${a.angle} ${a.isUntapped ? '(UNTAPPED)' : ''}`).join('\n')}`;
+                } else if (templateName === "SEO Content Strategist") {
+                     textToCopy += `SEO BLUEPRINT\nTopic: ${currentTopic}\n\n`;
+                     textToCopy += `Titles:\n${data.titleSuggestions?.map((t:any) => `- ${t.title}`).join('\n')}\n\n`;
+                     textToCopy += `Keywords: ${data.targetKeywords?.primaryKeyword}, ${data.targetKeywords?.secondaryKeywords?.join(', ')}\n\n`;
+                     textToCopy += `Hook: ${data.hook}\n\n`;
+                     textToCopy += `Outline:\n${data.fullArticleOutline?.map((s:any) => `## ${s.heading}\n${s.talkingPoints?.map((p:string) => `- ${p}`).join('\n')}`).join('\n')}`;
+                } else if (templateName === "AI Ad Creative Studio") {
+                    textToCopy += `AD CREATIVE BLUEPRINT\nProduct: ${currentTopic}\n\n`;
+                    data.copyVariations?.forEach((v:any, i:number) => {
+                        textToCopy += `Option ${i+1} (${v.angle}):\nHeadline: ${v.headline}\nBody: ${v.body}\n\n`;
+                    });
+                    textToCopy += `Visual Concept: ${data.imagePrompt}`;
+                } else if (templateName === "Viral Video Blueprint" || templateName === "VideoScriptHook") {
+                    textToCopy += `VIRAL VIDEO BLUEPRINT\nTopic: ${currentTopic}\n\n`;
+                    textToCopy += `Hook: "${data.hookText}"\n\n`;
+                    textToCopy += `Script:\n${data.scriptOutline?.map((s:string) => `- ${s}`).join('\n')}\n\n`;
+                    textToCopy += `Visuals: ${data.visualConcept}\n`;
+                    textToCopy += `Audio: ${data.audioSuggestion}`;
+                } else {
+                    // Fallback for any other JSON
+                    textToCopy = JSON.stringify(data, null, 2);
+                }
+            } catch (e) {
+                textToCopy = content; // Fallback to raw content
+            }
+        } 
+        // 2. Check for Structured Generation Tools (Social, Email, etc.)
+        else {
+            // Handle multiple variations split by separator
+            const variations = content.split('[---VARIATION_SEPARATOR---]').map(v => v.trim()).filter(Boolean);
+            
+            const formattedVariations = variations.map(variationContent => {
+                try {
+                     // Try parsing as JSON (e.g., Social Media Post)
+                     if (variationContent.startsWith('{') || variationContent.startsWith('[')) {
+                        const parsed = JSON.parse(variationContent);
+                        
+                        if (parsed.type === 'social' || (parsed.copy && parsed.hashtags)) {
+                            return `${parsed.copy}\n\n${parsed.hashtags}`;
+                        } 
+                        if (parsed.type === 'email' || (parsed.subject && parsed.body)) {
+                            return `Subject: ${parsed.subject}\n\n${parsed.body}`;
+                        }
+                        if (parsed.type === 'ad' || (parsed.headline && parsed.body)) {
+                             return `Headline: ${parsed.headline}\n\n${parsed.body}`;
+                        }
+                        if (parsed.type === 'blog' && Array.isArray(parsed.ideas)) {
+                             return parsed.ideas.map((i: any) => `${i.title}\n${i.description}`).join('\n\n');
+                        }
+                     }
+                } catch (e) {
+                    // Not JSON, proceed to plain text handling
+                }
+
+                // If not JSON or parsing failed, strip HTML/Markdown to plain text
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = markdownToHtml(variationContent).replace(/<br\s*\/?>/gi, '\n');
+                return tempDiv.textContent || tempDiv.innerText || variationContent;
+            });
+
+            textToCopy = formattedVariations.join('\n\n---\n\n');
+        }
+
+        if (textToCopy) {
+            navigator.clipboard.writeText(textToCopy);
+            addToast('Content copied to clipboard!');
+        }
     }
   }, [addToast, topic]);
   
@@ -810,7 +927,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
     
     setReusedReportData(null); // Reset by default
 
-    if (template.id === ContentType.Campaign || template.id === ContentType.AIVideoGenerator) {
+    if (template.id === ContentType.Campaign) {
         return;
     }
 
@@ -839,10 +956,14 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
         return; // Early return for analyzer tools
     }
 
-    // Existing logic for other tools
+    // Logic for video and other tools
     setActiveTab('tools');
     setTopic(item.topic);
     setSelectedTemplate(template);
+    
+    if (item.fields) {
+        setExtraFields(prev => ({ ...prev, ...item.fields }));
+    }
     
     setGeneratedContents([]);
     setUploadedImage(null);
@@ -871,6 +992,17 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
             setUploadedImage(fileForEditing);
             setOriginalImageUrl(item.content);
             setGeneratedContents([item.content]);
+        }
+    } else if (template.id === ContentType.AIVideoGenerator) {
+        setVideoStatus('');
+        setVideoUrl(null);
+        // Restore extraFields which contain resolution/aspectRatio
+        if (item.fields) {
+             setExtraFields(prev => ({ ...prev, ...item.fields }));
+        }
+        // Show thumbnail if available as a placeholder content
+        if (item.content && item.content.startsWith('data:image')) {
+             setGeneratedContents([item.content]);
         }
     } else {
         const isTextTemplate = template.prompt !== undefined || template.id === ContentType.SocialMediaPost;

@@ -1,4 +1,6 @@
+
 import React, { useEffect, useState } from 'react';
+import SynapseCoreIcon from './icons/SynapseCoreIcon';
 
 interface VideoPlayerProps {
     status: string;
@@ -32,16 +34,14 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ status, url }) => {
     }, [status]);
 
     if (url) {
-        return <video src={url} controls autoPlay loop className="w-full h-full object-contain rounded-md" />;
+        return <video src={url} controls autoPlay loop className="w-full h-full object-contain rounded-md bg-black" />;
     }
 
     return (
-        <div className="w-full h-full bg-slate-700/50 rounded-md animate-pulse flex items-center justify-center p-4">
-            <div className="text-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-4"></div>
-                <p className="font-semibold text-white">{status || "Initializing..."}</p>
-                <p className="text-sm text-slate-300 mt-2">{currentMessage}</p>
-            </div>
+        <div className="flex flex-col items-center justify-center h-full text-center text-slate-400 p-6 animate-fade-in-up">
+            <SynapseCoreIcon className="w-24 h-24 mb-6"/>
+            <h3 className="text-lg font-semibold text-white mb-2">{status || "Initializing..."}</h3>
+            <p className="transition-opacity duration-500 max-w-xs mx-auto">{currentMessage}</p>
         </div>
     );
 };

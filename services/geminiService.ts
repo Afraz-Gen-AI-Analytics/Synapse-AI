@@ -122,7 +122,7 @@ function handleGeminiError(error: any, context: string): never {
         throw new SynapseAIError(INVALID_API_KEY_MESSAGE);
     }
     if (errorMessage.includes('requested entity was not found')) {
-         throw new SynapseAIError(VEO_KEY_ERROR_MESSAGE);
+         throw new SynapseAIError(`The AI model required for ${context} is currently unavailable or not supported in your region/key configuration. (Error: Not Found)`);
     }
     // Specific handling for Overloaded/503 errors
     if (errorMessage.includes('503') || errorMessage.includes('overloaded') || errorMessage.includes('unavailable')) {
@@ -699,7 +699,7 @@ export async function generateImage(prompt: string, aspectRatio: '1:1' | '16:9' 
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     
     const response = await withRetry<any>(() => ai.models.generateImages({
-      model: 'imagen-3.0-generate-001',
+      model: 'imagen-4.0-generate-001',
       prompt: enhancedPrompt,
       config: {
         numberOfImages: 1,
