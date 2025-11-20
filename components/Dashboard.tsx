@@ -20,8 +20,7 @@ import {
     getBrandProfile,
     isBrandProfileComplete,
     deductCredits,
-    addCredits,
-    checkAndIncrementDailyUsage
+    addCredits
 } from '../services/firebaseService';
 import { useToast } from '../contexts/ToastContext';
 import { AuthContext } from '../App';
@@ -722,25 +721,6 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
     setVideoUrl(null);
     setVideoStatus('');
 
-    // Daily Limit Check
-    const DAILY_GEN_LIMIT = 3;
-    try {
-        const { allowed, newCount } = await checkAndIncrementDailyUsage(user.uid, DAILY_GEN_LIMIT);
-        if (!allowed) {
-            addToast("You've reached your daily generation limit. Please check back tomorrow.", "error");
-            setIsLoading(false);
-            return;
-        }
-        // Update local state immediately
-        const today = new Date().toISOString().split('T')[0];
-        setUser(prev => prev ? ({ ...prev, dailyGenerations: { date: today, count: newCount } }) : null);
-    } catch (err) {
-        console.error("Daily limit check failed", err);
-        addToast("System error checking usage limits. Please try again.", "error");
-        setIsLoading(false);
-        return;
-    }
-
     try {
       let fullResponse = "";
       switch (selectedTemplate.id) {
@@ -862,7 +842,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
       }
     } catch (e: any) {
         let errorMessage = e.message || "An unknown error occurred during generation.";
-        // Removed the specific masking for "System busy" to let actual error (or daily limit check above) handle it.
+        // Removed the specific masking for "System busy" to let actual error handle it.
         addToast(errorMessage, 'error');
     } finally {
       setIsLoading(false);
