@@ -246,31 +246,34 @@ const GenerationOutput: React.FC<GenerationOutputProps> = (props) => {
                          <button onClick={onUpgrade} className="flex items-center text-xs bg-gradient-to-r from-[var(--gradient-start)] to-[var(--gradient-end)] text-white font-semibold py-1.5 px-3 rounded-md hover:opacity-90 transition-all shadow-lg shadow-fuchsia-500/20">
                             <FilmIcon className="w-3 h-3 mr-1.5" />
                             <span className="hidden sm:inline">Animate (Pro)</span>
-                            <span className="sm:hidden">Pro</span>
                          </button>
                      )}
 
                     <div className="flex items-center gap-1">
                         {isImageTool && generatedContent && !isLoading && onEditImage && (
-                            <button onClick={() => onEditImage(generatedContent)} className="p-2 text-slate-400 hover:text-white transition-colors rounded-md hover:bg-slate-800" title="Edit Image">
+                            <button onClick={() => onEditImage(generatedContent)} className="flex items-center gap-2 p-2 sm:px-3 sm:py-1.5 text-sm font-medium text-slate-400 hover:text-white transition-colors rounded-lg hover:bg-slate-800" title="Edit Image">
                                 <EditIcon className="w-4 h-4"/>
+                                <span className="hidden sm:inline">Edit</span>
                             </button>
                         )}
 
                         {((isImageTool || isImageEditTool) && generatedContent && !isLoading) && (
-                            <a href={generatedContent} download={`synapse-ai-${topic.substring(0, 20)}.png`} className="p-2 text-slate-400 hover:text-white transition-colors rounded-md hover:bg-slate-800" title="Download">
+                            <a href={generatedContent} download={`synapse-ai-${topic.substring(0, 20)}.png`} className="flex items-center gap-2 p-2 sm:px-3 sm:py-1.5 text-sm font-medium text-slate-400 hover:text-white transition-colors rounded-lg hover:bg-slate-800" title="Download">
                                 <DownloadIcon className="w-4 h-4"/>
+                                <span className="hidden sm:inline">Download</span>
                             </a>
                         )}
                         {isVideoTool && videoUrl && !isLoading && (
-                            <a href={videoUrl} download={`synapse-ai-video.mp4`} className="p-2 text-slate-400 hover:text-white transition-colors rounded-md hover:bg-slate-800" title="Download">
+                            <a href={videoUrl} download={`synapse-ai-video.mp4`} className="flex items-center gap-2 p-2 sm:px-3 sm:py-1.5 text-sm font-medium text-slate-400 hover:text-white transition-colors rounded-lg hover:bg-slate-800" title="Download">
                                <DownloadIcon className="w-4 h-4"/>
+                               <span className="hidden sm:inline">Download</span>
                             </a>
                         )}
                         
                         {selectedTemplate.id === ContentType.EmailCopy && generatedContent && !isLoading && (
-                             <button onClick={handleOpenInGmail} className="p-2 text-slate-400 hover:text-white transition-colors rounded-md hover:bg-slate-800" title="Open in Gmail">
+                             <button onClick={handleOpenInGmail} className="flex items-center gap-2 p-2 sm:px-3 sm:py-1.5 text-sm font-medium text-slate-400 hover:text-white transition-colors rounded-lg hover:bg-slate-800" title="Open in Gmail">
                                 <ExternalLinkIcon className="w-4 h-4" />
+                                <span className="hidden sm:inline">Gmail</span>
                             </button>
                         )}
 

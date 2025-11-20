@@ -935,8 +935,9 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
 
     if (isAnalyzer) {
         setActiveTab('tools');
-        setTopic(item.topic);
         setSelectedTemplate(template);
+        setTimeout(() => setTopic(item.topic), 0);
+
         if (item.fields) {
             setExtraFields(item.fields);
         }
@@ -958,8 +959,9 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
 
     // Logic for video and other tools
     setActiveTab('tools');
-    setTopic(item.topic);
     setSelectedTemplate(template);
+    // Defer topic setting to next tick to avoid race conditions with layout mounting
+    setTimeout(() => setTopic(item.topic), 0);
     
     if (item.fields) {
         setExtraFields(prev => ({ ...prev, ...item.fields }));
@@ -1406,6 +1408,11 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
                 // Fix: Pass missing properties
                 onGenerateImage={handleGenerateImageFromPrompt}
                 onAnalyzeResonance={handleAnalyzeResonance}
+                generatedContent={generatedContent}
+                generatedContents={generatedContents}
+                activeVariation={activeVariation}
+                setActiveVariation={setActiveVariation}
+                contentStats={contentStats}
             />;
         case ContentType.Campaign:
              return <CampaignBuilder 

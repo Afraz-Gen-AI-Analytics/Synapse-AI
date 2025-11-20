@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Template, User } from '../../types';
 import FileInput from '../FileInput';
@@ -28,6 +29,11 @@ interface VideoGeneratorLayoutProps {
     onGenerateImage: (prompt: string) => void;
     onAnalyzeResonance: (text: string) => void;
     onUpgrade?: () => void;
+    generatedContent: string;
+    generatedContents: string[];
+    activeVariation: number;
+    setActiveVariation: (value: number) => void;
+    contentStats: { words: number, chars: number };
 }
 
 const LoadingSpinner: React.FC = () => (
@@ -41,7 +47,12 @@ const VideoGeneratorLayout: React.FC<VideoGeneratorLayoutProps> = (props) => {
         handleCopy, uploadedImage, handleFileSelect, onEditImage,
         onGenerateImage,
         onAnalyzeResonance,
-        onUpgrade
+        onUpgrade,
+        generatedContent,
+        generatedContents,
+        activeVariation,
+        setActiveVariation,
+        contentStats
     } = props;
     const cost = selectedTemplate.creditCost || 50;
 
@@ -114,11 +125,11 @@ const VideoGeneratorLayout: React.FC<VideoGeneratorLayoutProps> = (props) => {
             {/* Output Column */}
             <GenerationOutput
                 isLoading={isLoading}
-                generatedContent={""} // Not used for video, url is used instead
-                generatedContents={[]}
-                activeVariation={0}
-                setActiveVariation={() => {}}
-                contentStats={{ words: 0, chars: 0 }}
+                generatedContent={generatedContent}
+                generatedContents={generatedContents}
+                activeVariation={activeVariation}
+                setActiveVariation={setActiveVariation}
+                contentStats={contentStats}
                 handleCopy={handleCopy}
                 selectedTemplate={selectedTemplate}
                 topic={topic}
