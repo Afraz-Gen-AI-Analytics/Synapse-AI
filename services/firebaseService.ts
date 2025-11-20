@@ -97,6 +97,10 @@ const mapFirebaseUserToAppUser = async (firebaseUser: FirebaseAuthUser): Promise
         if (!appUserFromDb.videoUsage) {
              appUserFromDb.videoUsage = { date: '', count: 0 };
         }
+        // Ensure dailyGenerations structure exists
+        if (!appUserFromDb.dailyGenerations) {
+             appUserFromDb.dailyGenerations = { date: '', count: 0 };
+        }
 
 
         // Sync photoURL from Auth provider to our DB if it has changed.
@@ -124,6 +128,7 @@ const mapFirebaseUserToAppUser = async (firebaseUser: FirebaseAuthUser): Promise
         onboardingCompleted: false,
         brandProfileBonusClaimed: false,
         videoUsage: { date: '', count: 0 },
+        dailyGenerations: { date: '', count: 0 },
     };
     
     // Also need to create the brand profile if it's missing.
@@ -199,6 +204,7 @@ export const signUpWithEmail = async (email: string, password: string): Promise<
         onboardingCompleted: false,
         brandProfileBonusClaimed: false,
         videoUsage: { date: '', count: 0 },
+        dailyGenerations: { date: '', count: 0 },
     };
     await setDoc(userDocRef, newUser);
 
@@ -325,6 +331,41 @@ export const checkAndIncrementVideoUsage = async (userId: string, limit: number)
             }
             newCount = usage.count + 1;
             transaction.update(userRef, { videoUsage: { date: today, count: newCount } });
+            return { allowed: true, newCount };
+        }
+    });
+};
+
+/**
+ * Atomically checks and increments daily global generation usage.
+ * Resets count if the date has changed (User's today string vs DB).
+ * @param userId User ID
+ * @param limit Daily limit
+ * @returns object with allowed boolean and the new count.
+ */
+export const checkAndIncrementDailyUsage = async (userId: string, limit: number): Promise<{ allowed: boolean; newCount: number }> => {
+    const userRef = doc(db, 'users', userId);
+    const today = new Date().toISOString().split('T')[0]; // UTC Date YYYY-MM-DD
+
+    return await runTransaction(db, async (transaction) => {
+        const userDoc = await transaction.get(userRef);
+        if (!userDoc.exists()) throw new Error("User not found");
+
+        const userData = userDoc.data();
+        const usage = userData.dailyGenerations || { date: '', count: 0 };
+        
+        let newCount = 1;
+
+        if (usage.date !== today) {
+            // New day, reset
+            transaction.update(userRef, { dailyGenerations: { date: today, count: 1 } });
+            return { allowed: true, newCount: 1 };
+        } else {
+            if (usage.count >= limit) {
+                return { allowed: false, newCount: usage.count };
+            }
+            newCount = usage.count + 1;
+            transaction.update(userRef, { dailyGenerations: { date: today, count: newCount } });
             return { allowed: true, newCount };
         }
     });

@@ -21,7 +21,7 @@ import {
     isBrandProfileComplete,
     deductCredits,
     addCredits,
-    checkAndIncrementVideoUsage
+    checkAndIncrementDailyUsage
 } from '../services/firebaseService';
 import { useToast } from '../contexts/ToastContext';
 import { AuthContext } from '../App';
@@ -405,7 +405,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
   // State for reusing analyzer reports
   const [reusedReportData, setReusedReportData] = useState<any | null>(null);
 
-  // Constant for Daily Video Limit
+  // Constant for Daily Video Limit (retained for history reference, but now part of global limit)
   const VIDEO_DAILY_LIMIT = 3;
 
   const spendCredits = useCallback(async (amount: number): Promise<boolean> => {
@@ -722,6 +722,25 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
     setVideoUrl(null);
     setVideoStatus('');
 
+    // Daily Limit Check
+    const DAILY_GEN_LIMIT = 3;
+    try {
+        const { allowed, newCount } = await checkAndIncrementDailyUsage(user.uid, DAILY_GEN_LIMIT);
+        if (!allowed) {
+            addToast("You've reached your daily generation limit. Please check back tomorrow.", "error");
+            setIsLoading(false);
+            return;
+        }
+        // Update local state immediately
+        const today = new Date().toISOString().split('T')[0];
+        setUser(prev => prev ? ({ ...prev, dailyGenerations: { date: today, count: newCount } }) : null);
+    } catch (err) {
+        console.error("Daily limit check failed", err);
+        addToast("System error checking usage limits. Please try again.", "error");
+        setIsLoading(false);
+        return;
+    }
+
     try {
       let fullResponse = "";
       switch (selectedTemplate.id) {
@@ -739,20 +758,6 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
             await handleGenerationResult(fullResponse, topic, selectedTemplate.name, uploadedImage.dataUrl);
             break;
         case ContentType.AIVideoGenerator:
-             // 1. Server-side limit check and atomic increment
-             const { allowed, newCount } = await checkAndIncrementVideoUsage(user.uid, VIDEO_DAILY_LIMIT);
-             
-             if (!allowed) {
-                 setIsLoading(false);
-                 addToast(`You've reached your daily limit of ${VIDEO_DAILY_LIMIT} videos. Limit resets tomorrow at 12:00 AM.`, "error");
-                 return;
-             }
-             
-             // Update local state to reflect the count increment immediately
-             // The backend handles resetting 'tomorrow', but for UI consistency we assume same day for now.
-             const today = new Date().toISOString().split('T')[0];
-             setUser(prev => prev ? ({ ...prev, videoUsage: { date: today, count: newCount } }) : null);
-
             setVideoStatus('Initializing...');
             const videoConfig = { aspectRatio: extraFields.aspectRatio, resolution: extraFields.resolution };
             let operation = await generateVideo(topic, uploadedImage, videoConfig);
@@ -857,13 +862,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
       }
     } catch (e: any) {
         let errorMessage = e.message || "An unknown error occurred during generation.";
-        
-        // Intercept specific "quota" messages from geminiService for PRO users
-        // to provide a churn-reducing, friendly message instead of "Upgrade".
-        if (user.plan === 'pro' && errorMessage.includes("reached your current generation limit")) {
-            errorMessage = "System busy. Please try again shortly.";
-        }
-
+        // Removed the specific masking for "System busy" to let actual error (or daily limit check above) handle it.
         addToast(errorMessage, 'error');
     } finally {
       setIsLoading(false);

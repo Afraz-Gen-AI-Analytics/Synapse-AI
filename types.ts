@@ -17,6 +17,10 @@ export interface User {
     date: string; // Format: YYYY-MM-DD
     count: number;
   };
+  dailyGenerations?: {
+    date: string;
+    count: number;
+  };
 }
 
 export enum ContentType {
