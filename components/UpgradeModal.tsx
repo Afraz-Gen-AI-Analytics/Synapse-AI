@@ -44,6 +44,7 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({ user, onClose, onUpgrade, o
         }
 
         // 1. Create Order via Make.com
+        // We expect Make.com to return a JSON object with the Razorpay Order ID
         const response = await fetch(MAKE_CREATE_ORDER_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -56,42 +57,22 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({ user, onClose, onUpgrade, o
 
         if (!response.ok) throw new Error(`Failed to create order: ${response.statusText}`);
         
-        // Handle response: It might be JSON (Order details) or Text ("Accepted" from Make)
-        const responseText = await response.text();
-        let orderData;
-        let isMockOrder = false;
+        // STRICT: We expect a valid JSON response with an order ID.
+        // If Make.com returns plain text "Accepted", this line will throw (which is desired for real mode debugging).
+        const orderData = await response.json();
 
-        try {
-            orderData = JSON.parse(responseText);
-        } catch (e) {
-            // If JSON parse fails, check if it's the standard Make.com "Accepted" message
-            if (responseText.includes('Accepted')) {
-                // If Make.com returns "Accepted", it means the webhook triggered but didn't return a JSON response.
-                // We fall back to a mock order so the UI flow can continue for testing.
-                console.warn("Make.com webhook returned 'Accepted'. Using mock order data.");
-                isMockOrder = true;
-                orderData = {
-                    id: `order_mock_${Date.now()}`,
-                    amount: amount * 100,
-                    currency: "USD"
-                };
-                addToast("Backend connected! Opening payment window (Test Mode)...", "info");
-            } else {
-                throw new Error("Invalid response format from payment server.");
-            }
+        if (!orderData || !orderData.id) {
+            throw new Error("Invalid response from server: Missing Order ID.");
         }
 
         // 2. Open Razorpay
         const options: any = {
-            key: "YOUR_RAZORPAY_PUBLIC_KEY_ID", // Replace with your actual Public Key
+            key: "YOUR_RAZORPAY_PUBLIC_KEY_ID", // Ensure this is set to your Live or Test Key ID in the code
             amount: orderData.amount,
             currency: orderData.currency,
             name: "Synapse AI",
             description: type === 'pro' ? "Pro Plan Upgrade" : "Credit Pack Top-up",
-            // NOTE: We only include order_id if we have a REAL order from the backend.
-            // If we pass a fake order_id (like order_mock_...), Razorpay will fail to open.
-            // Omitting it allows the modal to open in "payment only" mode for testing.
-            ...(isMockOrder ? {} : { order_id: orderData.id }),
+            order_id: orderData.id, // Mandatory for production usage
             handler: async function (response: any) {
                 // 3. Verify via Make.com
                 addToast("Verifying payment...", "info");
@@ -118,16 +99,7 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({ user, onClose, onUpgrade, o
                         else await onBuyCredits();
                         onClose();
                     } else {
-                        // For mock orders, verification will naturally fail on the backend (signature mismatch),
-                        // but for UI testing we can be lenient or just show the error.
-                        if (isMockOrder) {
-                             addToast("Payment simulation complete! (Verification skipped in Test Mode)", "success");
-                             if (type === 'pro') await onUpgrade(); 
-                             else await onBuyCredits();
-                             onClose();
-                        } else {
-                             addToast("Payment verification failed.", "error");
-                        }
+                         addToast("Payment verification failed.", "error");
                     }
                 } catch (e) {
                     console.error(e);
@@ -151,7 +123,12 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({ user, onClose, onUpgrade, o
 
       } catch (error: any) {
           console.error("Payment flow error:", error);
-          addToast(error.message || "Something went wrong initiating payment.", "error");
+          // Provide detailed feedback if JSON parsing fails (often due to 'Accepted' text response)
+          if (error.message.includes("JSON")) {
+              addToast("Server Error: Make.com did not return a valid JSON Order ID.", "error");
+          } else {
+              addToast(error.message || "Something went wrong initiating payment.", "error");
+          }
       } finally {
           setIsUpgrading(false);
           setIsBuyingCredits(false);
