@@ -651,6 +651,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
                     With our <strong className="font-semibold text-slate-200">Campaign Builder</strong>, you can plan an entire multi-channel strategy from a single goal. The <strong className="font-semibold text-slate-200">Resonance Engine</strong> predicts how your audience will react to copy *before* you publish it, and our <strong className="font-semibold text-slate-200">Market Signal Analyzer</strong> uncovers the trending topics your customers are actively searching for. This strategic foundation empowers our <strong className="font-semibold text-slate-200">Autonomous AI Agents</strong> to execute entire campaigns for you, turning your goals into reality. We're not just a tool; we're your strategic partner for growth.
                 </p>
             </FaqItem>
+            <FaqItem question="How does Synapse compare to ChatGPT, Claude, Gemini, or Perplexity?">
+                Think of generic LLMs as raw engines, while Synapse AI is the high-performance vehicle built for speed. While tools like ChatGPT or Perplexity require endless prompting to get on-brand results, Synapse is pre-engineered with marketing expertise. We integrate your specific Brand Voice, strategic frameworks, and autonomous agents to execute entire campaigns in seconds. We don't just generate text; we deliver finished, revenue-driving assets without the "prompt engineering" headache.
+            </FaqItem>
             <FaqItem question="Is my data secure?">
                 Absolutely. We prioritize user privacy and data security. All your generated content, brand profile, and account information are encrypted and securely stored. We never sell your data.
             </FaqItem>
