@@ -245,9 +245,9 @@ const DynamicHeadline: React.FC = () => {
     }, [text, isDeleting, loopNum, roles]);
 
     return (
-        <span className="gradient-text">
+        <span className="bg-clip-text text-transparent bg-gradient-to-r from-[var(--gradient-start)] to-[var(--gradient-end)] brightness-125 pb-1">
             {text}
-            <span className="animate-caret-blink">|</span>
+            <span className="animate-caret-blink text-transparent ml-1">|</span>
         </span>
     );
 };
