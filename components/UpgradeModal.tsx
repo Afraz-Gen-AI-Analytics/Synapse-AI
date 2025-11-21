@@ -5,134 +5,27 @@ import SynapseLogo from './icons/SynapseLogo';
 import CheckIcon from './icons/CheckIcon';
 import DiamondIcon from './icons/DiamondIcon';
 import SparklesIcon from './icons/SparklesIcon';
-import { useToast } from '../contexts/ToastContext';
 
 interface UpgradeModalProps {
   user: User;
   onClose: () => void;
-  onUpgrade: () => Promise<void>; // Kept for type compatibility, but logic moved internal
-  onBuyCredits: () => Promise<void>; // Kept for type compatibility
+  onUpgrade: () => Promise<void>;
+  onBuyCredits: () => Promise<void>;
 }
-
-// --- REPLACE THESE WITH YOUR MAKE.COM WEBHOOK URLS ---
-const MAKE_CREATE_ORDER_URL = "https://hook.us1.make.com/YOUR_CREATE_ORDER_WEBHOOK_ID"; 
-const MAKE_VERIFY_PAYMENT_URL = "https://hook.us1.make.com/YOUR_VERIFY_PAYMENT_WEBHOOK_ID";
-// ----------------------------------------------------
 
 const UpgradeModal: React.FC<UpgradeModalProps> = ({ user, onClose, onUpgrade, onBuyCredits }) => {
   const [isUpgrading, setIsUpgrading] = useState(false);
   const [isBuyingCredits, setIsBuyingCredits] = useState(false);
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annually'>('annually');
-  const { addToast } = useToast();
-
-  const loadRazorpayScript = () => {
-    return new Promise((resolve) => {
-        const script = document.createElement('script');
-        script.src = 'https://checkout.razorpay.com/v1/checkout.js';
-        script.onload = () => resolve(true);
-        script.onerror = () => resolve(false);
-        document.body.appendChild(script);
-    });
-  };
-
-  const handlePayment = async (type: 'pro' | 'credit_pack', amount: number) => {
-      try {
-        const isLoaded = await loadRazorpayScript();
-        if (!isLoaded) {
-            addToast('Razorpay SDK failed to load. Are you online?', 'error');
-            return;
-        }
-
-        // 1. Create Order via Make.com
-        const response = await fetch(MAKE_CREATE_ORDER_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                amount: amount * 100, // Razorpay expects subunits (paise/cents)
-                currency: "USD", 
-                receipt: `rcpt_${Date.now()}`
-            })
-        });
-
-        if (!response.ok) throw new Error("Failed to create order via Make.com");
-        const orderData = await response.json();
-
-        // 2. Open Razorpay
-        const options = {
-            key: "YOUR_RAZORPAY_PUBLIC_KEY_ID", // Replace with your actual Public Key from Razorpay Dashboard
-            amount: orderData.amount,
-            currency: orderData.currency,
-            name: "Synapse AI",
-            description: type === 'pro' ? "Pro Plan Upgrade" : "Credit Pack Top-up",
-            order_id: orderData.id,
-            handler: async function (response: any) {
-                // 3. Verify via Make.com
-                addToast("Verifying payment...", "info");
-                
-                try {
-                    const verifyRes = await fetch(MAKE_VERIFY_PAYMENT_URL, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            razorpay_payment_id: response.razorpay_payment_id,
-                            razorpay_order_id: response.razorpay_order_id,
-                            razorpay_signature: response.razorpay_signature,
-                            userId: user.uid,
-                            packageType: type,
-                            currentCredits: user.credits, // Sending this helps Make.com calculate new total
-                            currentPlan: user.plan,       // Sending this ensures we don't downgrade users accidentally
-                            currentPlanLimit: user.planCreditLimit // Sending this to update limit correctly
-                        })
-                    });
-
-                    if (verifyRes.ok) {
-                        addToast("Payment successful! Refreshing your account...", "success");
-                        // Ideally, trigger a user reload here or optimistic update
-                        if (type === 'pro') await onUpgrade(); 
-                        else await onBuyCredits();
-                        onClose();
-                    } else {
-                        addToast("Payment verification failed.", "error");
-                    }
-                } catch (e) {
-                    console.error(e);
-                    addToast("Error verifying payment.", "error");
-                }
-            },
-            prefill: {
-                name: user.displayName,
-                email: user.email,
-            },
-            theme: {
-                color: "#E025F0"
-            }
-        };
-
-        const rzp = new (window as any).Razorpay(options);
-        rzp.on('payment.failed', function (response: any){
-            addToast(response.error.description, "error");
-        });
-        rzp.open();
-
-      } catch (error) {
-          console.error("Payment flow error:", error);
-          addToast("Something went wrong initiating payment.", "error");
-      } finally {
-          setIsUpgrading(false);
-          setIsBuyingCredits(false);
-      }
-  };
 
   const handleUpgradeClick = async () => {
     setIsUpgrading(true);
-    // $39.00
-    await handlePayment('pro', 39);
+    await onUpgrade();
   };
   
   const handleBuyCreditsClick = async () => {
     setIsBuyingCredits(true);
-    // $10.00
-    await handlePayment('credit_pack', 10);
+    await onBuyCredits();
   };
 
   if (user.plan === 'pro') {
@@ -164,7 +57,7 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({ user, onClose, onUpgrade, o
             </div>
              <div className="mt-4 flex justify-center items-center text-[10px] text-slate-500 gap-2">
                 <svg className="w-3 h-3 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" /></svg>
-                Secure Payment via Razorpay
+                Secure Payment
             </div>
 
             <div className="text-center">
@@ -268,7 +161,7 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({ user, onClose, onUpgrade, o
 
         <div className="mt-4 flex justify-center items-center text-[10px] text-slate-500 gap-2">
             <svg className="w-3 h-3 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" /></svg>
-            SSL Secured Payment via Razorpay
+            SSL Secured Payment
         </div>
 
         <div className="text-center">
