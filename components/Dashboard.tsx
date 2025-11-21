@@ -1203,43 +1203,31 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
 
   const handleUpgrade = async () => {
     if (!user || !setUser) return;
-    try {
-        await addCredits(user.uid, PRO_CREDIT_LIMIT - user.credits, 'pro', PRO_CREDIT_LIMIT);
-        
-        // Optimistic update
-        const newCredits = PRO_CREDIT_LIMIT;
-        const newPlanCreditLimit = PRO_CREDIT_LIMIT;
-        setUser({ ...user, plan: 'pro' as const, credits: newCredits, planCreditLimit: newPlanCreditLimit });
-        
-        setShowUpgradeModal(false);
-        addToast("Upgrade successful! Welcome to the Pro plan.", "success");
-    } catch (error) {
-        console.error("Failed to upgrade plan:", error);
-        addToast("Upgrade failed. Please try again.", "error");
-        setShowUpgradeModal(false);
-    }
+    // Just update optimistic UI for immediate feedback
+    // The backend (Make.com -> Firestore) will handle the actual data change.
+    // We assume success if this is called after a successful Make.com response
+    
+    const newCredits = PRO_CREDIT_LIMIT;
+    const newPlanCreditLimit = PRO_CREDIT_LIMIT;
+    setUser({ ...user, plan: 'pro' as const, credits: newCredits, planCreditLimit: newPlanCreditLimit });
+    
+    setShowUpgradeModal(false);
+    addToast("Upgrade successful! Welcome to the Pro plan.", "success");
   };
 
     const handleBuyCredits = async () => {
         if (!user || !setUser) return;
-        try {
-            const CREDITS_TO_ADD = 100;
-            await addCredits(user.uid, CREDITS_TO_ADD, undefined, user.planCreditLimit + CREDITS_TO_ADD);
-            
-            // Optimistic update
-            setUser({ 
-                ...user, 
-                credits: user.credits + CREDITS_TO_ADD, 
-                planCreditLimit: user.planCreditLimit + CREDITS_TO_ADD 
-            });
-            
-            setShowUpgradeModal(false);
-            addToast(`Success! ${CREDITS_TO_ADD} credits have been added to your account.`, "success");
-        } catch (error) {
-            console.error("Failed to buy credits:", error);
-            addToast("Credit purchase failed. Please try again.", "error");
-            setShowUpgradeModal(false);
-        }
+        // Optimistic update only. Backend handled by Make.com
+        const CREDITS_TO_ADD = 100;
+        
+        setUser({ 
+            ...user, 
+            credits: user.credits + CREDITS_TO_ADD, 
+            planCreditLimit: user.planCreditLimit + CREDITS_TO_ADD 
+        });
+        
+        setShowUpgradeModal(false);
+        addToast(`Success! ${CREDITS_TO_ADD} credits have been added to your account.`, "success");
     };
 
   const handleCommand = async (command: string) => {
