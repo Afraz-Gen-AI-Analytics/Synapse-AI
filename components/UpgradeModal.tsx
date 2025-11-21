@@ -15,8 +15,8 @@ interface UpgradeModalProps {
 }
 
 // --- REPLACE THESE WITH YOUR MAKE.COM WEBHOOK URLS ---
-const MAKE_CREATE_ORDER_URL = "https://hook.eu2.make.com/lt6u1rzd7jvtodwqmuoy8hl9ggurs4bk"; 
-const MAKE_VERIFY_PAYMENT_URL = "https://hook.eu2.make.com/jgavl8eob6zh5qeqxm78ccudgaqbhkn6";
+const MAKE_CREATE_ORDER_URL = "https://hook.us1.make.com/YOUR_CREATE_ORDER_WEBHOOK_ID"; 
+const MAKE_VERIFY_PAYMENT_URL = "https://hook.us1.make.com/YOUR_VERIFY_PAYMENT_WEBHOOK_ID";
 // ----------------------------------------------------
 
 const UpgradeModal: React.FC<UpgradeModalProps> = ({ user, onClose, onUpgrade, onBuyCredits }) => {
@@ -44,7 +44,6 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({ user, onClose, onUpgrade, o
         }
 
         // 1. Create Order via Make.com
-        // We expect Make.com to return a JSON object with the Razorpay Order ID
         const response = await fetch(MAKE_CREATE_ORDER_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -55,24 +54,17 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({ user, onClose, onUpgrade, o
             })
         });
 
-        if (!response.ok) throw new Error(`Failed to create order: ${response.statusText}`);
-        
-        // STRICT: We expect a valid JSON response with an order ID.
-        // If Make.com returns plain text "Accepted", this line will throw (which is desired for real mode debugging).
+        if (!response.ok) throw new Error("Failed to create order via Make.com");
         const orderData = await response.json();
 
-        if (!orderData || !orderData.id) {
-            throw new Error("Invalid response from server: Missing Order ID.");
-        }
-
         // 2. Open Razorpay
-        const options: any = {
-            key: "YOUR_RAZORPAY_PUBLIC_KEY_ID", // Ensure this is set to your Live or Test Key ID in the code
+        const options = {
+            key: "YOUR_RAZORPAY_PUBLIC_KEY_ID", // Replace with your actual Public Key from Razorpay Dashboard
             amount: orderData.amount,
             currency: orderData.currency,
             name: "Synapse AI",
             description: type === 'pro' ? "Pro Plan Upgrade" : "Credit Pack Top-up",
-            order_id: orderData.id, // Mandatory for production usage
+            order_id: orderData.id,
             handler: async function (response: any) {
                 // 3. Verify via Make.com
                 addToast("Verifying payment...", "info");
@@ -87,19 +79,20 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({ user, onClose, onUpgrade, o
                             razorpay_signature: response.razorpay_signature,
                             userId: user.uid,
                             packageType: type,
-                            currentCredits: user.credits,
-                            currentPlan: user.plan,
-                            currentPlanLimit: user.planCreditLimit
+                            currentCredits: user.credits, // Sending this helps Make.com calculate new total
+                            currentPlan: user.plan,       // Sending this ensures we don't downgrade users accidentally
+                            currentPlanLimit: user.planCreditLimit // Sending this to update limit correctly
                         })
                     });
 
                     if (verifyRes.ok) {
                         addToast("Payment successful! Refreshing your account...", "success");
+                        // Ideally, trigger a user reload here or optimistic update
                         if (type === 'pro') await onUpgrade(); 
                         else await onBuyCredits();
                         onClose();
                     } else {
-                         addToast("Payment verification failed.", "error");
+                        addToast("Payment verification failed.", "error");
                     }
                 } catch (e) {
                     console.error(e);
@@ -117,18 +110,13 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({ user, onClose, onUpgrade, o
 
         const rzp = new (window as any).Razorpay(options);
         rzp.on('payment.failed', function (response: any){
-            addToast(response.error.description || "Payment failed", "error");
+            addToast(response.error.description, "error");
         });
         rzp.open();
 
-      } catch (error: any) {
+      } catch (error) {
           console.error("Payment flow error:", error);
-          // Provide detailed feedback if JSON parsing fails (often due to 'Accepted' text response)
-          if (error.message.includes("JSON")) {
-              addToast("Server Error: Make.com did not return a valid JSON Order ID.", "error");
-          } else {
-              addToast(error.message || "Something went wrong initiating payment.", "error");
-          }
+          addToast("Something went wrong initiating payment.", "error");
       } finally {
           setIsUpgrading(false);
           setIsBuyingCredits(false);
