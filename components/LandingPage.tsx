@@ -153,20 +153,37 @@ const AnimatedSection: React.FC<{ children: React.ReactNode; className?: string;
 };
 
 const Header: React.FC<LandingPageProps> = ({ onNavigate }) => {
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 10);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   return (
-  <header className="absolute top-0 left-0 right-0 z-20 py-4 px-4 sm:px-6 lg:px-8">
+  <header 
+    className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b ${
+      isScrolled 
+        ? 'py-3 bg-[#0D1117]/80 backdrop-blur-xl border-slate-800/60 shadow-lg shadow-black/20' 
+        : 'py-5 bg-transparent border-transparent'
+    } px-4 sm:px-6 lg:px-8`}
+  >
     <div className="container mx-auto flex justify-between items-center">
-      <div className="flex items-center space-x-3 cursor-pointer">
+      <div className="flex items-center space-x-3 cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
         <SynapseLogo className="w-8 h-8 sm:w-9 sm:h-9" />
         <span className="text-xl sm:text-2xl font-bold text-white">Synapse AI</span>
       </div>
       <nav className="hidden md:flex items-center space-x-8">
-        <a href="#features" className="text-slate-300 hover:text-white transition-colors">Features</a>
-        <a href="#how-it-works" className="text-slate-300 hover:text-white transition-colors">How It Works</a>
-        <a href="#pricing" className="text-slate-300 hover:text-white transition-colors">Pricing</a>
-        <a href="#faq" className="text-slate-300 hover:text-white transition-colors">FAQ</a>
+        <a href="#features" className="text-slate-300 hover:text-white transition-colors font-medium text-sm">Features</a>
+        <a href="#how-it-works" className="text-slate-300 hover:text-white transition-colors font-medium text-sm">How It Works</a>
+        <a href="#pricing" className="text-slate-300 hover:text-white transition-colors font-medium text-sm">Pricing</a>
+        <a href="#faq" className="text-slate-300 hover:text-white transition-colors font-medium text-sm">FAQ</a>
       </nav>
-      <div className="flex items-center space-x-2">
+      <div className="flex items-center space-x-3">
         <button onClick={() => onNavigate('login')} className="text-slate-300 hover:text-white font-semibold py-2 px-3 sm:px-4 text-sm sm:text-base rounded-lg transition-colors duration-300">
             Sign In
         </button>
