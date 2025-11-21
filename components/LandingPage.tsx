@@ -457,13 +457,14 @@ const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
       </AnimatedSection>
 
       <AnimatedSection>
-      <section id="pricing" className="py-16 md:py-20">
-        <div className="container mx-auto px-4">
+      <section id="pricing" className="py-16 md:py-20 relative overflow-hidden">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-[var(--gradient-start)]/5 rounded-full blur-[120px] pointer-events-none"></div>
+        <div className="container mx-auto px-4 relative z-10">
             <div className="text-center mb-12">
                 <h2 className="text-3xl md:text-4xl font-bold">Flexible Plans for Every Ambition</h2>
                 <p className="text-slate-400 mt-2">Start for free, then scale as you grow. The more you create, the more value you get.</p>
             </div>
-             <div className="flex justify-center items-center gap-4 mb-10">
+             <div className="flex justify-center items-center gap-4 mb-12">
                 <span className={`font-medium transition-colors ${billingCycle === 'monthly' ? 'text-white' : 'text-slate-400'}`}>Monthly</span>
                 <button
                     onClick={() => setBillingCycle(billingCycle === 'monthly' ? 'annually' : 'monthly')}
@@ -479,55 +480,74 @@ const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
                     <span className="ml-2 text-xs font-bold bg-green-500/20 text-green-300 px-2 py-0.5 rounded-full">SAVE 20%</span>
                 </span>
             </div>
-            <div className="grid lg:grid-cols-3 gap-8 max-w-5xl mx-auto items-stretch">
-                <div className="bg-slate-900 p-8 rounded-xl border border-slate-800 flex flex-col">
-                    <h3 className="text-2xl font-bold mb-2">Freemium</h3>
-                    <p className="text-5xl font-extrabold mb-4">$0<span className="text-lg font-medium text-slate-400">/mo</span></p>
-                    <p className="text-slate-400 mb-6 flex-grow">For individuals and teams testing the waters of AI-powered creation.</p>
-                    <ul className="space-y-4 mb-8">
-                        <li className="flex items-center"><CheckIcon className="w-5 h-5 text-green-400 mr-3" /> 50 Credits / month</li>
-                        <li className="flex items-center"><CheckIcon className="w-5 h-5 text-green-400 mr-3" /> Basic Generators (Social, Email)</li>
-                        <li className="flex items-center"><CheckIcon className="w-5 h-5 text-green-400 mr-3" /> Generation History</li>
-                        <li className="flex items-center text-slate-500 line-through decoration-slate-500"><span className="w-5 h-5 mr-3 inline-block"></span> Autonomous Agents</li>
-                        <li className="flex items-center text-slate-500 line-through decoration-slate-500"><span className="w-5 h-5 mr-3 inline-block"></span> Video & Analysis Tools</li>
-                    </ul>
-                    <button onClick={() => onNavigate('signup')} className="mt-auto w-full bg-slate-800 hover:bg-slate-700 text-white font-semibold py-3 rounded-lg transition-colors">Get Started</button>
-                </div>
-                <div className="bg-slate-900 p-8 rounded-xl border-2 border-[var(--gradient-start)] flex flex-col relative overflow-hidden lg:scale-105 shadow-2xl shadow-[color:var(--gradient-start)]/20">
-                    <div className="absolute top-0 right-0 w-28 h-28">
-                        <div className="absolute transform rotate-45 bg-gradient-to-r from-[var(--gradient-start)] to-[var(--gradient-end)] text-center text-white font-semibold py-1 right-[-45px] top-[22px] w-[150px]">
-                            POPULAR
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+                {/* Freemium Card */}
+                <div className="flex flex-col p-6 md:p-8 rounded-3xl bg-slate-900/40 border border-slate-800 backdrop-blur-sm transition-transform duration-300 hover:-translate-y-1 h-full">
+                    <div className="mb-6">
+                        <h3 className="text-lg font-medium text-slate-300 mb-2">Freemium</h3>
+                        <div className="flex items-baseline gap-1 mb-4">
+                            <span className="text-4xl font-bold text-white">$0</span>
+                            <span className="text-slate-500">/mo</span>
                         </div>
+                        <p className="text-sm text-slate-400 leading-relaxed">
+                            For individuals and teams testing the waters of AI-powered creation.
+                        </p>
                     </div>
-                    <h3 className="text-2xl font-bold mb-2 gradient-text">Pro</h3>
-                    <p className="text-5xl font-extrabold mb-4">
-                       {billingCycle === 'monthly' ? '$49' : '$39'}
-                       <span className="text-lg font-medium text-slate-400">/mo</span>
-                    </p>
-                    {billingCycle === 'annually' && <p className="text-sm text-slate-500 -mt-4 mb-4">Billed as $468 per year</p>}
-                    <p className="text-slate-400 mb-6 flex-grow">For professionals and teams executing campaigns with autonomous agents and analytics.</p>
-                    <ul className="space-y-4 mb-8">
-                        <li className="flex items-center"><CheckIcon className="w-5 h-5 text-green-400 mr-3" /> 2,500 Credits / month</li>
-                        <li className="flex items-center">
-                            <CheckIcon className="w-5 h-5 text-green-400 mr-3" />
-                            Autonomous AI Agents
-                        </li>
-                        <li className="flex items-center"><CheckIcon className="w-5 h-5 text-green-400 mr-3" /> Performance Analytics</li>
-                         <li className="flex items-center"><CheckIcon className="w-5 h-5 text-green-400 mr-3" /> Unlock Video Ads & Strategy Tools</li>
+                    <ul className="space-y-4 mb-8 flex-grow">
+                        <li className="flex items-center text-sm text-slate-300"><CheckIcon className="w-5 h-5 text-slate-500 mr-3 flex-shrink-0" /> 50 Credits / month</li>
+                        <li className="flex items-center text-sm text-slate-300"><CheckIcon className="w-5 h-5 text-slate-500 mr-3 flex-shrink-0" /> Basic Generators (Social, Email)</li>
+                        <li className="flex items-center text-sm text-slate-300"><CheckIcon className="w-5 h-5 text-slate-500 mr-3 flex-shrink-0" /> Generation History</li>
+                        <li className="flex items-center text-sm text-slate-600 line-through"><span className="w-5 h-5 mr-3 inline-block"></span> Autonomous Agents</li>
+                        <li className="flex items-center text-sm text-slate-600 line-through"><span className="w-5 h-5 mr-3 inline-block"></span> Video & Analysis Tools</li>
                     </ul>
-                    <button onClick={() => onNavigate('signup')} className="mt-auto w-full bg-gradient-to-r from-[var(--gradient-start)] to-[var(--gradient-end)] hover:opacity-90 text-white font-semibold py-3 rounded-lg transition-colors">Go Pro</button>
+                    <button onClick={() => onNavigate('signup')} className="w-full py-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-semibold transition-colors">Get Started</button>
                 </div>
-                <div className="bg-slate-900 p-8 rounded-xl border border-slate-800 flex flex-col">
-                    <h3 className="text-2xl font-bold mb-2">Enterprise</h3>
-                    <p className="text-5xl font-extrabold mb-4">Custom</p>
-                    <p className="text-slate-400 mb-6 flex-grow">For organizations requiring bespoke solutions, integrations, and unparalleled support.</p>
-                    <ul className="space-y-4 mb-8">
-                        <li className="flex items-center"><CheckIcon className="w-5 h-5 text-green-400 mr-3" /> Everything in Pro</li>
-                        <li className="flex items-center"><CheckIcon className="w-5 h-5 text-green-400 mr-3" /> Custom integrations & SSO</li>
-                        <li className="flex items-center"><CheckIcon className="w-5 h-5 text-green-400 mr-3" /> Dedicated account manager</li>
-                        <li className="flex items-center"><CheckIcon className="w-5 h-5 text-green-400 mr-3" /> Team collaboration tools</li>
+
+                {/* Pro Card */}
+                <div className="flex flex-col p-6 md:p-8 rounded-3xl bg-slate-900/90 border-2 border-[var(--gradient-start)] shadow-2xl shadow-[var(--gradient-start)]/10 relative z-10 lg:-mt-4 lg:mb-4 transform lg:scale-105 transition-transform duration-300 hover:scale-[1.06] h-full">
+                    <div className="absolute top-0 right-0 bg-gradient-to-bl from-[var(--gradient-end)] to-[var(--gradient-start)] text-white text-[10px] font-bold px-3 py-1 rounded-bl-xl rounded-tr-2xl uppercase tracking-wide">
+                        Most Popular
+                    </div>
+                    <div className="mb-6">
+                        <h3 className="text-lg font-bold gradient-text mb-2">Pro</h3>
+                        <div className="flex items-baseline gap-1 mb-1">
+                            <span className="text-5xl font-bold text-white">
+                                {billingCycle === 'monthly' ? '$49' : '$39'}
+                            </span>
+                            <span className="text-slate-400">/mo</span>
+                        </div>
+                        {billingCycle === 'annually' && <p className="text-xs text-slate-500 mb-3">Billed as $468 per year</p>}
+                        <p className="text-sm text-slate-400 leading-relaxed">
+                            For professionals and teams executing campaigns with autonomous agents and analytics.
+                        </p>
+                    </div>
+                    <ul className="space-y-4 mb-8 flex-grow">
+                        <li className="flex items-center text-sm text-white font-medium"><CheckIcon className="w-5 h-5 text-[var(--gradient-start)] mr-3 flex-shrink-0" /> 2,500 Credits / month</li>
+                        <li className="flex items-center text-sm text-white font-medium"><CheckIcon className="w-5 h-5 text-[var(--gradient-start)] mr-3 flex-shrink-0" /> Autonomous AI Agents</li>
+                        <li className="flex items-center text-sm text-white font-medium"><CheckIcon className="w-5 h-5 text-[var(--gradient-start)] mr-3 flex-shrink-0" /> Performance Analytics</li>
+                         <li className="flex items-center text-sm text-white font-medium"><CheckIcon className="w-5 h-5 text-[var(--gradient-start)] mr-3 flex-shrink-0" /> Unlock Video Ads & Strategy Tools</li>
                     </ul>
-                    <button onClick={() => alert('Contacting sales!')} className="mt-auto w-full bg-slate-800 hover:bg-slate-700 text-white font-semibold py-3 rounded-lg transition-colors">Contact Sales</button>
+                    <button onClick={() => onNavigate('signup')} className="w-full py-4 rounded-xl bg-gradient-to-r from-[var(--gradient-start)] to-[var(--gradient-end)] hover:opacity-90 text-white font-bold shadow-lg shadow-[var(--gradient-start)]/20 transition-all transform hover:scale-[1.02]">Go Pro</button>
+                </div>
+
+                {/* Enterprise Card */}
+                <div className="flex flex-col p-6 md:p-8 rounded-3xl bg-slate-900/40 border border-slate-800 backdrop-blur-sm transition-transform duration-300 hover:-translate-y-1 h-full">
+                    <div className="mb-6">
+                        <h3 className="text-lg font-medium text-slate-300 mb-2">Enterprise</h3>
+                        <div className="flex items-baseline gap-1 mb-4">
+                            <span className="text-4xl font-bold text-white">Custom</span>
+                        </div>
+                        <p className="text-sm text-slate-400 leading-relaxed">
+                            For organizations requiring bespoke solutions, integrations, and unparalleled support.
+                        </p>
+                    </div>
+                    <ul className="space-y-4 mb-8 flex-grow">
+                        <li className="flex items-center text-sm text-slate-300"><CheckIcon className="w-5 h-5 text-slate-500 mr-3 flex-shrink-0" /> Everything in Pro</li>
+                        <li className="flex items-center text-sm text-slate-300"><CheckIcon className="w-5 h-5 text-slate-500 mr-3 flex-shrink-0" /> Custom integrations & SSO</li>
+                        <li className="flex items-center text-sm text-slate-300"><CheckIcon className="w-5 h-5 text-slate-500 mr-3 flex-shrink-0" /> Dedicated account manager</li>
+                        <li className="flex items-center text-sm text-slate-300"><CheckIcon className="w-5 h-5 text-slate-500 mr-3 flex-shrink-0" /> Team collaboration tools</li>
+                    </ul>
+                    <button onClick={() => alert('Contacting sales!')} className="w-full py-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-semibold transition-colors">Contact Sales</button>
                 </div>
             </div>
             <div className="text-center mt-8">
