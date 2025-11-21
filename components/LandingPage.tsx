@@ -6,13 +6,23 @@ import SocialIcon from './icons/SocialIcon';
 import AgentIcon from './icons/AgentIcon';
 import AnalyticsIcon from './icons/AnalyticsIcon';
 import ChevronDownIcon from './icons/ChevronDownIcon';
+import HistoryIcon from './icons/HistoryIcon';
+import StarIcon from './icons/StarIcon';
+import GoalIcon from './icons/GoalIcon';
+import PlanIcon from './icons/PlanIcon';
+import DeployIcon from './icons/DeployIcon';
 import TwitterIcon from './icons/TwitterIcon';
 import LinkedInIcon from './icons/LinkedInIcon';
 import EmailIcon from './icons/EmailIcon';
 import AdIcon from './icons/AdIcon';
+import VideoIcon from './icons/VideoIcon';
 import { useIntersectionObserver } from '../hooks/useIntersectionObserver';
+import UserIcon from './icons/UserIcon';
+import InfoIcon from './icons/InfoIcon';
+import Tooltip from './Tooltip';
 import SparklesIcon from './icons/SparklesIcon';
 import TrendingUpIcon from './icons/TrendingUpIcon';
+import ImageIcon from './icons/ImageIcon';
 import GlobeIcon from './icons/GlobeIcon';
 
 
@@ -201,8 +211,7 @@ const FaqItem: React.FC<{ question: string; children: React.ReactNode }> = ({ qu
     );
 };
 
-// Modified to accept an override text if Programmatic SEO is active
-const DynamicHeadline: React.FC<{ forcedNiche?: string }> = ({ forcedNiche }) => {
+const DynamicHeadline: React.FC = () => {
     const [text, setText] = useState('');
     const [isDeleting, setIsDeleting] = useState(false);
     const [loopNum, setLoopNum] = useState(0);
@@ -212,8 +221,6 @@ const DynamicHeadline: React.FC<{ forcedNiche?: string }> = ({ forcedNiche }) =>
     const roles = ['Marketing', 'Content Creation', 'Growth Hacking', 'Social Media'];
 
     useEffect(() => {
-        if (forcedNiche) return; // Don't animate if we have a forced niche
-
         const handleTyping = () => {
             const i = loopNum % roles.length;
             const fullText = roles[i];
@@ -235,15 +242,7 @@ const DynamicHeadline: React.FC<{ forcedNiche?: string }> = ({ forcedNiche }) =>
         const timer = setTimeout(handleTyping, isDeleting ? deletingSpeed : typingSpeed);
 
         return () => clearTimeout(timer);
-    }, [text, isDeleting, loopNum, roles, forcedNiche]);
-
-    if (forcedNiche) {
-        return (
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-[var(--gradient-start)] to-[var(--gradient-end)] brightness-125 pb-1">
-                {forcedNiche}
-            </span>
-        );
-    }
+    }, [text, isDeleting, loopNum, roles]);
 
     return (
         <span className="bg-clip-text text-transparent bg-gradient-to-r from-[var(--gradient-start)] to-[var(--gradient-end)] brightness-125 pb-1">
@@ -260,29 +259,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annually'>('annually');
   const [brandInput, setBrandInput] = useState('');
   
-  // Chameleon Strategy: State for dynamic content
-  const [niche, setNiche] = useState<string | null>(null);
-  const [dynamicSubhead, setDynamicSubhead] = useState("Automate your entire marketing workflow in minutes. From strategy to execution, let your AI co-pilot do the heavy lifting.");
-  const [dynamicPlaceholder, setDynamicPlaceholder] = useState("Enter your website URL or what you sell...");
-  
   const [isDemoVisible, setIsDemoVisible] = useState(false);
   const demoRef = useRef<HTMLDivElement>(null);
-
-  // Chameleon Strategy: Effect to parse URL parameters
-  useEffect(() => {
-      const params = new URLSearchParams(window.location.search);
-      const nicheParam = params.get('niche') || params.get('industry');
-      const roleParam = params.get('role');
-      
-      if (nicheParam) {
-          setNiche(nicheParam);
-          setDynamicSubhead(`The ultimate AI advantage for ${nicheParam} professionals. Automate your campaigns, client updates, and lead generation in seconds.`);
-          setDynamicPlaceholder(`Enter your ${nicheParam} website or service...`);
-      } else if (roleParam) {
-          setNiche(roleParam);
-          setDynamicSubhead(`Supercharge your ${roleParam} workflow. Generate weeks of high-converting content in minutes, not days.`);
-      }
-  }, []);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -306,26 +284,12 @@ const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
 
   const handleQuickStart = (e: React.FormEvent) => {
       e.preventDefault();
-      
-      // Chameleon Strategy: Check if we have deep-link params to pass through
-      const params = new URLSearchParams(window.location.search);
-      const toolParam = params.get('tool');
-      const topicParam = params.get('topic');
-
-      if (toolParam) {
-          // Save intent to storage so Dashboard picks it up after signup
-          sessionStorage.setItem('synapse_intent', JSON.stringify({
-              toolId: toolParam,
-              topic: topicParam || brandInput || '',
-              prefill: { topic: topicParam || brandInput || '' }
-          }));
-      }
-
       if (brandInput.trim()) {
           sessionStorage.setItem('synapse_onboarding_input', brandInput);
+          onNavigate('signup');
+      } else {
+          onNavigate('signup');
       }
-      
-      onNavigate('signup');
   };
 
   return (
@@ -336,11 +300,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
         <main className="hero-background flex-grow flex items-center justify-center pt-32 pb-16 md:pt-40 md:pb-20">
           <div className="relative z-10 container mx-auto px-4 text-center">
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight mb-4 opacity-0 animate-fade-in-up" style={{textShadow: '0 2px 10px rgba(0,0,0,0.5)', animationDelay: '0.2s'}}>
-             The AI Command Center for {niche ? '' : <br className="hidden md:block" />} 
-             <DynamicHeadline forcedNiche={niche || undefined} />
+             The AI Command Center for Modern <br className="hidden md:block" /> <DynamicHeadline />
             </h1>
              <p className="text-base sm:text-lg md:text-xl text-slate-400 max-w-3xl mx-auto mb-8 opacity-0 animate-fade-in-up px-2" style={{textShadow: '0 2px 8px rgba(0,0,0,0.5)', animationDelay: '0.4s'}}>
-              {dynamicSubhead}
+              Automate your entire marketing workflow in minutes. From strategy to execution, let your AI co-pilot do the heavy lifting.
             </p>
             
             {/* New Reverse Onboarding Input */}
@@ -350,7 +313,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
                     <div className="relative flex flex-col sm:flex-row items-stretch sm:items-center bg-slate-900 rounded-lg p-1.5 border border-slate-700 focus-within:border-[var(--gradient-start)] transition-colors shadow-2xl">
                         <input 
                             type="text" 
-                            placeholder={dynamicPlaceholder} 
+                            placeholder="Enter your website URL or what you sell..." 
                             className="w-full bg-transparent text-white placeholder-slate-400 px-4 py-3 outline-none text-base md:text-lg"
                             value={brandInput}
                             onChange={(e) => setBrandInput(e.target.value)}
@@ -627,7 +590,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
             <AnimatedSection delay={0}>
               <div className="bg-slate-900 p-6 md:p-8 rounded-xl border border-slate-800 flex flex-col h-full transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-black/30">
                   <div className="flex items-center mb-4">
-                      <SparklesIcon className="w-5 h-5 text-yellow-400" /><SparklesIcon className="w-5 h-5 text-yellow-400" /><SparklesIcon className="w-5 h-5 text-yellow-400" /><SparklesIcon className="w-5 h-5 text-yellow-400" /><SparklesIcon className="w-5 h-5 text-yellow-400" />
+                      <StarIcon className="w-6 h-6 text-yellow-400" /><StarIcon className="w-6 h-6 text-yellow-400" /><StarIcon className="w-6 h-6 text-yellow-400" /><StarIcon className="w-6 h-6 text-yellow-400" /><StarIcon className="w-6 h-6 text-yellow-400" />
                   </div>
                   <p className="text-slate-300 mb-6 flex-grow">"The autonomous agent feature is a game-changer. We deployed a campaign for a new product launch and it handled everything from social copy to email drafts. Our productivity has skyrocketed."</p>
                   <div className="flex items-center gap-3">
@@ -642,7 +605,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
             <AnimatedSection delay={150}>
                <div className="bg-slate-900 p-6 md:p-8 rounded-xl border border-slate-800 flex flex-col h-full transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-black/30">
                   <div className="flex items-center mb-4">
-                      <SparklesIcon className="w-5 h-5 text-yellow-400" /><SparklesIcon className="w-5 h-5 text-yellow-400" /><SparklesIcon className="w-5 h-5 text-yellow-400" /><SparklesIcon className="w-5 h-5 text-yellow-400" /><SparklesIcon className="w-5 h-5 text-yellow-400" />
+                      <StarIcon className="w-6 h-6 text-yellow-400" /><StarIcon className="w-6 h-6 text-yellow-400" /><StarIcon className="w-6 h-6 text-yellow-400" /><StarIcon className="w-6 h-6 text-yellow-400" /><StarIcon className="w-6 h-6 text-yellow-400" />
                   </div>
                   <p className="text-slate-300 mb-6 flex-grow">"Synapse AI has become the brain of our content strategy. The quality of the generated content is consistently high and always on-brand, thanks to the Brand Voice feature."</p>
                   <div className="flex items-center gap-3">
@@ -657,7 +620,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
             <AnimatedSection delay={300}>
                <div className="bg-slate-900 p-6 md:p-8 rounded-xl border border-slate-800 flex flex-col h-full transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-black/30">
                   <div className="flex items-center mb-4">
-                      <SparklesIcon className="w-5 h-5 text-yellow-400" /><SparklesIcon className="w-5 h-5 text-yellow-400" /><SparklesIcon className="w-5 h-5 text-yellow-400" /><SparklesIcon className="w-5 h-5 text-yellow-400" /><SparklesIcon className="w-5 h-5 text-yellow-400" />
+                      <StarIcon className="w-6 h-6 text-yellow-400" /><StarIcon className="w-6 h-6 text-yellow-400" /><StarIcon className="w-6 h-6 text-yellow-400" /><StarIcon className="w-6 h-6 text-yellow-400" /><StarIcon className="w-6 h-6 text-yellow-400" />
                   </div>
                   <p className="text-slate-300 mb-6 flex-grow">"I was skeptical about AI writers, but Synapse is different. It's a strategic tool, not just a content spinner. The analytics dashboard helps us connect our content efforts directly to ROI."</p>
                   <div className="flex items-center gap-3">
