@@ -205,7 +205,7 @@ const FaqItem: React.FC<{ question: string; children: React.ReactNode }> = ({ qu
                 <ChevronDownIcon className={`w-6 h-6 transition-transform text-slate-400 flex-shrink-0 ${isOpen ? 'rotate-180' : ''}`} />
             </button>
             <div className={`overflow-hidden transition-all duration-300 ${isOpen ? 'max-h-96 mt-2' : 'max-h-0'}`}>
-                <div className="pt-2 text-slate-400 text-sm sm:text-base">{children}</div>
+                <div className="pt-2 text-slate-400 text-sm sm:text-base leading-relaxed">{children}</div>
             </div>
         </div>
     );
@@ -645,20 +645,20 @@ const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
           <div className="space-y-2">
             <FaqItem question="What makes Synapse different from other AI writers?">
                 <p>
-                    While most AI writers focus only on generating text, Synapse AI is a complete marketing command center designed to deliver measurable results. We go beyond simple content creation by providing a suite of powerful strategic tools. 
+                    While most AI writers focus only on generating text, Synapse AI is a complete <span className="font-bold text-white">marketing command center</span> designed to deliver measurable results. We go beyond simple content creation by providing a suite of powerful strategic tools. 
                 </p>
                  <p className="mt-4">
-                    With our <strong className="font-semibold text-slate-200">Campaign Builder</strong>, you can plan an entire multi-channel strategy from a single goal. The <strong className="font-semibold text-slate-200">Resonance Engine</strong> predicts how your audience will react to copy *before* you publish it, and our <strong className="font-semibold text-slate-200">Market Signal Analyzer</strong> uncovers the trending topics your customers are actively searching for. This strategic foundation empowers our <strong className="font-semibold text-slate-200">Autonomous AI Agents</strong> to execute entire campaigns for you, turning your goals into reality. We're not just a tool; we're your strategic partner for growth.
+                    With our <span className="font-bold text-white">Campaign Builder</span>, you can plan an entire multi-channel strategy from a single goal. The <span className="font-bold text-white">Resonance Engine</span> predicts how your audience will react to copy *before* you publish it, and our <span className="font-bold text-white">Market Signal Analyzer</span> uncovers the trending topics your customers are actively searching for. This strategic foundation empowers our <span className="font-bold text-white">Autonomous AI Agents</span> to execute entire campaigns for you, turning your goals into reality. We're not just a tool; we're your strategic partner for growth.
                 </p>
             </FaqItem>
             <FaqItem question="How does Synapse compare to ChatGPT, Claude, Gemini, or Perplexity?">
-                Think of generic LLMs as raw engines, while Synapse AI is the high-performance vehicle built for speed. While tools like ChatGPT or Perplexity require endless prompting to get on-brand results, Synapse is pre-engineered with marketing expertise. We integrate your specific Brand Voice, strategic frameworks, and autonomous agents to execute entire campaigns in seconds. We don't just generate text; we deliver finished, revenue-driving assets without the "prompt engineering" headache.
+                Think of generic <span className="font-bold text-white">LLMs</span> as raw engines, while Synapse AI is the high-performance vehicle built for speed. While tools like <span className="font-bold text-white">ChatGPT</span> or <span className="font-bold text-white">Perplexity</span> require endless prompting to get on-brand results, Synapse is pre-engineered with marketing expertise. We integrate your specific <span className="font-bold text-white">Brand Voice</span>, strategic frameworks, and autonomous agents to execute entire campaigns in seconds. We don't just generate text; we deliver finished, revenue-driving assets without the <span className="font-bold text-white">prompt engineering</span> headache.
             </FaqItem>
             <FaqItem question="Is my data secure?">
-                Absolutely. We prioritize user privacy and data security. All your generated content, brand profile, and account information are encrypted and securely stored. We never sell your data.
+                Absolutely. We prioritize user privacy and data security. All your generated content, brand profile, and account information are <span className="font-bold text-white">encrypted</span> and <span className="font-bold text-white">securely stored</span>. We <span className="font-bold text-white">never sell</span> your data.
             </FaqItem>
             <FaqItem question="Can I cancel my subscription anytime?">
-                Yes, you can cancel your Pro subscription at any time. You will retain access to Pro features until the end of your current billing period. No questions asked.
+                Yes, you can <span className="font-bold text-white">cancel</span> your Pro subscription at any time. You will retain access to Pro features until the end of your current billing period. No questions asked.
             </FaqItem>
           </div>
         </div>
