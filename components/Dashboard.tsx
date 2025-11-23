@@ -49,6 +49,7 @@ import SignalIcon from './icons/SignalIcon';
 import ViralVideoIdeaIcon from './icons/ViralVideoIdeaIcon';
 import BrainCircuitIcon from './icons/BrainCircuitIcon';
 import Tooltip from './Tooltip';
+import LockIcon from './icons/LockIcon'; // Import LockIcon
 
 import UpgradeModal from './UpgradeModal';
 import CampaignBuilder from './CampaignBuilder';
@@ -1518,6 +1519,27 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
                     spendCredits={spendCredits}
                 />;
       case 'analytics':
+        // HARD GATE: Block analytics for freemium users to prevent value leak.
+        if (user.plan === 'freemium') {
+            return (
+                <div className="flex-1 flex flex-col items-center justify-center bg-slate-900 rounded-xl border border-slate-800/80 p-8 text-center shadow-2xl shadow-black/30 h-full animate-fade-in-up">
+                    <div className="p-6 rounded-full bg-slate-800/50 mb-6 relative overflow-hidden group">
+                        <div className="absolute inset-0 bg-gradient-to-br from-[var(--gradient-start)] to-[var(--gradient-end)] opacity-20 blur-xl group-hover:opacity-30 transition-opacity duration-500"></div>
+                        <LockIcon className="w-16 h-16 text-[var(--gradient-start)] relative z-10" />
+                    </div>
+                    <h2 className="text-3xl font-bold text-white mb-4">Unlock Performance Analytics</h2>
+                    <p className="text-slate-400 max-w-md mb-8 text-lg">
+                        Gain deep insights into your content performance and agent efficiency. Analytics are exclusively available on the Pro plan.
+                    </p>
+                    <button 
+                        onClick={() => setShowUpgradeModal(true)} 
+                        className="bg-gradient-to-r from-[var(--gradient-start)] to-[var(--gradient-end)] hover:opacity-90 text-white font-bold py-3 px-8 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg shadow-[color:var(--gradient-start)]/30 text-lg"
+                    >
+                        Upgrade to Pro
+                    </button>
+                </div>
+            );
+        }
         return <AnalyticsDashboard user={user} />;
       case 'settings':
         return <SettingsView user={user} onUserUpdate={(updatedUser) => setUser(updatedUser)} onSaveSuccess={handleSettingsSaveSuccess} />;

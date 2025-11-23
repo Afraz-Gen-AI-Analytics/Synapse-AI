@@ -71,20 +71,21 @@ const HomeDashboard: React.FC<HomeDashboardProps> = ({ user, templates, onSelect
         fetchData();
     }, [user.uid]);
 
-    const socialTemplate = templates.find(t => t.id === ContentType.SocialMediaPost);
-    const blogTemplate = templates.find(t => t.id === ContentType.BlogIdea);
-    const emailTemplate = templates.find(t => t.id === ContentType.EmailCopy);
+    // Selecting the most high-value, "SaaS-like" strategic tools for the Quick Start
     const campaignTemplate = templates.find(t => t.id === ContentType.Campaign);
-    const marketSignalAnalyzerTemplate = templates.find(t => t.id === ContentType.MarketSignalAnalyzer);
-    const adCreativeStudioTemplate = templates.find(t => t.id === ContentType.AIAdCreativeStudio);
+    const marketSignalTemplate = templates.find(t => t.id === ContentType.MarketSignalAnalyzer);
+    const resonanceTemplate = templates.find(t => t.id === ContentType.ResonanceEngine);
+    const seoTemplate = templates.find(t => t.id === ContentType.BlogIdea); // SEO Content Strategist
+    const adCreativeTemplate = templates.find(t => t.id === ContentType.AIAdCreativeStudio);
+    const viralVideoTemplate = templates.find(t => t.id === ContentType.VideoScriptHook); // Viral Video Blueprint
 
     const quickStartItems = [
-        socialTemplate,
         campaignTemplate,
-        blogTemplate,
-        emailTemplate,
-        marketSignalAnalyzerTemplate,
-        adCreativeStudioTemplate,
+        marketSignalTemplate,
+        resonanceTemplate,
+        seoTemplate,
+        adCreativeTemplate,
+        viralVideoTemplate,
     ].filter(Boolean) as Template[];
 
     return (
@@ -126,20 +127,20 @@ const HomeDashboard: React.FC<HomeDashboardProps> = ({ user, templates, onSelect
             
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Left Column: Quick Start */}
-                <div className="lg:col-span-2 flex flex-col bg-gradient-to-br from-slate-900 to-slate-950 rounded-xl border border-slate-800/80 shadow-2xl shadow-black/30 p-6">
+                <div className="lg:col-span-2 flex flex-col bg-gradient-to-br from-slate-900 to-slate-950 rounded-xl border border-slate-800/80 shadow-2xl shadow-black/30 p-4 sm:p-6 overflow-hidden">
                     <h2 className="text-xl font-bold text-white mb-4">Quick Start</h2>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {/* 2-column Grid for Mobile */}
+                    <div className="grid grid-cols-2 gap-3 sm:gap-4">
                         {quickStartItems.map(item => (
                              <button
                                 key={item.id}
                                 onClick={() => onSelectTemplate(item)}
-                                className="flex flex-col items-start p-4 rounded-lg text-left transition-all bg-slate-800/50 hover:bg-slate-800 border border-slate-700/70 hover:border-[var(--gradient-end)]/50 w-full group"
+                                className="flex flex-col items-start p-3 sm:p-4 rounded-xl text-left transition-all bg-slate-800/50 hover:bg-slate-800 border border-slate-700/70 hover:border-[var(--gradient-end)]/50 group h-full"
                             >
-                                <div className="flex flex-row md:flex-col items-center md:items-start w-full mb-2 md:mb-0">
-                                    <item.icon className="w-6 h-6 md:w-7 md:h-7 mr-3 md:mr-0 md:mb-3 text-[var(--gradient-start)] flex-shrink-0 transition-transform duration-300 group-hover:scale-110" />
-                                    <span className="font-semibold text-white text-base md:text-lg">{item.name}</span>
-                                </div>
-                                <span className="text-sm text-slate-400 md:mt-1 leading-snug line-clamp-2">{item.description}</span>
+                                <item.icon className="w-5 h-5 sm:w-8 sm:h-8 mb-2 sm:mb-3 text-[var(--gradient-start)] transition-transform duration-300 group-hover:scale-110" />
+                                {/* Truncate on mobile (default), normal whitespace/break on small screens and up */}
+                                <span className="font-bold text-white text-xs sm:text-lg leading-tight mb-1 w-full truncate sm:whitespace-normal sm:overflow-visible">{item.name}</span>
+                                <span className="text-[10px] sm:text-sm text-slate-400 leading-relaxed line-clamp-2">{item.description}</span>
                             </button>
                         ))}
                     </div>
@@ -147,15 +148,13 @@ const HomeDashboard: React.FC<HomeDashboardProps> = ({ user, templates, onSelect
 
                 {/* Right Column: Usage, Agents & History */}
                 <div className="flex flex-col space-y-6">
-                    {user.plan === 'freemium' && (
-                         <div className="flex flex-col bg-gradient-to-br from-slate-900 to-slate-950 rounded-xl border border-slate-800/80 shadow-2xl shadow-black/30 p-6">
-                            <div className="flex items-center mb-4">
-                               <SparklesIcon className="w-5 h-5 mr-3 text-slate-400" />
-                               <h2 className="text-xl font-bold text-white">Plan Usage</h2>
-                            </div>
-                            <UsageUpgradeCard user={user} onUpgrade={onUpgrade} />
+                    <div className="flex flex-col bg-gradient-to-br from-slate-900 to-slate-950 rounded-xl border border-slate-800/80 shadow-2xl shadow-black/30 p-6">
+                        <div className="flex items-center mb-4">
+                            <SparklesIcon className="w-5 h-5 mr-3 text-slate-400" />
+                            <h2 className="text-xl font-bold text-white">Plan Usage</h2>
                         </div>
-                    )}
+                        <UsageUpgradeCard user={user} onUpgrade={onUpgrade} />
+                    </div>
 
                     <div className="flex-1 flex flex-col bg-gradient-to-br from-slate-900 to-slate-950 rounded-xl border border-slate-800/80 shadow-2xl shadow-black/30 p-6">
                         <div className="flex items-center mb-4">
